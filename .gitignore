@@ -1,0 +1,11 @@
+# ignore ide stuff
+.idea/
+.ipynb_checkpoints/
+.vscode/
+.vs/
+
+# ignore pycache
+__pycache__/
+
+# ignore log files
+*.log
