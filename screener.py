@@ -4,8 +4,10 @@ import dash_html_components as html
 import dash_table
 from dash.dependencies import Input, Output, State
 
-import pandas as pd
+import plotly.offline as py
 import plotly.graph_objs as go
+
+import pandas as pd
 
 df = pd.DataFrame({'Symbol': ['AAPL', 'GOOG', 'MSFT', 'FB'],
                     'Growth': [20, 30, 40, 50],
@@ -32,13 +34,12 @@ app.layout = html.Div([
         selected_rows=[],
         pagination_mode=False
     ),
-    html.Div(id='my_output'),
     dcc.Graph(id='chart')
 ])
 
 
 @app.callback(
-    Output('my_output', "children"),
+    Output('chart', "figure"),
     [Input('datatable', "active_cell")],
     [State('datatable', "derived_viewport_data")]
 )
@@ -49,13 +50,42 @@ def update_output(active_cell, table_data):
         active_row = active_cell[0]
 
     if table_data is None:
-        return ''
+        return{
+        'data': None
+        }
     else:
         dff = pd.DataFrame(table_data)
         symbol = dff['Symbol'][active_row]
-        filepath = f'C:\Program Files\AmiBroker\AmiQuote\Download\{symbol}.aqh'
-        return pd.read_csv(filepath, skiprows=1)
+        filepath = f'C:\\Program Files\\AmiBroker\\AmiQuote\\Download\\{symbol}.aqh'
+        quotes = pd.read_csv(filepath, skiprows=1)
+        quotes = quotes.iloc[-750:]
 
+        trace = go.Ohlc(
+                x=pd.to_datetime(quotes['# Date'], format='%d-%m-%Y'),
+                open=quotes['Open'],
+                high=quotes['High'],
+                low=quotes['Low'],
+                close=quotes['Close'])
+    
+        return{
+            'data': [trace],
+            'layout': go.Layout(
+                xaxis={
+                    'title': 'xtitle',
+                    'type': 'date'
+                },
+                yaxis={
+                    'title': 'ytitle',
+                    'type': 'log',
+                    'autorange': True,
+                    'fixedrange': False
+                },
+                height=800,
+                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+                legend={'x': 0, 'y': 1},
+                hovermode='closest'
+            )
+        }
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
