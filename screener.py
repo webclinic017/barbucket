@@ -1,62 +1,60 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+import dash_table
+from dash.dependencies import Input, Output, State
 
 import pandas as pd
 import plotly.graph_objs as go
 
-df = pd.read_csv(
-    'https://raw.githubusercontent.com/plotly/'
-    'datasets/master/gapminderDataFiveYear.csv')
+df = pd.DataFrame({'Symbol': ['AAPL', 'GOOG', 'MSFT', 'FB'],
+                    'Growth': [20, 30, 40, 50],
+                    'Channel width': [90, 80, 70, 60]})
+
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
-    dcc.Graph(id='graph-with-slider'),
-    dcc.Slider(
-        id='year-slider',
-        min=df['year'].min(),
-        max=df['year'].max(),
-        value=df['year'].min(),
-        marks={str(year): str(year) for year in df['year'].unique()}
-    )
+    dash_table.DataTable(
+        id='datatable',
+        columns=[
+            {"name": i, "id": i, "deletable": False} for i in df.columns
+        ],
+        data=df.to_dict("rows"),
+        editable=False,
+        filtering=True,
+        sorting=True,
+        sorting_type="multi",
+        row_selectable=False,
+        row_deletable=False,
+        selected_rows=[],
+        pagination_mode=False
+    ),
+    html.Div(id='my_output'),
+    dcc.Graph(id='chart')
 ])
 
 
 @app.callback(
-    Output('graph-with-slider', 'figure'),
-    [Input('year-slider', 'value')])
-def update_figure(selected_year):
-    filtered_df = df[df.year == selected_year]
-    traces = []
-    for i in filtered_df.continent.unique():
-        df_by_continent = filtered_df[filtered_df['continent'] == i]
-        traces.append(go.Scatter(
-            x=df_by_continent['gdpPercap'],
-            y=df_by_continent['lifeExp'],
-            text=df_by_continent['country'],
-            mode='markers',
-            opacity=0.7,
-            marker={
-                'size': 15,
-                'line': {'width': 0.5, 'color': 'white'}
-            },
-            name=i
-        ))
+    Output('my_output', "children"),
+    [Input('datatable', "active_cell")],
+    [State('datatable', "derived_viewport_data")]
+)
+def update_output(active_cell, table_data):
+    if active_cell is None:
+        active_row = 1
+    else:
+        active_row = active_cell[0]
 
-    return {
-        'data': traces,
-        'layout': go.Layout(
-            xaxis={'type': 'log', 'title': 'GDP Per Capita'},
-            yaxis={'title': 'Life Expectancy', 'range': [20, 90]},
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-            legend={'x': 0, 'y': 1},
-            hovermode='closest'
-        )
-    }
+    if table_data is None:
+        return ''
+    else:
+        dff = pd.DataFrame(table_data)
+        symbol = dff['Symbol'][active_row]
+        filepath = f'C:\Program Files\AmiBroker\AmiQuote\Download\{symbol}.aqh'
+        return pd.read_csv(filepath, skiprows=1)
 
 
 if __name__ == '__main__':
