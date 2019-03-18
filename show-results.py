@@ -1,3 +1,13 @@
+"""
+Todo:
+- y-axis scaling with range slider
+- 2 charts, long- and mid-term
+- charts go on right hand side, next to table
+- dark colorscheme
+- possibility to integrate custom indicartors and oscillators
+- visualize trading signals
+"""
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
