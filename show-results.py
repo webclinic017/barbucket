@@ -66,9 +66,10 @@ def update_output(active_cell, table_data):
     else:
         dff = pd.DataFrame(table_data)
         symbol = dff['Symbol'][active_row]
-        filepath = f'C:\\Program Files\\AmiBroker\\AmiQuote\\Download\\{symbol}.aqh'
+        # filepath = f'C:\\Program Files\\AmiBroker\\AmiQuote\\Download\\{symbol}.aqh'
+        filepath = f'C:\\Users\\marti\\Google Drive\\data\\screener\\{symbol}.aqh'
         quotes = pd.read_csv(filepath, skiprows=1)
-        quotes = quotes.iloc[-750:]
+        # quotes = quotes.iloc[-750:]
 
         trace = go.Ohlc(
                 x=pd.to_datetime(quotes['# Date'], format='%d-%m-%Y'),
