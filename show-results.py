@@ -18,11 +18,28 @@ import plotly.offline as py
 import plotly.graph_objs as go
 
 import pandas as pd
+import json
 
-df = pd.DataFrame({'Symbol': ['AAPL', 'GOOG', 'MSFT', 'FB'],
-                    'Growth': [20, 30, 40, 50],
-                    'Channel width': [90, 80, 70, 60]})
+symbols = []
+file = open('xetra_etf_symbols.txt','r') 
+for line in file:
+    symbols.append(line.rstrip())
+file.close()
 
+names = []
+for symbol in symbols:
+    file = open(f'data\{symbol}.json', 'r')
+    data = json.load(file)
+    if 'longName' in data.keys():
+        name = data['longName']
+    elif 'shortName' in data.keys():
+        name = data['shortName']    
+    else:
+        name = 'No name provided.'
+    names.append(name)
+
+df = pd.DataFrame({'Symbol': symbols,
+    'Name': names})
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -32,7 +49,14 @@ app.layout = html.Div([
     dash_table.DataTable(
         id='datatable',
         columns=[
-            {"name": i, "id": i, "deletable": False} for i in df.columns
+            {"name": i, "id": i, "deletable": False} for i in df.columns.tolist()
+        ],
+        style_cell={'textAlign': 'left'},
+        style_cell_conditional=[
+            {
+                'if': {'column_id': 'Region'},
+                'textAlign': 'left'
+            }
         ],
         data=df.to_dict("rows"),
         editable=False,
@@ -42,7 +66,11 @@ app.layout = html.Div([
         row_selectable=False,
         row_deletable=False,
         selected_rows=[],
-        pagination_mode=False
+        pagination_mode=False,
+        style_table={
+            'maxHeight': '300',
+            'overflowY': 'scroll'
+        }
     ),
     dcc.Graph(id='chart')
 ])
@@ -67,12 +95,12 @@ def update_output(active_cell, table_data):
         dff = pd.DataFrame(table_data)
         symbol = dff['Symbol'][active_row]
         # filepath = f'C:\\Program Files\\AmiBroker\\AmiQuote\\Download\\{symbol}.aqh'
-        filepath = f'C:\\Users\\marti\\Google Drive\\data\\screener\\{symbol}.aqh'
-        quotes = pd.read_csv(filepath, skiprows=1)
-        # quotes = quotes.iloc[-750:]
+        filepath = f'data\\{symbol}.csv'
+        quotes = pd.read_csv(filepath)
+        quotes = quotes.iloc[-750:]
 
         trace = go.Ohlc(
-                x=pd.to_datetime(quotes['# Date'], format='%d-%m-%Y'),
+                x=pd.to_datetime(quotes['Date'], format='%Y-%m-%d'),
                 open=quotes['Open'],
                 high=quotes['High'],
                 low=quotes['Low'],
@@ -91,7 +119,7 @@ def update_output(active_cell, table_data):
                     'autorange': True,
                     'fixedrange': False
                 },
-                height=800,
+                height=600,
                 margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
                 legend={'x': 0, 'y': 1},
                 hovermode='closest'
