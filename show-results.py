@@ -19,6 +19,21 @@ import plotly.graph_objs as go
 
 import pandas as pd
 import json
+import logging
+
+
+logging.basicConfig(
+    filename = 'show-results.log',
+    level = logging.DEBUG,
+    format = '%(asctime)s\t\t%(levelname)s\t\t%(message)s',
+    datefmt = '%m-/%d-/%Y_%I:%M:%S.%p')
+
+# logging.debug('This message should go to the log file')
+# logging.info('So should this')
+# logging.warning('And this, too')
+# logging.error('And this, too')
+# logging.critical('And this, too')
+
 
 symbols = []
 file = open('xetra_etf_symbols.txt','r') 
@@ -28,7 +43,9 @@ file.close()
 
 names = []
 for symbol in symbols:
+    logging.debug(f'Opening file for: {symbol}')
     file = open(f'data\{symbol}.json', 'r')
+    logging.debug(f'Reading file for: {symbol}')
     data = json.load(file)
     if 'longName' in data.keys():
         name = data['longName']
