@@ -1,18 +1,41 @@
-def bad_data (df):
+def bad_data (df, index_trading_days):
 
-    # Missing bars in between
-    pass
+    result = {
+        'missing_bars': 0,
+        'missing_bars_at_begin': 0,
+        'missing_bars_at_end': 0,
+        'invalid_candle': [],
+        'value_jump': [],
+        'no_movement': []
+    }
 
-    # Missing bars for presence
+    # Missing bars overall
+    result.missing_bars = len(index_trading_days) - len(df)
+
+    # Missing bars at begin
+    result.missing_bars_at_begin = df.index[0] - index_trading_days[0]
+
+    # Missing bars at end
+    result.missing_bars_at_end = index_trading_days[-1] - df.index[-1]
 
 
-    # Too few bars
+    for candle in df:
 
+        # Invalid candle
+        if max(candle.open, candle.low, candle.close) > candle.high or min(
+        candle.open, candle.high, candle.close) < candle.low:
+            result['invalid_candle'].append(True)
+        else:
+            result['invalid_candle'].append(False)
 
-    # Invalid candles
+        # Value jumps
+        # FIXME
+        result['invalid_candle'].append(False)
 
+        # No movement from this open to this close
+        if candle.close == candle.open:
+            result['no_movement'].append(True)
+        else:
+            result['no_movement'].append(False)
 
-    # Value jumps
-
-
-    # No movement
+    return result

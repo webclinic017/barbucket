@@ -18,56 +18,21 @@ import plotly.offline as py
 import plotly.graph_objs as go
 
 import pandas as pd
-import json
-import logging
 
 
-logging.basicConfig(
-    filename = 'show-results.log',
-    level = logging.DEBUG,
-    format = '%(asctime)s\t\t%(levelname)s\t\t%(message)s',
-    datefmt = '%m-/%d-/%Y_%I:%M:%S.%p')
+# Read tabledata
+df = pd.read_pickle('table_data.pkl')
 
-# logging.debug('This message should go to the log file')
-# logging.info('So should this')
-# logging.warning('And this, too')
-# logging.error('And this, too')
-# logging.critical('And this, too')
-
-
-symbols = []
-file = open('xetra_etf_symbols.txt','r') 
-for line in file:
-    symbols.append(line.rstrip())
-file.close()
-
-names = []
-for symbol in symbols:
-    logging.debug(f'Opening file for: {symbol}')
-    file = open(f'data\{symbol}.json', 'r')
-    logging.debug(f'Reading file for: {symbol}')
-    data = json.load(file)
-    if 'longName' in data.keys():
-        name = data['longName']
-    elif 'shortName' in data.keys():
-        name = data['shortName']    
-    else:
-        name = 'No name provided.'
-    names.append(name)
-    file.close()
-
-df = pd.DataFrame({'Symbol': symbols,
-    'Name': names})
-
+# Build Dash app
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
     dash_table.DataTable(
         id='datatable',
         columns=[
-            {"name": i, "id": i, "deletable": False} for i in df.columns.tolist()
+            {"name": column, "id": column, "deletable": False} 
+            for column in df.columns.tolist()
         ],
         style_cell={'textAlign': 'left'},
         style_cell_conditional=[
@@ -94,6 +59,7 @@ app.layout = html.Div([
 ])
 
 
+# Another line of the table was selected -> update graph
 @app.callback(
     Output('chart', "figure"),
     [Input('datatable', "active_cell")],
@@ -106,13 +72,10 @@ def update_output(active_cell, table_data):
         active_row = active_cell[0]
 
     if table_data is None:
-        return{
-        'data': None
-        }
+        return{'data': None}
     else:
         dff = pd.DataFrame(table_data)
         symbol = dff['Symbol'][active_row]
-        # filepath = f'C:\\Program Files\\AmiBroker\\AmiQuote\\Download\\{symbol}.aqh'
         filepath = f'data\\{symbol}.csv'
         quotes = pd.read_csv(filepath)
         quotes = quotes.iloc[-750:]
@@ -134,15 +97,21 @@ def update_output(active_cell, table_data):
                 yaxis={
                     'title': 'ytitle',
                     'type': 'log',
-                    'autorange': True,
-                    'fixedrange': False
+                    # 'autorange': True,
+                    'fixedrange': True,
+                    'side': 'right'
                 },
                 height=600,
-                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+                margin={'l': 10, 'b': 40, 't': 10, 'r': 40},
                 legend={'x': 0, 'y': 1},
                 hovermode='closest'
-            )
+            ),
+            'config': {
+                'scrollZoom': True
+            }
         }
 
+
+# Run Dash app
 if __name__ == '__main__':
     app.run_server(debug=False)
