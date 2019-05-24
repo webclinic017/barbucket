@@ -54,6 +54,7 @@ for symbol in symbols:
     else:
         name = 'No name provided.'
     names.append(name)
+    file.close()
 
 df = pd.DataFrame({'Symbol': symbols,
     'Name': names})
