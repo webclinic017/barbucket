@@ -36,3 +36,12 @@
 - scan for bad quote data
 - parameterization of calculation metrics
 - calculate trading signals
+
+
+GUI
+- y-axis scaling with range slider
+- 2 charts, long- and mid-term
+- charts go on right hand side, next to table
+- dark colorscheme
+- possibility to integrate custom indicartors and oscillators
+- visualize trading signals

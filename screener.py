@@ -1,13 +1,3 @@
-"""
-Todo:
-- y-axis scaling with range slider
-- 2 charts, long- and mid-term
-- charts go on right hand side, next to table
-- dark colorscheme
-- possibility to integrate custom indicartors and oscillators
-- visualize trading signals
-"""
-
 import pandas as pd
 import json
 import logging
@@ -21,8 +11,6 @@ import dash_dangerously_set_inner_html
 
 import plotly.offline as py
 import plotly.graph_objs as go
-
-from highcharts import Highchart
 
 
 def build_datatable():
@@ -49,22 +37,21 @@ def build_datatable():
     file.close()
 
 
-    # Build table structure
-    table_data = pd.DataFrame({'Symbol': [], 
-                                'Full Name': [],
-                                'Bad Data': []
-                                })
+    # Initialize empty dataframe
+    table_data = pd.DataFrame()
 
 
     # Generate table data
     for symbol in symbols:
+
+        row_data = {}
 
         # Get price data for symbols
         price_data = pd.read_csv(f'data\{symbol}.csv')
             
 
         # Add to "Symbol" column
-        table_data.Symbol.append(symbol)
+        row_data['Symbol'] = symbol
 
 
         # Add to "Full Name" column from json file
@@ -78,20 +65,24 @@ def build_datatable():
             name = data['shortName']    
         else:
             name = 'No name provided.'
-        table_data.Name.append(name)
+        row_data['Name'] = name
         file.close()
 
 
         # Add to "Bad Data" column
         # TODO
+        row_data['bad_data'] = 'ok'
+
+
+        table_data = table_data.append(row_data, ignore_index=True)
 
 
 
     # Pre-filter table data
     # TODO
-    table_data = table_data[table_data['Bad Data'] == False & 
-                            table_data['second_column_name'] >= 0
-                            ]
+    # table_data = table_data[table_data['Bad Data'] == False & 
+    #                         table_data['second_column_name'] >= 0
+    #                         ]
 
 
     # Return table data
@@ -99,6 +90,8 @@ def build_datatable():
 
 
 # Build Dash app
+df = build_datatable()
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -130,8 +123,7 @@ app.layout = html.Div([
             'overflowY': 'scroll'
         }
     ),
-    dash_dangerously_set_inner_html.DangerouslySetInnerHTML(
-        id='dangerous_html')
+    dcc.Graph(id='chart')
 ])
 
 
@@ -156,94 +148,37 @@ def update_output(active_cell, table_data):
         quotes = pd.read_csv(filepath)
         quotes = quotes.iloc[-750:]
 
-        chart = Highchart()
-        chart.set_options('chart', {'inverted': True})
-
-        options = {
-            'title': {
-                'text': 'Atmosphere Temperature by Altitude'
-            },
-            'subtitle': {
-                'text': 'According to the Standard Atmosphere Model'
-            },
-            'xAxis': {
-                'reversed': False,
-                'title': {
-                    'enabled': True,
-                    'text': 'Altitude'
+        trace = go.Ohlc(
+                x=pd.to_datetime(quotes['Date'], format='%Y-%m-%d'),
+                open=quotes['Open'],
+                high=quotes['High'],
+                low=quotes['Low'],
+                close=quotes['Close'])
+    
+        return{
+            'data': [trace],
+            'layout': go.Layout(
+                xaxis={
+                    'title': 'xtitle',
+                    'type': 'date'
                 },
-                'labels': {
-                    'formatter': 'function () {\
-                        return this.value + "km";\
-                    }'
+                yaxis={
+                    'title': 'ytitle',
+                    'type': 'log',
+                    'fixedrange': True,
+                    'side': 'right'
                 },
-                'maxPadding': 0.05,
-                'showLastLabel': True
-            },
-            'yAxis': {
-                'title': {
-                    'text': 'Temperature'
-                },
-                'labels': {
-                    'formatter': "function () {\
-                        return this.value + '°';\
-                    }"
-                },
-                'lineWidth': 2
-            },
-            'legend': {
-                'enabled': False
-            },
-            'tooltip': {
-                'headerFormat': '<b>{series.name}</b><br/>',
-                'pointFormat': '{point.x} km: {point.y}°C'
+                height=600,
+                margin={'l': 10, 'b': 40, 't': 10, 'r': 40},
+                legend={'x': 0, 'y': 1},
+                hovermode='closest'
+            ),
+            'config': {
+                'scrollZoom': True
             }
         }
-
-        chart.set_dict_options(options)
-        data =  [[0, 15], [10, -50], [20, -56.5], [30, -46.5], [40, -22.1], 
-        [50, -2.5], [60, -27.7], [70, -55.7], [80, -76.5]]
-        chart.add_data_set(data, 'spline', 'Temperature', marker={'enabled': False}) 
-
-        # return HTML content
-        return str(chart)
-
-
-        # trace = go.Ohlc(
-        #         x=pd.to_datetime(quotes['Date'], format='%Y-%m-%d'),
-        #         open=quotes['Open'],
-        #         high=quotes['High'],
-        #         low=quotes['Low'],
-        #         close=quotes['Close'])
-    
-        # return{
-        #     'data': [trace],
-        #     'layout': go.Layout(
-        #         xaxis={
-        #             'title': 'xtitle',
-        #             'type': 'date'
-        #         },
-        #         yaxis={
-        #             'title': 'ytitle',
-        #             'type': 'log',
-        #             # 'autorange': True,
-        #             'fixedrange': True,
-        #             'side': 'right'
-        #         },
-        #         height=600,
-        #         margin={'l': 10, 'b': 40, 't': 10, 'r': 40},
-        #         legend={'x': 0, 'y': 1},
-        #         hovermode='closest'
-        #     ),
-        #     'config': {
-        #         'scrollZoom': True
-        #     }
-        # }
 
 
 # Run Dash app
 if __name__ == '__main__':
     app.run_server(debug=False)
-
-
-datatable = build_datatable()
