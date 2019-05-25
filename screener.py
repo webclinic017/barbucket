@@ -48,6 +48,8 @@ def build_datatable():
 
         # Get price data for symbols
         price_data = pd.read_csv(f'data\{symbol}.csv')
+        if len(price_data) < 750:
+            continue
             
 
         # Add to "Symbol" column
