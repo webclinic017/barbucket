@@ -1,12 +1,14 @@
 # Get symbols
 - get symbols from
     xetra
+    lse
+    paris
+
     nasdaq
     nyse
     amex
     (?)crypto
     (?)currencies
-    
 - filter for symbols of interest
 - transfer to symbols database
 - symbol database
@@ -16,7 +18,6 @@
     exchange
     index
     type
-
 - grouping of symbols
 - deleting of no-group symbols
 - exporting of Amiquote lists
@@ -28,6 +29,7 @@
 - compensate for splits
 - find bad data or missing data and delete symbols from symbol-database
 - write quote-data to quotes databse
+- ib data
 
 
 # Screener engine
@@ -39,9 +41,13 @@
 
 
 GUI
-- y-axis scaling with range slider
+- y-axis scaling depending on visible values
 - 2 charts, long- and mid-term
 - charts go on right hand side, next to table
 - dark colorscheme
 - possibility to integrate custom indicartors and oscillators
 - visualize trading signals
+- table sortalble per column
+- table filterable per column
+- table row selectable by arrow keys
+- table auto scrolls to keep selected row visible
