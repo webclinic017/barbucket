@@ -1,3 +1,15 @@
+def get_trading_days(start, end):
+    '''
+    start: 'YYY-MM-DD'
+    end: 'YYYY-MM-DD'
+    '''
+
+    quotes = pd.read_csv('data\\^GDAXI.csv')
+    quotes = quotes[start:end]
+
+    return len(quotes.index.tolist())
+
+
 def bad_data (
     df, 
     index_trading_days, 
@@ -6,9 +18,17 @@ def bad_data (
     # max_missing_bars_at_begin = 0, 
     max_invalid_candle = 0,
     max_value_jump = 25,
-    max_no_movement = 5
-):
-
+    max_no_movement = 5):
+    '''
+    df: 
+    index_trading_days: int
+    max_missing_bars = 0: 
+    max_missing_bars_at_end = 0: 
+    max_missing_bars_at_begin = 0: 
+    max_invalid_candle = 0:
+    max_value_jump = 25:
+    max_no_movement = 5:
+    '''
 
     result = {
         'flag': False,
