@@ -42,7 +42,9 @@ def bad_data (
 
 
     # Missing bars overall
-    result.missing_bars = index_trading_days - len(df)
+    result.missing_bars = index_trading_days - len(
+        df[index_trading_days[0]:index_trading_days[-1]])
+
 
     # # Missing bars at begin
     # result.missing_bars_at_begin = df.index[0] - index_trading_days[0]
