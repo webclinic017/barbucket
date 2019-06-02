@@ -1,13 +1,16 @@
+import pandas as pd
+
 def get_trading_days(start, end):
     '''
-    start: 'YYY-MM-DD'
+    start: 'YYYY-MM-DD'
     end: 'YYYY-MM-DD'
     '''
 
     quotes = pd.read_csv('data\\^GDAXI.csv')
+    quotes = quotes.set_index('Date')
     quotes = quotes[start:end]
 
-    return len(quotes.index.tolist())
+    return len(quotes.index)
 
 
 def bad_data (
@@ -42,18 +45,17 @@ def bad_data (
 
 
     # Missing bars overall
-    result.missing_bars = index_trading_days - len(
-        df[index_trading_days[0]:index_trading_days[-1]])
+    result['missing_bars'] = index_trading_days - len(df)
 
 
-    # # Missing bars at begin
+    # Missing bars at begin
     # result.missing_bars_at_begin = df.index[0] - index_trading_days[0]
 
-    # # Missing bars at end
+    # Missing bars at end
     # result.missing_bars_at_end = index_trading_days[-1] - df.index[-1]
 
 
-    for candle in df:
+    for index, candle in df.iterrows():
 
         # Invalid candle
         if max(candle.Open, candle.Low, candle.Close) > candle.High or min(
@@ -78,13 +80,13 @@ def bad_data (
         result['missing_bars'] > max_missing_bars or
         # result['missing_bars_at_begin'] > max_missing_bars_at_begin or
         # result['missing_bars_at_end'] > max_missing_bars_at_end or
-        result['invalid_candle'] > max_invalid_candle or
-        result['value_jump'] > max_value_jump or
-        result['no_movement'] > max_no_movement
+        result['invalid_candle'].count(True) > max_invalid_candle or
+        result['value_jump'].count(True) > max_value_jump or
+        result['no_movement'].count(True) > max_no_movement
     ):
-        result.flag = False
+        result['flag'] = False
     else:
-        result.flag = True
+        result['flag'] = True
 
 
     return result
