@@ -12,3 +12,4 @@ __pycache__/
 
 # ignore data
 data/*
+ib_tws_api/data/*
