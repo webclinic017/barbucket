@@ -29,6 +29,10 @@ def pick_to_csv(filename):
     df.loc[:, 'date'] = pd.to_datetime(df.date, format='%Y%m%d') #'%Y%m%d  %H:%M:%S'
     df = df.set_index('date')
     
+    # Delete existing file
+    if os.path.isfile('data/' + filename + '.csv'):
+        os.remove('data/' + filename + '.csv')
+
     # Write dataframe to csv file
     df.to_csv('data/' + filename + '.csv')
     
