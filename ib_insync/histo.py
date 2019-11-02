@@ -17,8 +17,8 @@ def on_error(reqId, errorCode, errorString, contract):
         status = status.replace("'", "")
         contracts_db.update(
             {'Status': status},
-            (my_query.Sybol == contract.symbol and
-            my_query.Exchange == contract.exchange))
+            ((my_query.Sybol == contract.symbol) &
+            (my_query.Exchange == contract.exchange)))
                 # Todo: Use ConId
         contracts_db.close()
         print(contract.symbol + '_' + contract.exchange + ' ' + status)
@@ -29,8 +29,8 @@ ib = ib_insync.ib.IB()
 ib.errorEvent += on_error
 ib.connect('127.0.0.1', 7497, clientId=1, readonly=True)
 
-start_id = 20
-end_id = 40
+start_id = 2050
+end_id = 2100
 for index in range(start_id, end_id):
         # Todo: Make the loop stoppable
         # Todo: Add timeout
@@ -80,7 +80,7 @@ for index in range(start_id, end_id):
     
     if len(bars) == 0:
         print('no data. Contract aborted.')
-        break
+        continue
 
     print('completed.')
 
