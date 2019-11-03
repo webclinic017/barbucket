@@ -17,7 +17,7 @@ def on_error(reqId, errorCode, errorString, contract):
         status = status.replace("'", "")
         contracts_db.update(
             {'Status': status},
-            ((my_query.Sybol == contract.symbol) &
+            ((my_query.Symbol == contract.symbol) &
             (my_query.Exchange == contract.exchange)))
                 # Todo: Use ConId
         contracts_db.close()
@@ -29,8 +29,8 @@ ib = ib_insync.ib.IB()
 ib.errorEvent += on_error
 ib.connect('127.0.0.1', 7497, clientId=1, readonly=True)
 
-start_id = 2050
-end_id = 2100
+start_id = 0
+end_id = 5323
 for index in range(start_id, end_id):
         # Todo: Make the loop stoppable
         # Todo: Add timeout
@@ -42,9 +42,15 @@ for index in range(start_id, end_id):
     contracts_db.close()
     current_contract = result[0]
     contract_status = current_contract['Status']
-    debug_string = str(index) + ': ' + current_contract['Symbol'] + '_' + current_contract['Exchange'] + ' requesting. '
+    debug_string = str(index) + ': ' + current_contract['Symbol'] + '_' + current_contract['Exchange']
     print(debug_string, end='')
-    
+
+    # Skip contract, if has error status
+    if contract_status.startswith('Error:'):
+        print(' Contract data not available. ')
+        print('-------------------------')
+        continue
+
     # Calculate length of requested data
         # Todo: Skip contract on certain error status, eg. tws does not know this contract
         # todo: exit on certain error status, eg no connection
@@ -53,7 +59,8 @@ for index in range(start_id, end_id):
         end_date = datetime.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
         if ndays <= 1:
-            print('data is up to date. ' + str(ndays))
+            print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
+            print('-------------------------')
             continue
         ndays += 4
         duration_str = str(ndays) + ' D'
@@ -61,11 +68,13 @@ for index in range(start_id, end_id):
         duration_str = "10 Y"
     
     if current_contract['Symbol'] == 'XGSD' and current_contract['Exchange'] == 'LSE':
-        print('Skipping XGSD_LSE.')
+        print(' Skipping XGSD_LSE.')
+        print('-------------------------')
         continue
         # Todo: Fix me
     
     # Create contract and request data
+    print(' Requsting data.', end='')
     ib_contract = ib_insync.contract.Stock(
         symbol=current_contract['Symbol'],
         exchange=current_contract['Exchange'],
@@ -79,10 +88,11 @@ for index in range(start_id, end_id):
         useRTH=True)
     
     if len(bars) == 0:
-        print('no data. Contract aborted.')
+        print('No data received. Contract aborted.')
+        print('-------------------------')
         continue
 
-    print('completed.')
+    print(' Receiving completed.', end='')
 
     df_new = ib_insync.util.df(bars)
     df_new = df_new[['date', 'open', 'high', 'low', 'close', 'volume']]
@@ -115,9 +125,9 @@ for index in range(start_id, end_id):
     contracts_db.update({'Status': 'data_ends:'+string_now}, my_query.Id == index)
     contracts_db.close()
 
-    print(current_contract['Symbol'] + '_' + current_contract['Exchange'] + ' successful.')
+    print(' Data stored.')
     print('-------------------------')
-    ib.sleep(0.2)
+    # ib.sleep(0.1)
 
 print('******** All done. ********')
 ib.disconnect()
