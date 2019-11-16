@@ -5,18 +5,23 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
-jupyterlab = "*"
 wheel = "*"
 
 [packages]
-ibpythonic = "*"
 pandas = "*"
 numpy = "*"
+
+jupyterlab = "*" # "==0.30.5" # for qgrid
+qgrid = "*"
+
+plotly = "*"
+python-highcharts = "*"
+
+ibpythonic = "*"
+ib-insync = "*"
+
 tinydb = "*"
 tqdm = "*"
-ib-insync = "*"
-qgrid = "*"
-plotly = "*"
 
 [requires]
 python_version = "3.7"

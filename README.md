@@ -11,3 +11,7 @@ show chart of selected row in table
 ## contribution
 status private
 for contribution prease contact me
+
+## Installation
+jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.31.3
+jupyter labextension install qgrid
