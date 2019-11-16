@@ -10,18 +10,15 @@ wheel = "*"
 [packages]
 pandas = "*"
 numpy = "*"
-
 jupyterlab = "*" # "==0.30.5" # for qgrid
 qgrid = "*"
-
 plotly = "*"
 python-highcharts = "*"
-
 ibpythonic = "*"
 ib-insync = "*"
-
 tinydb = "*"
 tqdm = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.7"
