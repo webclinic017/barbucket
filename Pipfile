@@ -13,11 +13,9 @@ jupyterlab = "*" # "==0.30.5" # for qgrid
 qgrid = "*"
 plotly = "*"
 python-highcharts = "*"
-ibpythonic = "*"
 ib-insync = "*"
 tinydb = "*"
 tqdm = "*"
-matplotlib = "*"
 sklearn = "*"
 
 [requires]
