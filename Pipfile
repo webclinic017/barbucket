@@ -17,6 +17,8 @@ ib-insync = "*"
 tinydb = "*"
 tqdm = "*"
 sklearn = "*"
+beautifulsoup4 = "*"
+selenium = "*"
 
 [requires]
 python_version = "3.7"
