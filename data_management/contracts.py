@@ -47,7 +47,7 @@ class ContractsDB:
         conn.close()
 
 
-    def create_contract(self, symbol, name, currency, exchange, status=0, \        
+    def create_contract(self, symbol, name, currency, exchange, status=0, \
         status_text='new contract'):
         # Todo: Return success or not
 
@@ -184,8 +184,11 @@ class ContractsDB:
         # Todo: Return statistics
 
         # Get contracts from website
+        print(f'exchange: {exchange}')
         url = f'https://www.interactivebrokers.com/en/index.php?f=567&exch={exchange}'
-        browser = webdriver.Chrome()
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+        browser = webdriver.Chrome(chrome_options=options)
         browser.get(url)
         html = browser.page_source
         browser.quit()

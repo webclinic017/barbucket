@@ -31,10 +31,10 @@ def on_error(reqId, errorCode, errorString, contract):
         status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
         conn = data_management.contracts.ContractsDB()
         conn.update_contract_status(
-            contract.symbol,
-            contract.exchange,
-            status,
-            status_text)
+            symbol=contract.symbol,
+            exchange=contract.exchange,
+            status=status,
+            status_text=status_text)
         print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
 
 
@@ -58,8 +58,8 @@ def get_historical_data():
     ib.connect('127.0.0.1', 7497, clientId=1, readonly=True)
 
     # Get contracts data
-    start_id = 1500
-    end_id = 2500
+    start_id = 4875
+    end_id = 5000
     conn = data_management.contracts.ContractsDB()
     contracts = conn.get_contracts()
 
@@ -154,10 +154,11 @@ def get_historical_data():
         status_text = 'data_ends:'+string_now
         conn = data_management.contracts.ContractsDB()
         conn.update_contract_status(
-            current_contract['symbol'],
-            current_contract['exchange'],
-            status,
-            status_text)
+            symbol=current_contract['symbol'],
+            exchange=current_contract['exchange'],
+            status=status,
+            status_text=status_text
+        )
 
         print(' Data stored.')
         print('-------------------------')

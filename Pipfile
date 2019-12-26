@@ -19,6 +19,7 @@ tqdm = "*"
 sklearn = "*"
 beautifulsoup4 = "*"
 selenium = "*"
+trading-calendars = "*"
 
 [requires]
 python_version = "3.7"
