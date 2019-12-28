@@ -55,6 +55,7 @@ class DataQualityCheck():
         exchange_trading_days = self.trading_days[exchange]
         sliced_exchange_trading_days = exchange_trading_days[
             contract_trading_days[0]:contract_trading_days[-1]]
+            # Todo: End of slice is today, not end of contract data.
         sliced_exchange_trading_days = \
             sliced_exchange_trading_days.index.strftime('%Y-%m-%d').to_list()
 

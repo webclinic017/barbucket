@@ -7,6 +7,8 @@ import os
 import data_management.contracts
 
 
+abort_operation = False
+
 
 def on_error(reqId, errorCode, errorString, contract):
     """
@@ -25,8 +27,15 @@ def on_error(reqId, errorCode, errorString, contract):
         No errors
     """
 
+    # Abort receiving if systematical problem is detected
+    non_critical_codes = [162, 200, 354, 2104, 2106, 2158]
+    if errorCode not in non_critical_codes:
+        print('Systemic problem detected. ' + str(errorCode) + ' - ' + errorString)
+        global abort_operation
+        abort_operation = True
+
+    # Write error info to contract database, if error is related to contract
     if contract is not None:
-        # write msg info to contracts database
         status = errorCode
         status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
         conn = data_management.contracts.ContractsDB()
@@ -58,15 +67,19 @@ def get_historical_data():
     ib.connect('127.0.0.1', 7497, clientId=1, readonly=True)
 
     # Get contracts data
-    start_id = 4875
-    end_id = 5000
+    start_id = 1610
+    end_id = 1620
     conn = data_management.contracts.ContractsDB()
     contracts = conn.get_contracts()
 
     # Iterate over contracts
     for current_contract in contracts[start_id:end_id]:
-            # Todo: Make the loop stoppable
-            # Todo: Add timeout
+
+        # Abort requesting data
+        global abort_operation
+        if abort_operation is True:
+            print('Aborting receiving.')
+            break
 
         contract_status = current_contract['status']
         contract_status_text = current_contract['status_text']
@@ -81,13 +94,11 @@ def get_historical_data():
         #     continue
 
         # Calculate length of requested data
-            # Todo: Skip contract on certain error status, eg. tws does not know this contract
-            # todo: exit on certain error status, eg no connection
         if contract_status == 1:
             start_date = (contract_status_text.split(':'))[1]
             end_date = datetime.today().strftime('%Y-%m-%d')
             ndays = np.busday_count(start_date, end_date)
-            if ndays <= 1:
+            if ndays <= 10:
                 print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
                 print('-------------------------')
                 continue
@@ -95,12 +106,6 @@ def get_historical_data():
             duration_str = str(ndays) + ' D'
         else:
             duration_str = "10 Y"
-        
-        if current_contract['symbol'] == 'XGSD' and current_contract['exchange'] == 'LSE':
-            print(' Skipping XGSD_LSE.')
-            print('-------------------------')
-            continue
-            # Todo: Fix me
         
         # Create contract and request data
         print(' Requsting data.', end='')
@@ -162,7 +167,6 @@ def get_historical_data():
 
         print(' Data stored.')
         print('-------------------------')
-        # ib.sleep(0.1)
 
     # Finish
     print('******** All done. ********')
