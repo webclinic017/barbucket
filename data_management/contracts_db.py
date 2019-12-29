@@ -1,69 +1,40 @@
 import sqlite3
-import os
-from datetime import datetime
+# import os
+# from datetime import datetime
 from tinydb import TinyDB, Query
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
+from data_management.database import DataBase
 
-class ContractsDB:
-    __DB_PATH = 'data_management/contracts.db'
 
+class ContractsDB(DataBase):
 
     def __init__(self):
         pass
 
 
-    def connect_placeholder(self):
-        pass
-
-
-    def disconnect_placeholder(self):
-        pass
-
-
-    def init_database(self):
-        # backup old database
-        if os.path.isfile(self.__DB_PATH):
-            now = datetime.now()
-            timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-            new_name = self.__DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
-            os.rename(self.__DB_PATH, new_name)
-
-        # create new database
-        conn = sqlite3.connect(self.__DB_PATH)
-        cur = conn.cursor()
-
-        cur.execute('''CREATE TABLE contracts (
-            symbol text, 
-            name text, 
-            currency text, 
-            exchange text, 
-            status integer,
-            status_text text)''')
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-
-    def create_contract(self, symbol, name, currency, exchange, status=0, \
-        status_text='new contract'):
+    def create_contract(self, ctype, symbol, name, currency, exchange, 
+        status_code=0, status_text='new contract'):
         # Todo: Return success or not
 
-        conn = sqlite3.connect(self.__DB_PATH)
+        status_text = self.remove_special_chars(status_text)
+
+        conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
 
-        cur.execute("""INSERT INTO contracts VALUES (?, ?, ?,
-            ?, ?, ?)""", (symbol, name, currency, exchange, status, status_text))
+        cur.execute("""INSERT INTO contracts (type, symbol, name, currency, 
+            exchange, status_code, status_text) VALUES (?, ?, ?, 
+            ?, ?, ?, ?)""", (ctype, symbol, name, currency, exchange, \
+            status_code, status_text))
 
         conn.commit()
         cur.close()
         conn.close()
 
 
-    def get_contracts(self, symbol='*', name='*', currency='*', exchange='*', \
-        status='*', status_text='*'):
+    def get_contracts(self, ctype='*', symbol='*', name='*', currency='*', 
+        exchange='*', status_code='*', status_text='*'):
         """
         returns a list of sqlite3.Row objects
         """
@@ -71,11 +42,12 @@ class ContractsDB:
         query = 'SELECT * FROM contracts'
 
         filters = {}
+        if ctype != '*': filters.update({'type': ctype})
         if symbol != '*': filters.update({'symbol': symbol})
         if name != '*': filters.update({'name': name})
         if currency != '*': filters.update({'currency': currency})
         if exchange != '*': filters.update({'exchange': exchange.upper()})
-        if status != '*': filters.update({'status': status})
+        if status_code != '*': filters.update({'status_code': status_code})
         if status_text != '*': filters.update({'status_text': status_text})
 
         if len(filters) > 0:
@@ -87,7 +59,7 @@ class ContractsDB:
         if len(filters) > 0:
             query = query[:-5]
 
-        conn = sqlite3.connect(self.__DB_PATH)
+        conn = sqlite3.connect(self.DB_PATH)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -101,14 +73,17 @@ class ContractsDB:
         return result
 
 
-    def update_contract_status(self, symbol, exchange, status, status_text):
-        status_text = status_text.replace("'", "")
+    def update_contract_status(self, symbol, exchange, status_code, 
+        status_text):
+        status_text = self.remove_special_chars(status_text)
         
         query = f"UPDATE contracts \
-                    SET status = {status}, status_text = '{status_text}' \
-                    WHERE (symbol = '{symbol}' AND exchange = '{exchange}')"
+                    SET (status_code = {status_code}, \
+                        status_text = '{status_text}') \
+                    WHERE (symbol = '{symbol}' \
+                        AND exchange = '{exchange}')"
         
-        conn = sqlite3.connect(self.__DB_PATH)
+        conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
 
         cur.execute(query)
@@ -121,9 +96,11 @@ class ContractsDB:
     def delete_contract(self, symbol, exchange):
         # Todo: Return number of deleted rows
 
-        query = f"DELETE FROM contracts WHERE (symbol = '{symbol}' AND exchange = '{exchange}')"
+        query = f"DELETE FROM contracts \
+                    WHERE (symbol = '{symbol}' \
+                        AND exchange = '{exchange}')"
         
-        conn = sqlite3.connect(self.__DB_PATH)
+        conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
 
         cur.execute(query)
@@ -133,40 +110,13 @@ class ContractsDB:
         conn.close()
 
 
-    def import_from_tinydb(self):
-        # TINY_DB_PATH = 'data_management/contracts_db.json'
+    def delete_bad_status_contracts(self):
+        query = 'DELETE FROM contracts \
+                    WHERE (status = 162 \
+                        OR status = 200 \
+                        OR status = 354)'
         
-        # self.init_database()
-
-        # tiny_contracts_db = TinyDB(TINY_DB_PATH)
-        # result = tiny_contracts_db.all()
-        # tiny_contracts_db.close()
-
-        # for contract in result:
-        #     status = -1
-        #     if contract['Status'].startswith('Error:200_'):
-        #         status = 200
-        #     elif contract['Status'].startswith('Error:162_'):
-        #         status = 162
-        #     elif contract['Status'].startswith('data_ends:'):
-        #         status = 1
-        #     elif contract['Status'].startswith('no_data'):
-        #         status = 0
-
-        #     self.create_contract(
-        #         symbol=contract['Symbol'],
-        #         name=contract['Name'],
-        #         currency=contract['Currency'],
-        #         exchange=contract['Exchange'],
-        #         status=status,
-        #         status_text=contract['Status'])
-        pass
-
-
-    def delete_no_data_contracts(self):
-        query = 'DELETE FROM contracts WHERE (status = 162 OR status = 200)'
-        
-        conn = sqlite3.connect(self.__DB_PATH)
+        conn = sqlite3.connect(self.DB_PATH)
         cur = conn.cursor()
 
         cur.execute(query)
@@ -180,7 +130,7 @@ class ContractsDB:
         pass
 
 
-    def sync_contracts_to_listing(self, exchange):
+    def sync_contracts_to_listing(self, ctype, exchange):
         # Todo: Return statistics
 
         # Get contracts from website
@@ -201,6 +151,7 @@ class ContractsDB:
         for row in rows:
             cols = row.find_all('td')
             row_dict = {
+                'type': ctype,
                 'symbol': cols[0].text.strip(),
                 'name': cols[1].text.strip(),
                 'currency': cols[3].text.strip(),
@@ -209,7 +160,7 @@ class ContractsDB:
             website_data.append(row_dict)
         
         # Get contracts from database
-        database_data = self.get_contracts(exchange=exchange)
+        database_data = self.get_contracts(ctype=ctype, exchange=exchange)
 
         # Delete contracts from database, that are not present in website
         deleted_rows = 0
@@ -222,7 +173,8 @@ class ContractsDB:
                         break
             if not exists:
                 print('deleting: ' + db_row['symbol'] + ' - ' + exchange.upper())
-                self.delete_contract(symbol=db_row['symbol'], exchange=exchange.upper())
+                self.delete_contract(symbol=db_row['symbol'], \
+                                    exchange=exchange.upper())
                 deleted_rows += 1
         print('deleted rows: ' + str(deleted_rows))
 
@@ -238,6 +190,7 @@ class ContractsDB:
             if not exists:
                 print('creating: ' + web_row['symbol'] + ' - ' + exchange.upper())
                 self.create_contract(
+                    ctype=ctype,
                     symbol=web_row['symbol'],
                     name=web_row['name'],
                     currency=web_row['currency'],
@@ -247,7 +200,31 @@ class ContractsDB:
         print('added rows: ' + str(added_rows))
 
 
-    def remove_old_contracts_from_web_placeholder(self):
+    def migrate_from_contracts_db(self):
+        # Get contracts from old db
+        # conn_old = sqlite3.connect('data_management/contracts.db')
+        # conn_old.row_factory = sqlite3.Row
+        # cur = conn_old.cursor()
+
+        # query = 'SELECT * FROM contracts'
+        # cur.execute(query)
+        # old_contracts = cur.fetchall()
+
+        # conn_old.commit()
+        # cur.close()
+        # conn_old.close()
+
+        # # Create contracts in new db
+        # for old_contract in old_contracts:
+        #     self.create_contract(
+        #         ctype='ETF', 
+        #         symbol=old_contract['symbol'], 
+        #         name=old_contract['name'], 
+        #         currency=old_contract['currency'], 
+        #         exchange=old_contract['exchange'], 
+        #         status_code=old_contract['status'], 
+        #         status_text=old_contract['status_text']
+        #     )
+        #     print('Created ' + old_contract['symbol'] + '_' + \
+        #         old_contract['exchange'])
         pass
-
-

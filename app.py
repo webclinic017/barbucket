@@ -1,22 +1,24 @@
-import data_management.contracts
-import data_management.histo
+from data_management.contracts_db import ContractsDB
+from data_management.quotes_db import QuotesDB
+
+import data_management.req_historical_data
 import data_management.data_quality_check
 
 
-con = data_management.contracts.ContractsDB()
+cont_db = ContractsDB()
+quot_db = QuotesDB()
 
-# con.init_database()
-# con.create_contract('test', 'This is ma name', 'USD', 'TOY_X')
-# result = con.get_contracts(exchange='LSEETF')
-# print((result[0])['symbol'])
-# con.import_from_tinydb()
-# con.delete_no_data_contracts()
+# cont.init_database()
+# cont.migrate_from_contracts_db()
+
+# cont.delete_no_data_contracts()
 
 # exchanges = ['fwb', 'ibis', 'lse', 'lseetf']
 # for ex in exchanges:
-#     con.sync_contracts_to_listing(ex)
+#     cont.sync_contracts_to_listing(ex)
 
-# con.sync_contracts_to_listing('fwb')
+# cont.sync_contracts_to_listing('fwb')
 
+# data_management.req_historical_data.get_historical_data()
 
-data_management.histo.get_historical_data()
+quot_db. migrate_from_csv()

@@ -1,18 +1,19 @@
-# ignore ide stuff
+# ide stuff
 .idea/
 .ipynb_checkpoints/
 .vscode/
 .vs/
 
-# ignore pycache
+# pycache
 __pycache__/
 
-# ignore log files
+# log files
 *.log
 
-# ignore data
+# data
 data/*
 ib_tws_api/data/*
+*.db
 
 # ignore os stuff
 .DS_Store
