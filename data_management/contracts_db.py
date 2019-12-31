@@ -20,7 +20,7 @@ class ContractsDB(DataBase):
 
         status_text = self.remove_special_chars(status_text)
 
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.execute("""INSERT INTO contracts (type, symbol, name, currency, 
@@ -30,7 +30,7 @@ class ContractsDB(DataBase):
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
 
 
     def get_contracts(self, ctype='*', symbol='*', name='*', currency='*', 
@@ -59,7 +59,7 @@ class ContractsDB(DataBase):
         if len(filters) > 0:
             query = query[:-5]
 
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -68,62 +68,80 @@ class ContractsDB(DataBase):
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
 
         return result
 
 
-    def update_contract_status(self, symbol, exchange, status_code, 
+    def update_contract_status(self, symbol, exchange, currency, status_code, 
         status_text):
         status_text = self.remove_special_chars(status_text)
         
-        query = f"UPDATE contracts \
-                    SET (status_code = {status_code}, \
-                        status_text = '{status_text}') \
-                    WHERE (symbol = '{symbol}' \
-                        AND exchange = '{exchange}')"
+        query = f"""UPDATE contracts 
+                    SET status_code = {status_code}, 
+                        status_text = '{status_text}' 
+                    WHERE (symbol = '{symbol}' 
+                        AND exchange = '{exchange}'
+                        AND currency = '{currency}');"""
         
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.execute(query)
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
 
 
-    def delete_contract(self, symbol, exchange):
+    def delete_contract(self, symbol, exchange, currency):
         # Todo: Return number of deleted rows
 
         query = f"DELETE FROM contracts \
                     WHERE (symbol = '{symbol}' \
-                        AND exchange = '{exchange}')"
+                        AND exchange = '{exchange}' \
+                        AND currency = '{currency}');"
         
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.execute(query)
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
+
+
+    # def delete_contract(self, contract_id):
+    #     # Todo: Return number of deleted rows
+
+    #     query = f"DELETE FROM contracts \
+    #                 WHERE contract_id = '{contract_id}';"
+        
+    #     conn = self.connect()
+    #     cur = conn.cursor()
+
+    #     cur.execute(query)
+
+    #     conn.commit()
+    #     cur.close()
+    #     self.disconnect(conn)
 
 
     def delete_bad_status_contracts(self):
         query = 'DELETE FROM contracts \
-                    WHERE (status = 162 \
-                        OR status = 200 \
-                        OR status = 354)'
+                    WHERE (status_code = 162 \
+                        OR status_code = 200 \
+                        OR status_code = 354);'
         
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.execute(query)
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
 
 
     def delete_bad_data_contracts_placeholder(self):
@@ -174,7 +192,8 @@ class ContractsDB(DataBase):
             if not exists:
                 print('deleting: ' + db_row['symbol'] + ' - ' + exchange.upper())
                 self.delete_contract(symbol=db_row['symbol'], \
-                                    exchange=exchange.upper())
+                                    exchange=exchange.upper(),
+                                    currency=db_row['currency'])
                 deleted_rows += 1
         print('deleted rows: ' + str(deleted_rows))
 

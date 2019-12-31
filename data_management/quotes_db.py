@@ -14,7 +14,7 @@ class QuotesDB(DataBase):
 
     def insert_quotes(self, contract_id, quotes):
 
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.executemany("""REPLACE INTO quotes (contract_id, date, open, high, 
@@ -22,7 +22,14 @@ class QuotesDB(DataBase):
 
         conn.commit()
         cur.close()
-        conn.close()
+        self.disconnect(conn)
+
+
+    def clean_quotes_db_placeholder(self):
+        # Check for quotes with no contracts
+        # Check if data ends at date specified in contract
+        # Check for data gaps
+        pass
 
 
     def migrate_from_csv(self):
