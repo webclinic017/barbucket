@@ -87,6 +87,28 @@ class DataQualityCheck():
         return result
 
 
+    def check_for_no_data_placeholder(self):
+        # Tesed query, removes all matching contracts:
+
+        # DELETE FROM contracts
+        # WHERE contract_id IN (
+        #     SELECT
+        #         contract_id
+        #     FROM
+        #         contracts c
+        #     WHERE
+        #         NOT EXISTS (
+        #             SELECT 
+        #                 1 
+        #             FROM 
+        #                 quotes
+        #             WHERE 
+        #                 contract_id = c.contract_id
+        #         )
+        # )
+        pass
+
+
     def invalid_candles(self, ):
         """
         Invalid ccandles
@@ -122,36 +144,43 @@ class DataQualityCheck():
     def check_single_quote(self, contract_id, exchange):
         result_dict = {}
         quotes = self.quotes_db.get_quotes(contract_id)
-        
-        df = pd.DataFrame()
+
+        if len(quotes) == 0:
+            print('-' + str(contract_id) + 'XXXXXXX' + '-')
+            return
+
+        quotes_dict = {}
+        i = 0
         for quote in quotes:
-            quote_dict = {}
-            quote_dict['date'] = quote['date']
-            quote_dict['open'] = quote['open']
-            quote_dict['high'] = quote['high']
-            quote_dict['low'] = quote['low']
-            quote_dict['close'] = quote['close']
-            quote_dict['volume'] = quote['volume']
-            df = df.append(quote_dict, ignore_index=True)
+            quotes_dict[i] = {
+                'date': quote['date'],
+                'open': quote['open'],
+                'high': quote['high'],
+                'low': quote['low'],
+                'close': quote['close'],
+                'volume': quote['volume']}
+            i += 1
+        df = pd.DataFrame.from_dict(data=quotes_dict, orient='index')
         df = df.set_index('date')
         df.sort_index()
 
         result_dict = self.get_missing_bars_count(df, exchange)
+        result_dict['contract_id'] = contract_id
+        print('-' + str(contract_id) + '-')
         return result_dict
 
 
     def check_quotes_data_quality(self, ):
         # Todo: Implement parameters for filtering of contacts to check
-        # Todo: Ad optional data start parameter
+        # Todo: Ad optional data start and end parameters
         # Todo: return dates of missing data days
-        # Todo: Optimize perfomance
-        
+
         # get contract ids and exchanges
         query_result = self.contracts_db.get_contracts()
 
         # reformat query result data for parallel execution
         contracts = []
-        for contract in query_result[:100]:
+        for contract in query_result[:]:
             contracts.append((contract['contract_id'], contract['exchange']))
         
         # call worker and provide contract id plus exchange pairwise
@@ -162,5 +191,4 @@ class DataQualityCheck():
         df = pd.DataFrame()
         for result in results:
             df = df.append(result, ignore_index=True)
-        
-        print(df)
+        df.to_csv('missing_bars.csv')
