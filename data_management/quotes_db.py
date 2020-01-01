@@ -25,6 +25,23 @@ class QuotesDB(DataBase):
         self.disconnect(conn)
 
 
+    def get_quotes(self, contract_id):
+
+        conn = self.connect()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute(f"""SELECT date, open, high, low, close, volume
+        FROM quotes WHERE contract_id = {contract_id}""")
+        quotes = cur.fetchall()
+
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
+
+        return quotes
+
+
     def clean_quotes_db_placeholder(self):
         # Check for quotes with no contracts
         # Check if data ends at date specified in contract

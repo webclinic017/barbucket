@@ -112,20 +112,22 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    # def delete_contract(self, contract_id):
-    #     # Todo: Return number of deleted rows
+    def delete_contract_id_placeholder(self, contract_id):
+        # Todo: Return number of deleted rows
 
-    #     query = f"DELETE FROM contracts \
-    #                 WHERE contract_id = '{contract_id}';"
+        # query = f"DELETE FROM contracts \
+        #             WHERE contract_id = '{contract_id}';"
         
-    #     conn = self.connect()
-    #     cur = conn.cursor()
+        # conn = self.connect()
+        # cur = conn.cursor()
 
-    #     cur.execute(query)
+        # cur.execute(query)
 
-    #     conn.commit()
-    #     cur.close()
-    #     self.disconnect(conn)
+        # conn.commit()
+        # cur.close()
+        # self.disconnect(conn)
+
+        pass
 
 
     def delete_bad_status_contracts(self):

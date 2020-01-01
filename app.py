@@ -1,13 +1,13 @@
 from data_management.contracts_db import ContractsDB
 from data_management.quotes_db import QuotesDB
 from data_management.tws_connector import TwsConnector
-
-import data_management.data_quality_check
+from data_management.data_quality_check import DataQualityCheck
 
 
 cont_db = ContractsDB()
 quot_db = QuotesDB()
 tws_conn = TwsConnector()
+dq_check = DataQualityCheck()
 
 
 # cont_db.init_database()
@@ -21,6 +21,8 @@ tws_conn = TwsConnector()
 
 # cont_db.sync_contracts_to_listing('fwb')
 
-tws_conn.get_historical_data()
+# tws_conn.get_historical_data()
 
 # quot_db. migrate_from_csv()
+
+dq_check.check_quotes_data_quality()

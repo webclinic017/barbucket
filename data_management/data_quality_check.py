@@ -1,5 +1,10 @@
 import pandas as pd
 from trading_calendars import get_calendar
+from datetime import datetime
+from multiprocessing import Pool
+
+from data_management.contracts_db import ContractsDB
+from data_management.quotes_db import QuotesDB
 
 
 
@@ -21,25 +26,30 @@ class DataQualityCheck():
         """
 
         self.trading_days = {}
+        self.contracts_db = ContractsDB()
+        self.quotes_db = QuotesDB()
 
 
-    def get_trading_days(self, exchange):
+    def get_trading_calendar(self, exchange):
         """
         Get all trading days of an exchange and store into parameter as
         pandas series with index and data as datetime objects
         
         Parameters:
-            exchange: 'FWB'
+            exchanges: '[FWB', 'LSE']
 
         Returns
             Nothing
         """
 
-        exchange_names = {
+        exchange_codes = {
             'FWB': 'XFRA',
+            'IBIS': 'XFRA',
+            'LSE': 'XLON',
+            'LSEETF': 'XLON',
         }
 
-        trading_calendar = get_calendar(exchange_names[exchange])
+        trading_calendar = get_calendar(exchange_codes[exchange])
         trading_days = trading_calendar.schedule.index.to_series(keep_tz=True)
 
         self.trading_days[exchange] = trading_days
@@ -48,14 +58,14 @@ class DataQualityCheck():
     def get_missing_bars_count(self, df, exchange):
         # Get exchange data, if not yet present
         if exchange not in self.trading_days:
-            self.get_trading_days(exchange)
+            self.get_trading_calendar(exchange)
 
         # Prepare data for comparison
         contract_trading_days = df.index.to_list()
         exchange_trading_days = self.trading_days[exchange]
+        end_date = datetime.today().strftime('%Y-%m-%d')
         sliced_exchange_trading_days = exchange_trading_days[
-            contract_trading_days[0]:contract_trading_days[-1]]
-            # Todo: End of slice is today, not end of contract data.
+            contract_trading_days[0]:end_date]
         sliced_exchange_trading_days = \
             sliced_exchange_trading_days.index.strftime('%Y-%m-%d').to_list()
 
@@ -77,17 +87,17 @@ class DataQualityCheck():
         return result
 
 
-    def missing_bars(self, ):
-        """
-        Missing bars overall
-        """
-        pass
-
-
     def invalid_candles(self, ):
         """
         Invalid ccandles
         """
+
+        # if max(candle.Open, candle.Low, candle.Close) > candle.High or min(
+        # candle.Open, candle.High, candle.Close) < candle.Low:
+        #     result['invalid_candle'].append(True)
+        # else:
+        #     result['invalid_candle'].append(False)
+
         pass
 
 
@@ -102,70 +112,55 @@ class DataQualityCheck():
         """
         No movement
         """
+        #     if candle.Close == candle.Open:
+        #         result['no_movement'].append(True)
+        #     else:
+        #         result['no_movement'].append(False)
         pass
 
 
-    def main(
-        self, 
-        df,
-        index_trading_days,
-        max_missing_bars = 0,
-        # max_missing_bars_at_end = 0,
-        # max_missing_bars_at_begin = 0,
-        max_invalid_candle = 0,
-        max_value_jump = 25,
-        max_no_movement = 5):
-        """
-        df: 
-        index_trading_days: int
-        max_missing_bars = 0:
-        max_missing_bars_at_end = 0:
-        max_missing_bars_at_begin = 0:
-        max_invalid_candle = 0:
-        max_value_jump = 25:
-        max_no_movement = 5:
-        """
+    def check_single_quote(self, contract_id, exchange):
+        result_dict = {}
+        quotes = self.quotes_db.get_quotes(contract_id)
+        
+        df = pd.DataFrame()
+        for quote in quotes:
+            quote_dict = {}
+            quote_dict['date'] = quote['date']
+            quote_dict['open'] = quote['open']
+            quote_dict['high'] = quote['high']
+            quote_dict['low'] = quote['low']
+            quote_dict['close'] = quote['close']
+            quote_dict['volume'] = quote['volume']
+            df = df.append(quote_dict, ignore_index=True)
+        df = df.set_index('date')
+        df.sort_index()
 
-        result = {
-            'flag': False,
-            'missing_bars': 0,
-            # 'missing_bars_at_begin': 0,
-            # 'missing_bars_at_end': 0,
-            'invalid_candle': [],
-            'value_jump': [],
-            'no_movement': []
-        }
+        result_dict = self.get_missing_bars_count(df, exchange)
+        return result_dict
 
-        for index, candle in df.iterrows():
 
-            # Invalid candle
-            if max(candle.Open, candle.Low, candle.Close) > candle.High or min(
-            candle.Open, candle.High, candle.Close) < candle.Low:
-                result['invalid_candle'].append(True)
-            else:
-                result['invalid_candle'].append(False)
+    def check_quotes_data_quality(self, ):
+        # Todo: Implement parameters for filtering of contacts to check
+        # Todo: Ad optional data start parameter
+        # Todo: return dates of missing data days
+        # Todo: Optimize perfomance
+        
+        # get contract ids and exchanges
+        query_result = self.contracts_db.get_contracts()
 
-            # Value jumps
-            # FIXME
-            result['value_jump'].append(False)
+        # reformat query result data for parallel execution
+        contracts = []
+        for contract in query_result[:100]:
+            contracts.append((contract['contract_id'], contract['exchange']))
+        
+        # call worker and provide contract id plus exchange pairwise
+        with Pool() as p:
+            results = p.starmap(self.check_single_quote, contracts)
 
-            # No movement from this open to this close
-            if candle.Close == candle.Open:
-                result['no_movement'].append(True)
-            else:
-                result['no_movement'].append(False)
-
-        # Calculate result flag
-        if (
-            result['missing_bars'] > max_missing_bars or
-            # result['missing_bars_at_begin'] > max_missing_bars_at_begin or
-            # result['missing_bars_at_end'] > max_missing_bars_at_end or
-            result['invalid_candle'].count(True) > max_invalid_candle or
-            result['value_jump'].count(True) > max_value_jump or
-            result['no_movement'].count(True) > max_no_movement
-        ):
-            result['flag'] = False
-        else:
-            result['flag'] = True
-
-        return result
+        # reformat results to df
+        df = pd.DataFrame()
+        for result in results:
+            df = df.append(result, ignore_index=True)
+        
+        print(df)
