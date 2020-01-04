@@ -33,7 +33,7 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def get_contracts(self, ctype='*', symbol='*', name='*', currency='*', 
+    def get_contracts(self, contract_id='*', ctype='*', symbol='*', name='*', currency='*', 
         exchange='*', status_code='*', status_text='*'):
         """
         returns a list of sqlite3.Row objects
@@ -42,6 +42,7 @@ class ContractsDB(DataBase):
         query = 'SELECT * FROM contracts'
 
         filters = {}
+        if contract_id != '*': filters.update({'contract_id': contract_id})
         if ctype != '*': filters.update({'type': ctype})
         if symbol != '*': filters.update({'symbol': symbol})
         if name != '*': filters.update({'name': name})
@@ -146,10 +147,6 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def delete_bad_data_contracts_placeholder(self):
-        pass
-
-
     def sync_contracts_to_listing(self, ctype, exchange):
         # Todo: Return statistics
 
@@ -219,33 +216,3 @@ class ContractsDB(DataBase):
                 )
                 added_rows += 1
         print('added rows: ' + str(added_rows))
-
-
-    def migrate_from_contracts_db(self):
-        # Get contracts from old db
-        # conn_old = sqlite3.connect('data_management/contracts.db')
-        # conn_old.row_factory = sqlite3.Row
-        # cur = conn_old.cursor()
-
-        # query = 'SELECT * FROM contracts'
-        # cur.execute(query)
-        # old_contracts = cur.fetchall()
-
-        # conn_old.commit()
-        # cur.close()
-        # conn_old.close()
-
-        # # Create contracts in new db
-        # for old_contract in old_contracts:
-        #     self.create_contract(
-        #         ctype='ETF', 
-        #         symbol=old_contract['symbol'], 
-        #         name=old_contract['name'], 
-        #         currency=old_contract['currency'], 
-        #         exchange=old_contract['exchange'], 
-        #         status_code=old_contract['status'], 
-        #         status_text=old_contract['status_text']
-        #     )
-        #     print('Created ' + old_contract['symbol'] + '_' + \
-        #         old_contract['exchange'])
-        pass

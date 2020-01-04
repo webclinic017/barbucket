@@ -55,7 +55,7 @@ class DataQualityCheck():
         self.trading_days[exchange] = trading_days
 
 
-    def get_missing_bars_count(self, df, exchange):
+    def handle_missing_bars(self, df, contract_id, exchange):
         # Get exchange data, if not yet present
         if exchange not in self.trading_days:
             self.get_trading_calendar(exchange)
@@ -69,49 +69,58 @@ class DataQualityCheck():
         sliced_exchange_trading_days = \
             sliced_exchange_trading_days.index.strftime('%Y-%m-%d').to_list()
 
-        # Missing bars overall
-        missing_bars_overall = 0
+        # Find start of earliest gap
+        MAX_GAP_SIZE = 2
+        previous_missing_bars = 0
+        remove_from = ''
         for day in sliced_exchange_trading_days:
             if day not in contract_trading_days:
-                missing_bars_overall += 1
+                if previous_missing_bars >= MAX_GAP_SIZE:
+                    remove_from = day
+                previous_missing_bars += 1
+            else:
+                previous_missing_bars = 0
 
-        # Missing bars at end
-        pos = sliced_exchange_trading_days.index(contract_trading_days[-1])
-        missing_bars_at_end = len(sliced_exchange_trading_days) - (pos+1)
-
-        result = {
-            'missing_bars_overall': missing_bars_overall,
-            'missing_bars_at_end': missing_bars_at_end
-        }
-        
-        return result
+        # Remove quotes before gap
+        if remove_from != '':
+            self.quotes_db.delete_quotes_before_date(contract_id=contract_id, date=remove_from)
 
 
-    def check_for_no_data_placeholder(self):
-        # Tesed query, removes all matching contracts:
+    def remove_quoteless_contracts(self):
+        # removes all contracts that have no quotes linked
 
-        # DELETE FROM contracts
-        # WHERE contract_id IN (
-        #     SELECT
-        #         contract_id
-        #     FROM
-        #         contracts c
-        #     WHERE
-        #         NOT EXISTS (
-        #             SELECT 
-        #                 1 
-        #             FROM 
-        #                 quotes
-        #             WHERE 
-        #                 contract_id = c.contract_id
-        #         )
-        # )
-        pass
+        conn = self.quotes_db.connect()
+        cur = conn.cursor()
+
+        query = """
+        DELETE FROM contracts
+        WHERE contract_id IN (
+            SELECT
+                contract_id
+            FROM
+                contracts c
+            WHERE
+                NOT EXISTS (
+                    SELECT 
+                        1 
+                    FROM 
+                        quotes
+                    WHERE 
+                        contract_id = c.contract_id
+                )
+        )
+        """
+        cur.execute(query)
+
+        conn.commit()
+        cur.close()
+        self.quotes_db.disconnect(conn)
 
 
-    def invalid_candles(self, ):
+    def invalid_candles_placeholder(self, ):
         """
         Invalid ccandles
+        Todo: Candle is too large (spike)
         """
 
         # if max(candle.Open, candle.Low, candle.Close) > candle.High or min(
@@ -123,14 +132,14 @@ class DataQualityCheck():
         pass
 
 
-    def value_jump(self, ):
+    def value_jump_placeholder(self, ):
         """
         Values jump
         """
         pass
 
 
-    def no_movement(self, ):
+    def no_movement_placeholder(self, ):
         """
         No movement
         """
@@ -141,14 +150,24 @@ class DataQualityCheck():
         pass
 
 
-    def check_single_quote(self, contract_id, exchange):
+    def too_few_bars_placeholder(self, ):
+        # Remove contract?
+        pass
+
+
+    def check_quotes_data_quality_worker(self, contract_id, exchange):
         result_dict = {}
+     
+        # Get all quotes for the contract
         quotes = self.quotes_db.get_quotes(contract_id)
 
+        # Abort contract if no quotes available
         if len(quotes) == 0:
             print('-' + str(contract_id) + 'XXXXXXX' + '-')
             return
 
+        # Reformat quotes to df
+        # Todo: use pandas method for querying
         quotes_dict = {}
         i = 0
         for quote in quotes:
@@ -164,18 +183,18 @@ class DataQualityCheck():
         df = df.set_index('date')
         df.sort_index()
 
-        result_dict = self.get_missing_bars_count(df, exchange)
-        result_dict['contract_id'] = contract_id
-        print('-' + str(contract_id) + '-')
-        return result_dict
+        # Check for missing bars
+        self.handle_missing_bars(df, contract_id, exchange)
+        print('.')
 
 
     def check_quotes_data_quality(self, ):
         # Todo: Implement parameters for filtering of contacts to check
-        # Todo: Ad optional data start and end parameters
-        # Todo: return dates of missing data days
 
-        # get contract ids and exchanges
+        # Delete contracts that have an error status
+        self.contracts_db.delete_bad_status_contracts()
+        
+        # get all contract ids and exchanges
         query_result = self.contracts_db.get_contracts()
 
         # reformat query result data for parallel execution
@@ -185,10 +204,6 @@ class DataQualityCheck():
         
         # call worker and provide contract id plus exchange pairwise
         with Pool() as p:
-            results = p.starmap(self.check_single_quote, contracts)
+            p.starmap(self.check_quotes_data_quality_worker, contracts)
 
-        # reformat results to df
-        df = pd.DataFrame()
-        for result in results:
-            df = df.append(result, ignore_index=True)
-        df.to_csv('missing_bars.csv')
+        self.remove_quoteless_contracts()

@@ -1,1 +1,1 @@
-browser-sync start -s ./ -f ./ --no-notify
+browser-sync start -s ./screener/website/ -f ./screener/website/ --no-notify

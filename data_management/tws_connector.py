@@ -73,29 +73,33 @@ class TwsConnector():
 
         # Get contracts data
         start_id = 0
-        end_id = 1
+        end_id = 4500
         cont_db = contracts_db.ContractsDB()
         quot_db = quotes_db.QuotesDB()
         contracts = cont_db.get_contracts()
 
         # Iterate over contracts
-        for current_contract in contracts[start_id:end_id]:
+        for contract in contracts[start_id:end_id]:
 
             # Abort requesting data
             if self.abort_operation is True:
                 print('Aborting receiving.')
                 break
 
-            debug_string = current_contract['symbol'] + '_' + current_contract['exchange']
+            debug_string = contract['symbol'] + '_' + contract['exchange']
             print(debug_string, end='')
 
             # Calculate length of requested data
-            if current_contract['status_code'] == 1:
-                start_date = (current_contract['status_text'].split(':'))[1]
+            if contract['status_code'] == 1:
+                start_date = (contract['status_text'].split(':'))[1]
                 end_date = datetime.today().strftime('%Y-%m-%d')
                 ndays = np.busday_count(start_date, end_date)
-                if ndays <= 4:
+                if ndays <= 5:
                     print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
+                    print('-------------------------')
+                    continue
+                if ndays > 360:
+                    print(' Contract is ' + str(ndays) + ' days old. Contract aborted.')
                     print('-------------------------')
                     continue
                 ndays += 4
@@ -106,9 +110,9 @@ class TwsConnector():
             # Create contract and request data
             print(' Requsting data.', end='')
             ib_contract = ib_insync.contract.Stock(
-                symbol=current_contract['symbol'],
-                exchange=current_contract['exchange'],
-                currency=current_contract['currency'])
+                symbol=contract['symbol'],
+                exchange=contract['exchange'],
+                currency=contract['currency'])
             bars = ib.reqHistoricalData(
                 ib_contract,
                 endDateTime='',
@@ -127,7 +131,7 @@ class TwsConnector():
             # Reformatting of received bars
             quotes = []
             for bar in bars:
-                quote = (current_contract['contract_id'],
+                quote = (contract['contract_id'],
                         bar.date.strftime('%Y-%m-%d'),
                         bar.open,
                         bar.high,
@@ -137,21 +141,19 @@ class TwsConnector():
                 quotes.append(quote)
 
             # Inserting into database
-            quot_db.insert_quotes(
-                contract_id=current_contract['contract_id'], 
-                quotes=quotes)
+            quot_db.insert_quotes(quotes=quotes)
 
             # write finished info to contracts database
-                # Todo: use last day of data instead of today
-            timestamp_now = datetime.now()
-            string_now = timestamp_now.strftime('%Y-%m-%d')
-
+                    # OLD CODE
+                    # timestamp_now = datetime.now()
+                    # string_now = timestamp_now.strftime('%Y-%m-%d')
             status_code = 1
-            status_text = 'data_ends:'+string_now
+            last_timestamp = bars[-1].date.strftime('%Y-%m-%d')
+            status_text = 'data_ends:'+last_timestamp
             cont_db.update_contract_status(
-                symbol=current_contract['symbol'],
-                exchange=current_contract['exchange'],
-                currency=current_contract['currency'],
+                symbol=contract['symbol'],
+                exchange=contract['exchange'],
+                currency=contract['currency'],
                 status_code=status_code,
                 status_text=status_text
             )

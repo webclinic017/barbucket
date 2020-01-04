@@ -14,6 +14,10 @@ __pycache__/
 data/*
 ib_tws_api/data/*
 *.db
+*.csv
+
+# temp files
+*.html
 
 # ignore os stuff
 .DS_Store
