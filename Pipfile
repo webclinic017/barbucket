@@ -9,8 +9,7 @@ pylint = "*"
 [packages]
 pandas = "*"
 numpy = "*"
-jupyterlab = "*" # "==0.30.5" # for qgrid
-qgrid = "*"
+# jupyterlab_iframe = "*"
 plotly = "*"
 python-highcharts = "*"
 ib-insync = "*"
@@ -20,6 +19,8 @@ sklearn = "*"
 beautifulsoup4 = "*"
 selenium = "*"
 trading-calendars = "*"
+qgrid = "*"
+jupyterlab = "*"
 
 [requires]
 python_version = "3.7"

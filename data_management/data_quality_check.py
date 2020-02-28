@@ -207,3 +207,16 @@ class DataQualityCheck():
             p.starmap(self.check_quotes_data_quality_worker, contracts)
 
         self.remove_quoteless_contracts()
+
+
+    def remove_multi_contracts_placeholder(self, ):
+        # before:
+        # get contracts from website listings
+        # get data for contracts
+        # clean the data of all contracts
+        # then:
+        # for contracts with the identical name
+            # keep the one with the most quotes
+            # remove the other contracts
+        # from here, use smart routing for all contracts
+        pass

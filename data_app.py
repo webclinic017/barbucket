@@ -21,8 +21,8 @@ dq_check = DataQualityCheck()
 
 # cont_db.sync_contracts_to_listing('fwb')
 
-# tws_conn.get_historical_data()
+tws_conn.get_historical_data()
 
 # quot_db. migrate_from_csv()
 
-dq_check.check_quotes_data_quality()
+# dq_check.check_quotes_data_quality()
