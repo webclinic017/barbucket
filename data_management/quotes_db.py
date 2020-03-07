@@ -25,19 +25,35 @@ class QuotesDB(DataBase):
 
 
     def get_quotes(self, contract_id):
+            # OLD CODE
+            # conn = self.connect()
+            # conn.row_factory = sqlite3.Row
+            # cur = conn.cursor()
+
+            # cur.execute(f"""SELECT date, open, high, low, close, volume
+            # FROM quotes WHERE contract_id = {contract_id}""")
+            # quotes = cur.fetchall()
+
+            # conn.commit()
+            # cur.close()
+            # self.disconnect(conn)
+
+            # return quotes
+
+        query = f"""SELECT date, open, high, low, close, volume
+                    FROM quotes
+                    WHERE contract_id = {contract_id}
+                    ORDER BY date ASC;"""
+
         conn = self.connect()
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-
-        cur.execute(f"""SELECT date, open, high, low, close, volume
-        FROM quotes WHERE contract_id = {contract_id}""")
-        quotes = cur.fetchall()
-
-        conn.commit()
-        cur.close()
+        df = pd.read_sql_query(query, conn)
         self.disconnect(conn)
 
-        return quotes
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+            # more flexible to provide just strings
+        df = df.set_index('date')
+
+        return df
 
 
     def delete_quotes_before_date(self, contract_id, date):
