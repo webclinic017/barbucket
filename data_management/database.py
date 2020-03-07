@@ -11,12 +11,12 @@ class DataBase():
 
     def __init__(self):
         # If database file does not exist, initialize it
-        if not os.path.isfile(self.__DB_PATH):
+        if not os.path.isfile(DataBase.__DB_PATH):
             self.init_database()
 
 
     def connect(self):
-        conn = sqlite3.connect(self.__DB_PATH)
+        conn = sqlite3.connect(DataBase.__DB_PATH)
         conn.execute("""
             PRAGMA foreign_keys = 1;
         """)
@@ -29,11 +29,11 @@ class DataBase():
 
     def init_database(self):
         # backup old database
-        if os.path.isfile(self.__DB_PATH):
+        if os.path.isfile(DataBase.__DB_PATH):
             now = datetime.now()
             timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-            new_name = self.__DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
-            os.rename(self.__DB_PATH, new_name)
+            new_name = DataBase.__DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
+            os.rename(DataBase.__DB_PATH, new_name)
 
         # create new database and connect to
         conn = self.connect()

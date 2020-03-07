@@ -46,7 +46,8 @@ class TwsConnector():
             'non_systemic_codes').split(',')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
-            print('Systemic problem detected. ' + str(errorCode) + ' - ' + errorString)
+            print('Systemic problem detected. ' + str(errorCode) + ' - ' + 
+                errorString)
             self.abort_operation = True
 
         # Write error info to contract database, if error is related to contract
@@ -64,7 +65,8 @@ class TwsConnector():
 
     def get_historical_data(self):
         # Todo: on_eror -> on_tws_error
-        # Todo: Outsourcing of abortions of the contract handling (quality_check, db_handling)
+        # Todo: Outsourcing of abortions of the contract handling 
+        #       (quality_check, db_handling)
         """
         Description
 
@@ -110,11 +112,13 @@ class TwsConnector():
                     end_date = datetime.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
-                        print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
+                        print(' Existing data is only ' + str(ndays) + 
+                            ' days old. Contract aborted.')
                         print('-------------------------')
                         continue
                     if ndays > 360:
-                        print(' Last Download is ' + str(ndays) + ' days old. Contract aborted.')
+                        print(' Last Download is ' + str(ndays) + 
+                            ' days old. Contract aborted.')
                         print('-------------------------')
                         continue
                     ndays += 6
