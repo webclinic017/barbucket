@@ -3,6 +3,7 @@ import pandas as pd
 from trading_calendars import get_calendar
 from datetime import datetime
 from multiprocessing import Pool
+import configparser
 
 from data_management.contracts_db import ContractsDB
 from data_management.quotes_db import QuotesDB
@@ -30,13 +31,18 @@ class DataQualityCheck():
         self.contracts_db = ContractsDB()
         self.quotes_db = QuotesDB()
 
+        self.config = configparser.ConfigParser()
+        self.config.read('data_management/config.ini')
+
 
     def check_too_few_quotes(self, df):
         # Check overall number of bars
         # Decide if contract should be kept
         # Return decision result
 
-        MIN_QUOTES_COUNT = 250
+        MIN_QUOTES_COUNT = self.config.getint(
+            'quality_check',
+            'min_quotes_count')
         if len(df) < MIN_QUOTES_COUNT:
             return False
         else:
@@ -52,7 +58,9 @@ class DataQualityCheck():
         if len(df) == 0:
             return False
         
-        MAX_MISSING_BARS_COUNT = 4
+        MAX_MISSING_QUOTES_COUNT = self.config.getint(
+            'quality_check',
+            'max_missing_quotes_at_end')
         start_date = str(df.index[-1].date())
         end_date = datetime.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
@@ -104,7 +112,7 @@ class DataQualityCheck():
             exchange_trading_days.index.strftime('%Y-%m-%d').to_list()
 
         # Find start of earliest gap
-        MAX_GAP_SIZE = 4
+        MAX_GAP_SIZE = self.config.getint('quality_check', 'max_gap_size')
         previous_missing_bars = 0
         remove_from = ''
         for day in exchange_trading_days:
