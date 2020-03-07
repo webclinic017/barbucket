@@ -98,7 +98,7 @@ class TwsConnector():
 
                 # Abort requesting data
                 if self.abort_operation is True:
-                    print('Aborting receiving.')
+                    print('Aborting operation.')
                     break
 
                 debug_string = contract['symbol'] + '_' + contract['exchange']
@@ -114,10 +114,10 @@ class TwsConnector():
                         print('-------------------------')
                         continue
                     if ndays > 360:
-                        print(' Contract is ' + str(ndays) + ' days old. Contract aborted.')
+                        print(' Last Download is ' + str(ndays) + ' days old. Contract aborted.')
                         print('-------------------------')
                         continue
-                    ndays += 4
+                    ndays += 6
                     duration_str = str(ndays) + ' D'
                 else:
                     duration_str = "10 Y"
@@ -137,7 +137,11 @@ class TwsConnector():
                     useRTH=True)
                 
                 if len(bars) == 0:
-                    print('No data received. Contract aborted.')
+                    print('No data received.', end='')
+                    # Check data quality
+                    self.data_quality_check.handle_single_contract(
+                        contract['contract_id'])
+                    print(' Qualty check done.')
                     print('-------------------------')
                     continue
 
@@ -172,9 +176,9 @@ class TwsConnector():
                 )
                 print(' Data stored.', end='')
 
-                # Check data qaulity
+                # Check data quality
                 self.data_quality_check.handle_single_contract(
-                                    contract['contract_id'])
+                    contract['contract_id'])
                 print(' Qualty check done.')
                 print('-------------------------')
 

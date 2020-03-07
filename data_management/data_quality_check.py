@@ -145,20 +145,20 @@ class DataQualityCheck():
 
         # Delete contract, if too few quotes overall
         if not self.check_too_few_quotes(df):
-            print(str(contract_id) + ' deleted, as too few quotes.')
+            print(str(contract_id) + ' Deleted, as too few quotes. ', end='')
             self.contracts_db.delete_contract_id(contract_id)
             return
 
         # Delete contract, if too many quotes missing at end
         if not self.check_missing_quotes_at_end(df):
-            print(str(contract_id) + ' deleted, as too many quotes missing at end.')
+            print(str(contract_id) + ' Deleted, as too many quotes missing at end. ', end='')
             self.contracts_db.delete_contract_id(contract_id)
             return
 
         # Handle missing bars
         del_from = self.check_missing_bars(df, contract_id, contract['exchange'])
         if del_from != -1:
-            print(f'deletin from {del_from}')
+            print(f'Deleting from {del_from} ', end='')
             self.quotes_db.delete_quotes_before_date(
                 contract_id=contract_id, date=del_from)
 
@@ -168,7 +168,7 @@ class DataQualityCheck():
 
         # Delete contract, if too few quotes overall
         if not self.check_too_few_quotes(df):
-            print(str(contract_id) + ' deleted, as too few quotes after bars removal.')
+            print(str(contract_id) + ' Deleted, as too few quotes after bars removal. ', end='')
             self.contracts_db.delete_contract_id(contract_id)
             return
 

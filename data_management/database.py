@@ -37,8 +37,8 @@ class DataBase():
 
         # create new database and connect to
         conn = self.connect()
-
         cur = conn.cursor()
+
         cur.execute("""
             CREATE TABLE contracts (
                 contract_id INTEGER NOT NULL PRIMARY KEY,
@@ -48,8 +48,7 @@ class DataBase():
                 currency TEXT, 
                 exchange TEXT, 
                 status_code INTEGER,
-                status_text TEXT);
-        """)
+                status_text TEXT);""")
         cur.execute("""
             CREATE TABLE quotes (
                 contract_id INTEGER,
@@ -63,8 +62,7 @@ class DataBase():
                     REFERENCES contracts (contract_id)
                         ON UPDATE CASCADE
                         ON DELETE CASCADE,
-                UNIQUE (contract_id, date));
-        """)
+                UNIQUE (contract_id, date));""")
 
         conn.commit()
         cur.close()
