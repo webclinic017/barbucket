@@ -55,7 +55,7 @@ class ContractsDB(DataBase):
             query += ' WHERE '
         
         for key, value in filters.items():
-            query += (key + " = '" + value + "' and ")
+            query += (key + " = '" + str(value) + "' and ")
 
         if len(filters) > 0:
             query = query[:-5]
@@ -113,25 +113,25 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def delete_contract_id_placeholder(self, contract_id):
+    def delete_contract_id(self, contract_id):
         # Todo: Return number of deleted rows
 
-        # query = f"DELETE FROM contracts \
-        #             WHERE contract_id = '{contract_id}';"
+        query = f"DELETE FROM contracts \
+                    WHERE contract_id = '{contract_id}';"
         
-        # conn = self.connect()
-        # cur = conn.cursor()
+        conn = self.connect()
+        cur = conn.cursor()
 
-        # cur.execute(query)
+        cur.execute(query)
 
-        # conn.commit()
-        # cur.close()
-        # self.disconnect(conn)
-
-        pass
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
 
 
     def delete_bad_status_contracts(self):
+        # Todo: Move to data quality check
+
         query = 'DELETE FROM contracts \
                     WHERE (status_code = 162 \
                         OR status_code = 200 \

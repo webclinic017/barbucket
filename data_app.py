@@ -11,18 +11,16 @@ dq_check = DataQualityCheck()
 
 
 # cont_db.init_database()
-# cont_db.migrate_from_contracts_db()
 
-# cont_db.delete_bad_status_contracts()
-
+# exchanges = ['fwb']
 # exchanges = ['fwb', 'ibis', 'lse', 'lseetf']
 # for ex in exchanges:
-#     cont_db.sync_contracts_to_listing(ex)
+#     cont_db.sync_contracts_to_listing(ctype='ETF', exchange=ex)
 
-# cont_db.sync_contracts_to_listing('fwb')
+# cont_db.sync_contracts_to_listing(ctype='ETF', exchange='fwb')
 
 tws_conn.get_historical_data()
 
-# quot_db. migrate_from_csv()
+# dq_check.handle_single_contract(contract_id=108)
 
-# dq_check.check_quotes_data_quality()
+# dq_check.get_trading_calendar('FWB')
