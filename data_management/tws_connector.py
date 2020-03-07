@@ -7,11 +7,16 @@ import os
 
 import data_management.contracts_db as contracts_db
 import data_management.quotes_db as quotes_db
+import data_management.data_quality_check as data_quality_check
 
 
 class TwsConnector():
     
     def __init__(self):
+        self.contracts_db = contracts_db.ContractsDB()
+        self.quotes_db = quotes_db.QuotesDB()
+        self.data_quality_check = data_quality_check.DataQualityCheck()
+
         self.abort_operation = False
 
 
@@ -42,8 +47,7 @@ class TwsConnector():
         if contract is not None:
             status_code = errorCode
             status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
-            conn = contracts_db.ContractsDB()
-            conn.update_contract_status(
+            self.contracts_db.update_contract_status(
                 symbol=contract.symbol,
                 exchange=contract.exchange,
                 currency=contract.currency,
@@ -73,93 +77,98 @@ class TwsConnector():
 
         # Get contracts data
         start_id = 0
-        end_id = 4500
-        cont_db = contracts_db.ContractsDB()
-        quot_db = quotes_db.QuotesDB()
-        contracts = cont_db.get_contracts()
+        end_id = 60
+        contracts = self.contracts_db.get_contracts()
 
-        # Iterate over contracts
-        for contract in contracts[start_id:end_id]:
+        try:
+            # Iterate over contracts
+            for contract in contracts[start_id:end_id]:
 
-            # Abort requesting data
-            if self.abort_operation is True:
-                print('Aborting receiving.')
-                break
+                # Abort requesting data
+                if self.abort_operation is True:
+                    print('Aborting receiving.')
+                    break
 
-            debug_string = contract['symbol'] + '_' + contract['exchange']
-            print(debug_string, end='')
+                debug_string = contract['symbol'] + '_' + contract['exchange']
+                print(debug_string, end='')
 
-            # Calculate length of requested data
-            if contract['status_code'] == 1:
-                start_date = (contract['status_text'].split(':'))[1]
-                end_date = datetime.today().strftime('%Y-%m-%d')
-                ndays = np.busday_count(start_date, end_date)
-                if ndays <= 5:
-                    print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
+                # Calculate length of requested data
+                if contract['status_code'] == 1:
+                    start_date = (contract['status_text'].split(':'))[1]
+                    end_date = datetime.today().strftime('%Y-%m-%d')
+                    ndays = np.busday_count(start_date, end_date)
+                    if ndays <= 5:
+                        print(' Existing data is only ' + str(ndays) + ' days old. Contract aborted.')
+                        print('-------------------------')
+                        continue
+                    if ndays > 360:
+                        print(' Contract is ' + str(ndays) + ' days old. Contract aborted.')
+                        print('-------------------------')
+                        continue
+                    ndays += 4
+                    duration_str = str(ndays) + ' D'
+                else:
+                    duration_str = "10 Y"
+                
+                # Create contract and request data
+                print(' Requsting data.', end='')
+                ib_contract = ib_insync.contract.Stock(
+                    symbol=contract['symbol'],
+                    exchange=contract['exchange'],
+                    currency=contract['currency'])
+                bars = ib.reqHistoricalData(
+                    ib_contract,
+                    endDateTime='',
+                    durationStr=duration_str,
+                    barSizeSetting='1 day',
+                    whatToShow='ADJUSTED_LAST',
+                    useRTH=True)
+                
+                if len(bars) == 0:
+                    print('No data received. Contract aborted.')
                     print('-------------------------')
                     continue
-                if ndays > 360:
-                    print(' Contract is ' + str(ndays) + ' days old. Contract aborted.')
-                    print('-------------------------')
-                    continue
-                ndays += 4
-                duration_str = str(ndays) + ' D'
-            else:
-                duration_str = "10 Y"
-            
-            # Create contract and request data
-            print(' Requsting data.', end='')
-            ib_contract = ib_insync.contract.Stock(
-                symbol=contract['symbol'],
-                exchange=contract['exchange'],
-                currency=contract['currency'])
-            bars = ib.reqHistoricalData(
-                ib_contract,
-                endDateTime='',
-                durationStr=duration_str,
-                barSizeSetting='1 day',
-                whatToShow='MIDPOINT',
-                useRTH=True)
-            
-            if len(bars) == 0:
-                print('No data received. Contract aborted.')
+
+                print(' Receiving completed.', end='')
+
+                # Reformatting of received bars
+                quotes = []
+                for bar in bars:
+                    quote = (contract['contract_id'],
+                            bar.date.strftime('%Y-%m-%d'),
+                            bar.open,
+                            bar.high,
+                            bar.low,
+                            bar.close,
+                            bar.volume)
+                    quotes.append(quote)
+
+                # Inserting into database
+                self.quotes_db.insert_quotes(quotes=quotes)
+
+                # write finished info to contracts database
+                status_code = 1
+                timestamp_now = datetime.now()
+                string_now = timestamp_now.strftime('%Y-%m-%d')
+                status_text = 'downloaded:' + string_now
+                self.contracts_db.update_contract_status(
+                    symbol=contract['symbol'],
+                    exchange=contract['exchange'],
+                    currency=contract['currency'],
+                    status_code=status_code,
+                    status_text=status_text
+                )
+                print(' Data stored.', end='')
+
+                # Check data qaulity
+                self.data_quality_check.handle_single_contract(
+                                    contract['contract_id'])
+                print(' Qualty check done.')
                 print('-------------------------')
-                continue
 
-            print(' Receiving completed.', end='')
-
-            # Reformatting of received bars
-            quotes = []
-            for bar in bars:
-                quote = (contract['contract_id'],
-                        bar.date.strftime('%Y-%m-%d'),
-                        bar.open,
-                        bar.high,
-                        bar.low,
-                        bar.close,
-                        bar.volume)
-                quotes.append(quote)
-
-            # Inserting into database
-            quot_db.insert_quotes(quotes=quotes)
-
-            # write finished info to contracts database
-                    # OLD CODE
-                    # timestamp_now = datetime.now()
-                    # string_now = timestamp_now.strftime('%Y-%m-%d')
-            status_code = 1
-            last_timestamp = bars[-1].date.strftime('%Y-%m-%d')
-            status_text = 'data_ends:'+last_timestamp
-            cont_db.update_contract_status(
-                symbol=contract['symbol'],
-                exchange=contract['exchange'],
-                currency=contract['currency'],
-                status_code=status_code,
-                status_text=status_text
-            )
-
-            print(' Data stored.')
-            print('-------------------------')
+        except KeyboardInterrupt:
+            print('Keyboard interrupt detected.', end='')
+            self.abort_operation = True
 
         # Finishd all contracts
         print('******** All done. ********')
