@@ -39,6 +39,7 @@ class DataQualityCheck():
         # Check overall number of bars
         # Decide if contract should be kept
         # Return decision result
+        # Todo: Return barcount
 
         MIN_QUOTES_COUNT = self.config.getint(
             'quality_check',
@@ -49,11 +50,12 @@ class DataQualityCheck():
             return True
 
 
-    def check_missing_bars_at_end(self, df):
+    def check_missing_quotes_at_end(self, df):
         # Check for bars missing at end (to presence)
         # Decide if contract should be kept
         # Return decision result
         # Todo: Use trading calendar
+        # Todo: Return missing bars count
 
         if len(df) == 0:
             return False
@@ -61,10 +63,11 @@ class DataQualityCheck():
         MAX_MISSING_QUOTES_COUNT = self.config.getint(
             'quality_check',
             'max_missing_quotes_at_end')
+
         start_date = str(df.index[-1].date())
         end_date = datetime.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
-        if ndays > MAX_MISSING_BARS_COUNT:
+        if ndays > MAX_MISSING_QUOTES_COUNT:
             return False
         else:
             return True
@@ -97,12 +100,14 @@ class DataQualityCheck():
 
 
     def check_missing_bars(self, df, contract_id, exchange):
+        # Todo: MAX_GAP_SIZE as parameter
+
         # Download exchange trading calendar, if not yet present
         if exchange not in self.trading_days:
             self.get_trading_calendar(exchange)
 
         # Prepare data for comparison
-        contract_trading_days = df.index.to_list()
+        contract_trading_days = df.index.strftime('%Y-%m-%d').to_list()
         exchange_trading_days = self.trading_days[exchange]
         start_date = contract_trading_days[0]
         end_date = datetime.today().strftime('%Y-%m-%d')
@@ -141,21 +146,21 @@ class DataQualityCheck():
         # Delete contract, if too few quotes overall
         if not self.check_too_few_quotes(df):
             print(str(contract_id) + ' deleted, as too few quotes.')
-            # self.contracts_db.delete_contract_id(contract_id)
+            self.contracts_db.delete_contract_id(contract_id)
             return
 
         # Delete contract, if too many quotes missing at end
-        if not self.check_missing_bars_at_end(df):
+        if not self.check_missing_quotes_at_end(df):
             print(str(contract_id) + ' deleted, as too many quotes missing at end.')
-            # self.contracts_db.delete_contract_id(contract_id)
+            self.contracts_db.delete_contract_id(contract_id)
             return
 
         # Handle missing bars
         del_from = self.check_missing_bars(df, contract_id, contract['exchange'])
         if del_from != -1:
             print(f'deletin from {del_from}')
-            # self.quotes_db.delete_quotes_before_date(
-            #     contract_id=contract_id, date=del_from)
+            self.quotes_db.delete_quotes_before_date(
+                contract_id=contract_id, date=del_from)
 
         # Again, beacuse of previous gap removal:
         # Get all quotes for the contract
@@ -164,7 +169,7 @@ class DataQualityCheck():
         # Delete contract, if too few quotes overall
         if not self.check_too_few_quotes(df):
             print(str(contract_id) + ' deleted, as too few quotes after bars removal.')
-            # self.contracts_db.delete_contract_id(contract_id)
+            self.contracts_db.delete_contract_id(contract_id)
             return
 
 
@@ -174,6 +179,7 @@ class DataQualityCheck():
     def _placeholder_check_bad_status(self, ):
         # Check if contract status is "no contract could be found"
         # Return result
+        # Unnecessary, as zero quotes will not pass the quality check
         pass
     
     

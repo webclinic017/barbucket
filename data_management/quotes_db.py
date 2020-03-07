@@ -25,20 +25,6 @@ class QuotesDB(DataBase):
 
 
     def get_quotes(self, contract_id):
-            # OLD CODE
-            # conn = self.connect()
-            # conn.row_factory = sqlite3.Row
-            # cur = conn.cursor()
-
-            # cur.execute(f"""SELECT date, open, high, low, close, volume
-            # FROM quotes WHERE contract_id = {contract_id}""")
-            # quotes = cur.fetchall()
-
-            # conn.commit()
-            # cur.close()
-            # self.disconnect(conn)
-
-            # return quotes
 
         query = f"""SELECT date, open, high, low, close, volume
                     FROM quotes

@@ -1,11 +1,17 @@
 import time
 
-max = 10
+max = 4
 
 try:
     for i in range(max):
-        print(i)
+        print(i/0)
         time.sleep(1)
 
 except KeyboardInterrupt:
-    print('Interrupted')
+    print('Interrupted by keyboard')
+
+except ZeroDivisionError:
+    print('Interrupted by dev by zero')
+
+finally:
+    print('after the exception')

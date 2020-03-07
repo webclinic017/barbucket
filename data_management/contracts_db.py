@@ -149,8 +149,9 @@ class ContractsDB(DataBase):
 
     def sync_contracts_to_listing(self, ctype, exchange):
         # Todo: Return statistics
+        # Todo: Split
 
-        # Get contracts from website
+        # Get contracts from websites
         print(f'exchange: {exchange}')
         url = f'https://www.interactivebrokers.com/en/index.php?f=567&exch={exchange}'
         options = webdriver.ChromeOptions()
@@ -163,8 +164,8 @@ class ContractsDB(DataBase):
         soup = BeautifulSoup(html, 'html.parser')
         tables = soup.find_all('table', class_='table table-striped table-bordered')
 
-        website_data = []
         rows = tables[2].tbody.find_all('tr')
+        website_data = []
         for row in rows:
             cols = row.find_all('td')
             row_dict = {
@@ -172,10 +173,9 @@ class ContractsDB(DataBase):
                 'symbol': cols[0].text.strip(),
                 'name': cols[1].text.strip(),
                 'currency': cols[3].text.strip(),
-                'exchange': exchange.upper()
-            }
+                'exchange': exchange.upper()}
             website_data.append(row_dict)
-        
+
         # Get contracts from database
         database_data = self.get_contracts(ctype=ctype, exchange=exchange)
 
@@ -190,9 +190,10 @@ class ContractsDB(DataBase):
                         break
             if not exists:
                 print('deleting: ' + db_row['symbol'] + ' - ' + exchange.upper())
-                self.delete_contract(symbol=db_row['symbol'], \
-                                    exchange=exchange.upper(),
-                                    currency=db_row['currency'])
+                self.delete_contract(
+                    symbol=db_row['symbol'], \
+                    exchange=exchange.upper(),
+                    currency=db_row['currency'])
                 deleted_rows += 1
         print('deleted rows: ' + str(deleted_rows))
 
@@ -212,7 +213,6 @@ class ContractsDB(DataBase):
                     symbol=web_row['symbol'],
                     name=web_row['name'],
                     currency=web_row['currency'],
-                    exchange=exchange.upper(),
-                )
+                    exchange=exchange.upper(),)
                 added_rows += 1
         print('added rows: ' + str(added_rows))
