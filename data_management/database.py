@@ -5,19 +5,18 @@ import configparser
 
 
 class DataBase():
+    config = configparser.ConfigParser()
+    config.read('data_management/config.ini')
+    __DB_PATH = config.get('database', 'db_path')
 
     def __init__(self):
-        self.config = configparser.ConfigParser()
-        self.config.read('data_management/config.ini')
-        DB_PATH = self.config.getint('database', 'db_path')
-
         # If database file does not exist, initialize it
-        if not os.path.isfile(self.DB_PATH):
+        if not os.path.isfile(self.__DB_PATH):
             self.init_database()
 
 
     def connect(self):
-        conn = sqlite3.connect(self.DB_PATH)
+        conn = sqlite3.connect(self.__DB_PATH)
         conn.execute("""
             PRAGMA foreign_keys = 1;
         """)
@@ -30,11 +29,11 @@ class DataBase():
 
     def init_database(self):
         # backup old database
-        if os.path.isfile(self.DB_PATH):
+        if os.path.isfile(self.__DB_PATH):
             now = datetime.now()
             timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-            new_name = self.DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
-            os.rename(self.DB_PATH, new_name)
+            new_name = self.__DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
+            os.rename(self.__DB_PATH, new_name)
 
         # create new database and connect to
         conn = self.connect()

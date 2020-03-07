@@ -42,7 +42,8 @@ class TwsConnector():
         """
 
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = self.config.get('tws_connector', 'ip').split(',')
+        NON_SYSTEMIC_CODES = self.config.get('tws_connector',
+            'non_systemic_codes').split(',')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
             print('Systemic problem detected. ' + str(errorCode) + ' - ' + errorString)
@@ -83,7 +84,7 @@ class TwsConnector():
 
         IP = self.config.get('tws_connector', 'ip')
         PORT = self.config.getint('tws_connector', 'port')
-        ib.connect(ip=IP, port=PORT, clientId=1, readonly=True)
+        ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
         # Get config constants
         REDOWNLOAD_DAYS = self.config.getint('tws_connector', 'redownload_days')

@@ -2,8 +2,7 @@ import sqlite3
 import os
 import pandas as pd
 
-from  data_management.database import DataBase
-from  data_management.contracts_db import ContractsDB
+from data_management.database import DataBase
 
 
 class QuotesDB(DataBase):
