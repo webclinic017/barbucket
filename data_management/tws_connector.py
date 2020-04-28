@@ -14,17 +14,17 @@ import data_management.data_quality_check as data_quality_check
 class TwsConnector():
     
     def __init__(self):
-        self.contracts_db = contracts_db.ContractsDB()
-        self.quotes_db = quotes_db.QuotesDB()
-        self.data_quality_check = data_quality_check.DataQualityCheck()
+        self.__contracts_db = contracts_db.ContractsDB()
+        self.__quotes_db = quotes_db.QuotesDB()
+        self.__data_quality_check = data_quality_check.DataQualityCheck()
         
-        self.config = configparser.ConfigParser()
-        self.config.read('data_management/config.ini')
+        self.__config = configparser.ConfigParser()
+        self.__config.read('data_management/config.ini')
 
         self.abort_operation = False
 
 
-    def on_error(self, reqId, errorCode, errorString, contract):
+    def __on_error(self, reqId, errorCode, errorString, contract):
         """
         Is called on errors and writes error details to contracts db.
 
@@ -42,7 +42,7 @@ class TwsConnector():
         """
 
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = self.config.get('tws_connector',
+        NON_SYSTEMIC_CODES = self.__config.get('tws_connector',
             'non_systemic_codes').split(',')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
@@ -54,7 +54,7 @@ class TwsConnector():
         if contract is not None:
             status_code = errorCode
             status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
-            self.contracts_db.update_contract_status(
+            self.__contracts_db.update_contract_status(
                 symbol=contract.symbol,
                 exchange=contract.exchange,
                 currency=contract.currency,
@@ -82,17 +82,17 @@ class TwsConnector():
 
         # Create connection object
         ib = ib_insync.ib.IB()
-        ib.errorEvent += self.on_error
+        ib.errorEvent += self.__on_error
 
-        IP = self.config.get('tws_connector', 'ip')
-        PORT = self.config.getint('tws_connector', 'port')
+        IP = self.__config.get('tws_connector', 'ip')
+        PORT = self.__config.getint('tws_connector', 'port')
         ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
         # Get config constants
-        REDOWNLOAD_DAYS = self.config.getint('tws_connector', 'redownload_days')
+        REDOWNLOAD_DAYS = self.__config.getint('tws_connector', 'redownload_days')
 
         # Get contracts data
-        contracts = self.contracts_db.get_contracts()
+        contracts = self.__contracts_db.get_contracts()
 
         try:
             # Iterate over contracts
@@ -143,9 +143,9 @@ class TwsConnector():
                 if len(bars) == 0:
                     print('No data received.', end='')
                     # Check data quality
-                    self.data_quality_check.handle_single_contract(
+                    self.__data_quality_check.handle_single_contract(
                         contract['contract_id'])
-                    print(' Qualty check done.')
+                    print(' Quality check done.')
                     print('-------------------------')
                     continue
 
@@ -164,14 +164,14 @@ class TwsConnector():
                     quotes.append(quote)
 
                 # Inserting into database
-                self.quotes_db.insert_quotes(quotes=quotes)
+                self.__quotes_db.insert_quotes(quotes=quotes)
 
                 # write finished info to contracts database
                 status_code = 1
                 timestamp_now = datetime.now()
                 string_now = timestamp_now.strftime('%Y-%m-%d')
                 status_text = 'downloaded:' + string_now
-                self.contracts_db.update_contract_status(
+                self.__contracts_db.update_contract_status(
                     symbol=contract['symbol'],
                     exchange=contract['exchange'],
                     currency=contract['currency'],
@@ -181,14 +181,14 @@ class TwsConnector():
                 print(' Data stored.', end='')
 
                 # Check data quality
-                self.data_quality_check.handle_single_contract(
+                self.__data_quality_check.handle_single_contract(
                     contract['contract_id'])
                 print(' Qualty check done.')
                 print('-------------------------')
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')
-            # self.abort_operation = True
+            self.abort_operation = True
 
         finally:
             ib.disconnect()

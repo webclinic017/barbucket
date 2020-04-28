@@ -5,9 +5,9 @@ import configparser
 
 
 class DataBase():
-    config = configparser.ConfigParser()
-    config.read('data_management/config.ini')
-    __DB_PATH = config.get('database', 'db_path')
+    __config = configparser.ConfigParser()
+    __config.read('data_management/config.ini')
+    __DB_PATH = __config.get('database', 'db_path')
 
     def __init__(self):
         # If database file does not exist, initialize it

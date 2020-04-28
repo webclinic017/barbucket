@@ -6,7 +6,7 @@ from data_management.database import DataBase
 
 
 class QuotesDB(DataBase):
-    
+
     def __init__(self):
         pass
 
@@ -50,10 +50,3 @@ class QuotesDB(DataBase):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-
-
-    def clean_quotes_db_placeholder(self):
-        # Check for quotes with no contracts
-        # Check if data ends at date specified in contract
-        # Check for data gaps
-        pass

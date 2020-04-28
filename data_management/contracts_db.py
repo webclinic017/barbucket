@@ -129,24 +129,6 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def delete_bad_status_contracts(self):
-        # Todo: Move to data quality check
-
-        query = 'DELETE FROM contracts \
-                    WHERE (status_code = 162 \
-                        OR status_code = 200 \
-                        OR status_code = 354);'
-        
-        conn = self.connect()
-        cur = conn.cursor()
-
-        cur.execute(query)
-
-        conn.commit()
-        cur.close()
-        self.disconnect(conn)
-
-
     def sync_contracts_to_listing(self, ctype, exchange):
         # Todo: Return statistics
         # Todo: Split

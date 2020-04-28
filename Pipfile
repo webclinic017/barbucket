@@ -10,11 +10,9 @@ pytest = "*"
 [packages]
 pandas = "*"
 numpy = "*"
-# jupyterlab_iframe = "*"
 plotly = "*"
 python-highcharts = "*"
 ib-insync = "*"
-tinydb = "*"
 tqdm = "*"
 sklearn = "*"
 beautifulsoup4 = "*"
@@ -24,4 +22,4 @@ qgrid = "*"
 jupyterlab = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
