@@ -10,16 +10,11 @@ pytest = "*"
 [packages]
 pandas = "*"
 numpy = "*"
-plotly = "*"
-python-highcharts = "*"
 ib-insync = "*"
 tqdm = "*"
-sklearn = "*"
 beautifulsoup4 = "*"
 selenium = "*"
 trading-calendars = "*"
-qgrid = "*"
-jupyterlab = "*"
 
 [requires]
 python_version = "3.8"
