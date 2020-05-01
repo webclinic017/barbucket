@@ -1,17 +1,15 @@
 import sqlite3
-# import os
-# from datetime import datetime
-from tinydb import TinyDB, Query
+import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-from data_management.database import DataBase
+from barbucket.database import DataBase
 
 
 class ContractsDB(DataBase):
 
     def __init__(self):
-        pass
+        self.__website_data = []
 
 
     def create_contract(self, ctype, symbol, name, currency, exchange, 
@@ -33,8 +31,8 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def get_contracts(self, contract_id='*', ctype='*', symbol='*', name='*', currency='*', 
-        exchange='*', status_code='*', status_text='*'):
+    def get_contracts(self, contract_id='*', ctype='*', symbol='*', name='*', \
+        currency='*', exchange='*', status_code='*', status_text='*'):
         """
         returns a list of sqlite3.Row objects
         """
@@ -129,13 +127,9 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def sync_contracts_to_listing(self, ctype, exchange):
-        # Todo: Return statistics
-        # Todo: Split
-
-        # Get contracts from websites
-        print(f'exchange: {exchange}')
-        url = f'https://www.interactivebrokers.com/en/index.php?f=567&exch={exchange}'
+    def __read_ib_listing_singlepage(self, ctype, exchange):
+        url = f"https://www.interactivebrokers.com/en/index.php?f=567"\
+            + f"&exch={exchange}"
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
         browser = webdriver.Chrome(chrome_options=options)
@@ -144,7 +138,8 @@ class ContractsDB(DataBase):
         browser.quit()
 
         soup = BeautifulSoup(html, 'html.parser')
-        tables = soup.find_all('table', class_='table table-striped table-bordered')
+        tables = soup.find_all('table', \
+            class_='table table-striped table-bordered')
 
         rows = tables[2].tbody.find_all('tr')
         website_data = []
@@ -158,6 +153,57 @@ class ContractsDB(DataBase):
                 'exchange': exchange.upper()}
             website_data.append(row_dict)
 
+        return website_data
+
+
+    def __read_ib_listing_paginated(self, ctype, exchange):
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+        browser = webdriver.Chrome(chrome_options=options)
+        website_data = []
+        page = 1
+
+        while True:
+            print(str(page))
+            url = f"https://www.interactivebrokers.com/en/index.php?f=2222"\
+                + f"&exch={exchange}&showcategories=STK&p=&cc=&limit=100"\
+                + f"&page={page}"
+            browser.get(url)
+            html = browser.page_source
+            soup = BeautifulSoup(html, 'html.parser')
+            tables = soup.find_all('table', \
+                class_='table table-striped table-bordered')
+
+            # Empty table -> End is reached
+            rows = tables[2].tbody.find_all('tr')
+            if rows == []:
+                browser.quit()
+                return website_data
+
+            for row in rows:
+                cols = row.find_all('td')
+                row_dict = {
+                    'type': ctype,
+                    'symbol': cols[0].text.strip(),
+                    'name': cols[1].text.strip(),
+                    'currency': cols[3].text.strip(),
+                    'exchange': exchange.upper()}
+                website_data.append(row_dict)
+
+            page += 1
+            time.sleep(3) #show some mercy to webserver
+
+
+    def sync_contracts_to_listing(self, ctype, exchange):
+        # Todo: Return statistics
+
+        # Get contracts from websites
+        print(f'exchange: {exchange}')
+        if ctype == "ETF":
+            self.__website_data = self.__read_ib_listing_singlepage(ctype, exchange)
+        elif ctype == "STOCK":
+            self.__website_data = self.__read_ib_listing_paginated(ctype, exchange)
+
         # Get contracts from database
         database_data = self.get_contracts(ctype=ctype, exchange=exchange)
 
@@ -165,7 +211,7 @@ class ContractsDB(DataBase):
         deleted_rows = 0
         for db_row in database_data:
             exists = False
-            for web_row in website_data:
+            for web_row in self.__website_data:
                 if db_row['symbol'] == web_row['symbol']:
                     if db_row['currency'] == web_row['currency']:
                         exists = True
@@ -181,7 +227,7 @@ class ContractsDB(DataBase):
 
         # Add contracts from website to database, that are not present in database
         added_rows = 0
-        for web_row in website_data:
+        for web_row in self.__website_data:
             exists = False
             for db_row in database_data:
                 if web_row['symbol'] == db_row['symbol']:
@@ -198,3 +244,6 @@ class ContractsDB(DataBase):
                     exchange=exchange.upper(),)
                 added_rows += 1
         print('added rows: ' + str(added_rows))
+
+        # Clean up
+        self.__website_data = []

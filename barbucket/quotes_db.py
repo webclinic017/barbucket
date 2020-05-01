@@ -2,7 +2,7 @@ import sqlite3
 import os
 import pandas as pd
 
-from data_management.database import DataBase
+from barbucket.database import DataBase
 
 
 class QuotesDB(DataBase):

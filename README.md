@@ -1,5 +1,5 @@
-# screener
-simple stock screener
+# Barbucket
+Loading and storing historical price data of financial contracts
 
 ## features
 get symbols from exchanges
@@ -13,5 +13,5 @@ status private
 for contribution prease contact me
 
 ## Installation
-jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.31.3
-jupyter labextension install qgrid
+chromedriver needed for scraping ib product listings. On macOS install brew, then:
+brew cask install chromedriver

@@ -6,9 +6,9 @@ from datetime import datetime
 import os
 import configparser
 
-import data_management.contracts_db as contracts_db
-import data_management.quotes_db as quotes_db
-import data_management.data_quality_check as data_quality_check
+import barbucket.contracts_db as contracts_db
+import barbucket.quotes_db as quotes_db
+import barbucket.data_quality_check as data_quality_check
 
 
 class TwsConnector():
@@ -19,7 +19,7 @@ class TwsConnector():
         self.__data_quality_check = data_quality_check.DataQualityCheck()
         
         self.__config = configparser.ConfigParser()
-        self.__config.read('data_management/config.ini')
+        self.__config.read('barbucket/config.ini')
 
         self.abort_operation = False
 

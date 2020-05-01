@@ -5,8 +5,8 @@ from datetime import datetime
 from multiprocessing import Pool
 import configparser
 
-from data_management.contracts_db import ContractsDB
-from data_management.quotes_db import QuotesDB
+from barbucket.contracts_db import ContractsDB
+from barbucket.quotes_db import QuotesDB
 
 
 
@@ -32,7 +32,7 @@ class DataQualityCheck():
         self.__quotes_db = QuotesDB()
 
         self.__config = configparser.ConfigParser()
-        self.__config.read('data_management/config.ini')
+        self.__config.read('barbucket/config.ini')
 
 
     def __check_too_few_quotes(self, df):

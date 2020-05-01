@@ -6,7 +6,7 @@ import configparser
 
 class DataBase():
     __config = configparser.ConfigParser()
-    __config.read('data_management/config.ini')
+    __config.read('barbucket/config.ini')
     __DB_PATH = __config.get('database', 'db_path')
 
     def __init__(self):
