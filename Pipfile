@@ -15,6 +15,7 @@ tqdm = "*"
 beautifulsoup4 = "*"
 selenium = "*"
 trading-calendars = "*"
+fire = "*"
 
 [requires]
 python_version = "3.8"
