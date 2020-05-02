@@ -43,12 +43,14 @@ class DataBase():
             CREATE TABLE contracts (
                 contract_id INTEGER NOT NULL PRIMARY KEY,
                 type TEXT,
-                symbol TEXT, 
+                exchange_symbol TEXT, 
+                broker_symbol TEXT, 
                 name TEXT, 
                 currency TEXT, 
                 exchange TEXT, 
                 status_code INTEGER,
                 status_text TEXT);""")
+
         cur.execute("""
             CREATE TABLE quotes (
                 contract_id INTEGER,

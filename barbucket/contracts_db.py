@@ -12,8 +12,8 @@ class ContractsDB(DataBase):
         self.__website_data = []
 
 
-    def create_contract(self, ctype, symbol, name, currency, exchange, 
-        status_code=0, status_text='new contract'):
+    def create_contract(self, ctype, exchange_symbol, broker_symbol, name,\
+        currency, exchange, status_code=0, status_text='new contract'):
         # Todo: Return success or not
 
         status_text = self.remove_special_chars(status_text)
@@ -21,10 +21,10 @@ class ContractsDB(DataBase):
         conn = self.connect()
         cur = conn.cursor()
 
-        cur.execute("""INSERT INTO contracts (type, symbol, name, currency, 
-            exchange, status_code, status_text) VALUES (?, ?, ?, 
-            ?, ?, ?, ?)""", (ctype, symbol, name, currency, exchange, \
-            status_code, status_text))
+        cur.execute("""INSERT INTO contracts (type, exchange_symbol,
+            broker_symbol, name, currency, exchange, status_code, status_text) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (ctype, exchange_symbol, \
+            broker_symbol, name, currency, exchange, status_code, status_text))
 
         conn.commit()
         cur.close()
@@ -42,7 +42,7 @@ class ContractsDB(DataBase):
         filters = {}
         if contract_id != '*': filters.update({'contract_id': contract_id})
         if ctype != '*': filters.update({'type': ctype})
-        if symbol != '*': filters.update({'symbol': symbol})
+        if symbol != '*': filters.update({'broker_symbol': symbol})
         if name != '*': filters.update({'name': name})
         if currency != '*': filters.update({'currency': currency})
         if exchange != '*': filters.update({'exchange': exchange.upper()})
@@ -79,7 +79,7 @@ class ContractsDB(DataBase):
         query = f"""UPDATE contracts 
                     SET status_code = {status_code}, 
                         status_text = '{status_text}' 
-                    WHERE (symbol = '{symbol}' 
+                    WHERE (broker_symbol = '{symbol}' 
                         AND exchange = '{exchange}'
                         AND currency = '{currency}');"""
         
@@ -97,7 +97,7 @@ class ContractsDB(DataBase):
         # Todo: Return number of deleted rows
 
         query = f"DELETE FROM contracts \
-                    WHERE (symbol = '{symbol}' \
+                    WHERE (broker_symbol = '{symbol}' \
                         AND exchange = '{exchange}' \
                         AND currency = '{currency}');"
         
@@ -147,8 +147,9 @@ class ContractsDB(DataBase):
             cols = row.find_all('td')
             row_dict = {
                 'type': ctype,
-                'symbol': cols[0].text.strip(),
+                'broker_symbol': cols[0].text.strip(),
                 'name': cols[1].text.strip(),
+                'exchange_symbol': cols[2].text.strip(),
                 'currency': cols[3].text.strip(),
                 'exchange': exchange.upper()}
             website_data.append(row_dict)
@@ -184,8 +185,9 @@ class ContractsDB(DataBase):
                 cols = row.find_all('td')
                 row_dict = {
                     'type': ctype,
-                    'symbol': cols[0].text.strip(),
+                    'broker_symbol': cols[0].text.strip(),
                     'name': cols[1].text.strip(),
+                    'exchange_symbol': cols[2].text.strip(),
                     'currency': cols[3].text.strip(),
                     'exchange': exchange.upper()}
                 website_data.append(row_dict)
@@ -204,7 +206,7 @@ class ContractsDB(DataBase):
         elif ctype == "STOCK":
             self.__website_data = self.__read_ib_listing_paginated(ctype, exchange)
 
-        # Get contracts from database
+        # Get contracts from database for deleting
         database_data = self.get_contracts(ctype=ctype, exchange=exchange)
 
         # Delete contracts from database, that are not present in website
@@ -212,14 +214,13 @@ class ContractsDB(DataBase):
         for db_row in database_data:
             exists = False
             for web_row in self.__website_data:
-                if db_row['symbol'] == web_row['symbol']:
-                    if db_row['currency'] == web_row['currency']:
-                        exists = True
-                        break
+                if db_row['broker_symbol'] == web_row['broker_symbol']:
+                    exists = True
+                    break
             if not exists:
-                print('deleting: ' + db_row['symbol'] + ' - ' + exchange.upper())
+                print('deleting: ' + db_row['broker_symbol'] + ' - ' + exchange.upper())
                 self.delete_contract(
-                    symbol=db_row['symbol'], \
+                    symbol=db_row['broker_symbol'], \
                     exchange=exchange.upper(),
                     currency=db_row['currency'])
                 deleted_rows += 1
@@ -230,15 +231,15 @@ class ContractsDB(DataBase):
         for web_row in self.__website_data:
             exists = False
             for db_row in database_data:
-                if web_row['symbol'] == db_row['symbol']:
-                    if web_row['currency'] == db_row['currency']:
-                        exists = True
-                        break
+                if web_row['broker_symbol'] == db_row['broker_symbol']:
+                    exists = True
+                    break
             if not exists:
-                print('creating: ' + web_row['symbol'] + ' - ' + exchange.upper())
+                print('creating: ' + web_row['broker_symbol'] + ' - ' + exchange.upper())
                 self.create_contract(
                     ctype=ctype,
-                    symbol=web_row['symbol'],
+                    exchange_symbol=web_row['exchange_symbol'],
+                    broker_symbol=web_row['broker_symbol'],
                     name=web_row['name'],
                     currency=web_row['currency'],
                     exchange=exchange.upper(),)
