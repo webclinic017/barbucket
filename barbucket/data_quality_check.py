@@ -150,7 +150,7 @@ class DataQualityCheck():
             return
 
         # Delete contract, if too many quotes missing at end
-        if not self.check_missing_quotes_at_end(df):
+        if not self.__check_missing_quotes_at_end(df):
             print(str(contract_id) + ' Deleted, as too many quotes missing at end. ', end='')
             self.contracts_db.delete_contract_id(contract_id)
             return

@@ -92,18 +92,18 @@ class TwsConnector():
         REDOWNLOAD_DAYS = self.__config.getint('tws_connector', 'redownload_days')
 
         # Get contracts data
-        contracts = self.__contracts_db.get_contracts()
+        contracts = self.__contracts_db.get_contracts(exchange="FWB")
 
         try:
             # Iterate over contracts
-            for contract in contracts:
+            for contract in contracts[:10]:
 
                 # Abort requesting data
                 if self.abort_operation is True:
                     print('Aborting operation.')
                     break
 
-                debug_string = contract['symbol'] + '_' + contract['exchange']
+                debug_string = contract['broker_symbol'] + '_' + contract['exchange']
                 print(debug_string, end='')
 
                 # Calculate length of requested data
@@ -124,12 +124,12 @@ class TwsConnector():
                     ndays += 6
                     duration_str = str(ndays) + ' D'
                 else:
-                    duration_str = "10 Y"
+                    duration_str = "20 Y"
                 
                 # Create contract and request data
                 print(' Requsting data.', end='')
                 ib_contract = ib_insync.contract.Stock(
-                    symbol=contract['symbol'],
+                    symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
                     currency=contract['currency'])
                 bars = ib.reqHistoricalData(
@@ -143,9 +143,9 @@ class TwsConnector():
                 if len(bars) == 0:
                     print('No data received.', end='')
                     # Check data quality
-                    self.__data_quality_check.handle_single_contract(
-                        contract['contract_id'])
-                    print(' Quality check done.')
+                    # self.__data_quality_check.handle_single_contract(
+                    #     contract['contract_id'])
+                    # print(' Quality check done.')
                     print('-------------------------')
                     continue
 
@@ -172,7 +172,7 @@ class TwsConnector():
                 string_now = timestamp_now.strftime('%Y-%m-%d')
                 status_text = 'downloaded:' + string_now
                 self.__contracts_db.update_contract_status(
-                    symbol=contract['symbol'],
+                    symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
                     currency=contract['currency'],
                     status_code=status_code,
@@ -181,9 +181,9 @@ class TwsConnector():
                 print(' Data stored.', end='')
 
                 # Check data quality
-                self.__data_quality_check.handle_single_contract(
-                    contract['contract_id'])
-                print(' Qualty check done.')
+                # self.__data_quality_check.handle_single_contract(
+                #     contract['contract_id'])
+                # print(' Qualty check done.')
                 print('-------------------------')
 
         except KeyboardInterrupt:

@@ -13,12 +13,13 @@ dq_check = DataQualityCheck()
 # cont_db.init_database()
 
 # stock_exchanges = ["nasdaq", "nyse", "amex", "arca"]
-# etf_exchanges = ["fwb", "ibis", "lse", "lseetf"]
-exchanges = ["amex", "arca"]
+exchanges = ["nasdaq"]
+ctype = "STOCK"
+# # etf_exchanges = ["fwb", "ibis", "lse", "lseetf"]
+# exchanges = ["fwb"]
+# ctype = "ETF"
 for ex in exchanges:
-    cont_db.sync_contracts_to_listing(ctype="STOCK", exchange=ex)
-
-# cont_db.sync_contracts_to_listing(ctype="ETF", exchange="fwb")
+    cont_db.sync_contracts_to_listing(ctype=ctype, exchange=ex)
 
 # tws_conn.get_historical_data()
 
