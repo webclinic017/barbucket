@@ -66,6 +66,12 @@ class DataBase():
                         ON DELETE CASCADE,
                 UNIQUE (contract_id, date));""")
 
+        cur.execute("""
+            CREATE TABLE universe_memberships (
+                membership_id INTEGER NOT NULL PRIMARY KEY,
+                contract_id INTEGER,
+                universe TEXT);""")
+
         conn.commit()
         cur.close()
         self.disconnect(conn)

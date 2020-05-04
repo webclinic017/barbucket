@@ -1,17 +1,22 @@
 # Barbucket
 Loading and storing historical price data of financial contracts
 
-## features
-get symbols from exchanges
-download historical data for symbols
-perform calculations on subset of symbols
-show results in dynamic table
-show chart of selected row in table
+## Features
+* Get symbols from exchanges
+* Download historical data for symbols
+* Perform calculations on subset of symbols
+* Show results in dynamic table
+* Show chart of selected row in table
 
-## contribution
-status private
-for contribution prease contact me
+## Contribution
+* Status private
+* For contribution prease contact me
 
 ## Installation
-chromedriver needed for scraping ib product listings. On macOS install brew, then:
-brew cask install chromedriver
+* Chromedriver needed for scraping ib product listings. On macOS install brew, then: brew cask install chromedriver
+* Sqlite needed for storage of data. On macOS install brew, then: brew install sqlite
+* Python 3.x and pipenv. On macOS install brew, then: brew install pipenv
+* Clone this repo to you local drive. Packaging of this app is not planned.
+* Within the repo, cleate the virtual environment with: pipenv shell && pipenv install
+
+## Usage
