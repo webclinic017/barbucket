@@ -61,9 +61,10 @@ class Universes(object):
 
 
 class TwsConnector(object):
-    def collect_data(self):
-        tws_conn.get_historical_data()
-        print(f"Finished collecting historical data")
+    # python barbucket.py tws collect_data --universe russell3000
+    def collect_data(self, universe):
+        tws_conn.get_historical_data(universe)
+        print(f"Finished collecting historical data for universe: {universe}")
 
 
 class Cli(object):
