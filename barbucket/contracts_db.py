@@ -31,8 +31,9 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def get_contracts(self, contract_id='*', ctype='*', symbol='*', name='*', \
-        currency='*', exchange='*', status_code='*', status_text='*'):
+    def get_contracts(self, contract_id='*', ctype='*', broker_symbol='*', \
+        exchange_symbol='*', name='*', currency='*', exchange='*', \
+        status_code='*', status_text='*'):
         """
         returns a list of sqlite3.Row objects
         """
@@ -42,7 +43,8 @@ class ContractsDB(DataBase):
         filters = {}
         if contract_id != '*': filters.update({'contract_id': contract_id})
         if ctype != '*': filters.update({'type': ctype})
-        if symbol != '*': filters.update({'broker_symbol': symbol})
+        if broker_symbol != '*': filters.update({'broker_symbol': broker_symbol})
+        if exchange_symbol != '*': filters.update({'exchange_symbol': exchange_symbol})
         if name != '*': filters.update({'name': name})
         if currency != '*': filters.update({'currency': currency})
         if exchange != '*': filters.update({'exchange': exchange.upper()})
@@ -201,9 +203,9 @@ class ContractsDB(DataBase):
 
         # Get contracts from websites
         print(f'exchange: {exchange}')
-        if ctype == "ETF":
+        if ctype.lower() == "etf":
             self.__website_data = self.__read_ib_listing_singlepage(ctype, exchange)
-        elif ctype == "STOCK":
+        elif ctype.lower() == "stock":
             self.__website_data = self.__read_ib_listing_paginated(ctype, exchange)
 
         # Get contracts from database for deleting

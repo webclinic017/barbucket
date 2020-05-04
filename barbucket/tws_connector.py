@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 import configparser
 
+import barbucket.universes_db as universes_db
 import barbucket.contracts_db as contracts_db
 import barbucket.quotes_db as quotes_db
 import barbucket.data_quality_check as data_quality_check
@@ -14,6 +15,7 @@ import barbucket.data_quality_check as data_quality_check
 class TwsConnector():
     
     def __init__(self):
+        self.__universes_db = universes_db.UniversesDB()
         self.__contracts_db = contracts_db.ContractsDB()
         self.__quotes_db = quotes_db.QuotesDB()
         self.__data_quality_check = data_quality_check.DataQualityCheck()
@@ -63,7 +65,7 @@ class TwsConnector():
             print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
 
 
-    def get_historical_data(self):
+    def get_historical_data(self, universe):
         # Todo: on_eror -> on_tws_error
         # Todo: Outsourcing of abortions of the contract handling 
         #       (quality_check, db_handling)
@@ -91,18 +93,30 @@ class TwsConnector():
         # Get config constants
         REDOWNLOAD_DAYS = self.__config.getint('tws_connector', 'redownload_days')
 
-        # Get contracts data
-        contracts = self.__contracts_db.get_contracts(exchange="FWB")
+        # Exchange codes
+        exchange_codes = {
+            "NASDAQ": "ISLAND",
+            "NYSE": "NYSE",
+            "ARCA": "ARCA",
+            "AMEX": "AMEX",
+            "FWB": "FWB",
+            "IBIS": "IBIS",
+            "LSE": "LSE",
+            "LSEETF": "LSEETF"
+        }
+        # Get contracts for specified universe
+        contracts = self.__universes_db.get_universe_members(universe)
 
         try:
             # Iterate over contracts
-            for contract in contracts[:10]:
+            for con_id in contracts:
 
                 # Abort requesting data
                 if self.abort_operation is True:
                     print('Aborting operation.')
                     break
 
+                contract = self.__contracts_db.get_contracts(contract_id = con_id)[0]
                 debug_string = contract['broker_symbol'] + '_' + contract['exchange']
                 print(debug_string, end='')
 
@@ -130,7 +144,7 @@ class TwsConnector():
                 print(' Requsting data.', end='')
                 ib_contract = ib_insync.contract.Stock(
                     symbol=contract['broker_symbol'],
-                    exchange=contract['exchange'],
+                    exchange=exchange_codes[contract['exchange']],
                     currency=contract['currency'])
                 bars = ib.reqHistoricalData(
                     ib_contract,

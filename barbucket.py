@@ -2,11 +2,13 @@ import fire
 
 from barbucket.contracts_db import ContractsDB
 from barbucket.quotes_db import QuotesDB
+from barbucket.universes_db import UniversesDB
 from barbucket.tws_connector import TwsConnector
 from barbucket.data_quality_check import DataQualityCheck
 
 cont_db = ContractsDB()
 quot_db = QuotesDB()
+univ_db = UniversesDB()
 tws_conn = TwsConnector()
 dq_check = DataQualityCheck()
 
@@ -21,6 +23,13 @@ dq_check = DataQualityCheck()
 class Playground(object):
     # python barbucket.py playground listreader --my_list "[a,b]"
     def listreader(self, my_list):
+        """
+        First line
+        Second line
+        :param my_list Parameter 1
+        :raises SomeError Description
+        :returns Some Text
+        """
         for elem in my_list:
             print(elem)
 
@@ -39,16 +48,23 @@ class Database(object):
 class Contracts(object):
     # python barbucket.py contracts sync_listing --contract_type stock
     #   --exchanges "[nasdaq,nyse,arca,amex]"
-    def sync_listing(self, contract_type, exchanges):
-        for ex in exchanges:
-            cont_db.sync_contracts_to_listing(ctype=contract_type, exchange=ex)
-            print(f"Finished for {contract_type} on {ex}.")
+    def sync_listing(self, contract_type, exchange):
+        cont_db.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
+        print(f"Finished for {contract_type} on {exchange}.")
+
+
+class Universes(object):
+    # python barbucket.py universes update --universe russell3000
+    def update(self, universe):
+        univ_db.update_universe(universe)
+        print(f"Updated universe {universe}.")
 
 
 class TwsConnector(object):
-    def req_data(self):
-        tws_conn.get_historical_data()
-        print(f"Finished")
+    # python barbucket.py tws collect_data --universe russell3000
+    def collect_data(self, universe):
+        tws_conn.get_historical_data(universe)
+        print(f"Finished collecting historical data for universe: {universe}")
 
 
 class Cli(object):
@@ -57,6 +73,7 @@ class Cli(object):
         self.playground = Playground()
         self.database = Database()
         self.contracts = Contracts()
+        self.universes = Universes()
         self.tws = TwsConnector()
 
 
