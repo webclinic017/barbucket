@@ -6,23 +6,20 @@ from datetime import datetime
 import os
 import configparser
 
-import barbucket.universes_db as universes_db
-import barbucket.contracts_db as contracts_db
-import barbucket.quotes_db as quotes_db
-import barbucket.data_quality_check as data_quality_check
+from barbucket.universes_db import UniversesDB
+from barbucket.contracts_db import ContractsDB
+from barbucket.quotes_db import QuotesDB
+from barbucket.data_quality_check import DataQualityCheck
+from barbucket.config import get_config_value
 
 
 class TwsConnector():
     
     def __init__(self):
-        self.__universes_db = universes_db.UniversesDB()
-        self.__contracts_db = contracts_db.ContractsDB()
-        self.__quotes_db = quotes_db.QuotesDB()
-        self.__data_quality_check = data_quality_check.DataQualityCheck()
-        
-        self.__config = configparser.ConfigParser()
-        self.__config.read('barbucket/config.ini')
-
+        self.__universes_db = UniversesDB()
+        self.__contracts_db = ContractsDB()
+        self.__quotes_db = QuotesDB()
+        self.__data_quality_check = DataQualityCheck()
         self.abort_operation = False
 
 
@@ -44,8 +41,8 @@ class TwsConnector():
         """
 
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = self.__config.get('tws_connector',
-            'non_systemic_codes').split(',')
+        NON_SYSTEMIC_CODES = get_config_value('tws_connector',
+            'non_systemic_codes')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
             print('Systemic problem detected. ' + str(errorCode) + ' - ' + 
@@ -86,12 +83,13 @@ class TwsConnector():
         ib = ib_insync.ib.IB()
         ib.errorEvent += self.__on_error
 
-        IP = self.__config.get('tws_connector', 'ip')
-        PORT = self.__config.getint('tws_connector', 'port')
+        IP = get_config_value('tws_connector', 'ip')
+        PORT = int(get_config_value('tws_connector', 'port'))
         ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
         # Get config constants
-        REDOWNLOAD_DAYS = self.__config.getint('tws_connector', 'redownload_days')
+        REDOWNLOAD_DAYS = int(get_config_value('tws_connector',
+            'redownload_days'))
 
         # Exchange codes
         exchange_codes = {
@@ -138,7 +136,7 @@ class TwsConnector():
                     ndays += 6
                     duration_str = str(ndays) + ' D'
                 else:
-                    duration_str = "20 Y"
+                    duration_str = "15 Y"
                 
                 # Create contract and request data
                 print(' Requsting data.', end='')

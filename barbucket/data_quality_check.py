@@ -7,7 +7,7 @@ import configparser
 
 from barbucket.contracts_db import ContractsDB
 from barbucket.quotes_db import QuotesDB
-
+from barbucket.config import get_config_value
 
 
 class DataQualityCheck():
@@ -31,9 +31,6 @@ class DataQualityCheck():
         self.__contracts_db = ContractsDB()
         self.__quotes_db = QuotesDB()
 
-        self.__config = configparser.ConfigParser()
-        self.__config.read('barbucket/config.ini')
-
 
     def __check_too_few_quotes(self, df):
         # Check overall number of bars
@@ -41,9 +38,8 @@ class DataQualityCheck():
         # Return decision result
         # Todo: Return barcount
 
-        MIN_QUOTES_COUNT = self.__config.getint(
-            'quality_check',
-            'min_quotes_count')
+        MIN_QUOTES_COUNT = int(get_config_value('quality_check',
+            'min_quotes_count'))
         if len(df) < MIN_QUOTES_COUNT:
             return False
         else:
@@ -60,9 +56,8 @@ class DataQualityCheck():
         if len(df) == 0:
             return False
         
-        MAX_MISSING_QUOTES_COUNT = self.__config.getint(
-            'quality_check',
-            'max_missing_quotes_at_end')
+        MAX_MISSING_QUOTES_COUNT = int(get_config_value('quality_check',
+            'max_missing_quotes_at_end'))
 
         start_date = str(df.index[-1].date())
         end_date = datetime.today().strftime('%Y-%m-%d')
@@ -117,7 +112,7 @@ class DataQualityCheck():
             exchange_trading_days.index.strftime('%Y-%m-%d').to_list()
 
         # Find start of earliest gap
-        MAX_GAP_SIZE = self.__config.getint('quality_check', 'max_gap_size')
+        MAX_GAP_SIZE = int(get_config_value('quality_check', 'max_gap_size'))
         previous_missing_bars = 0
         remove_from = ''
         for day in exchange_trading_days:
