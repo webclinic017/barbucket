@@ -1,17 +1,16 @@
 import sqlite3
-import os
+from pathlib import Path
 from datetime import datetime
-import configparser
+from barbucket.config import config
 
 
 class DataBase():
-    __config = configparser.ConfigParser()
-    __config.read('barbucket/config.ini')
-    __DB_PATH = __config.get('database', 'db_path')
+    __DB_PATH = Path.home() / ".barbucket/database.db"
+
 
     def __init__(self):
         # If database file does not exist, initialize it
-        if not os.path.isfile(DataBase.__DB_PATH):
+        if not Path.is_file(DataBase.__DB_PATH):
             self.init_database()
 
 
@@ -29,11 +28,11 @@ class DataBase():
 
     def init_database(self):
         # backup old database
-        if os.path.isfile(DataBase.__DB_PATH):
+        if Path.is_file(DataBase.__DB_PATH):
             now = datetime.now()
             timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
-            new_name = DataBase.__DB_PATH.split('.')[0] + '_backup_' + timestamp + '.db'
-            os.rename(DataBase.__DB_PATH, new_name)
+            new_name = Path.home() / f".barbucket/database_backup_{timestamp}.db"
+            DataBase.__DB_PATH.rename(new_name)
 
         # create new database and connect to
         conn = self.connect()
