@@ -12,10 +12,10 @@ pandas = "*"
 numpy = "*"
 ib-insync = "*"
 tqdm = "*"
-beautifulsoup4 = "*"
-selenium = "*"
+requests = "*"
 trading-calendars = "*"
 fire = "*"
+beautifulsoup4 = "*"
 
 [requires]
 python_version = "3.8"
