@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 from datetime import datetime
-from barbucket.config import config
+from barbucket.config import get_config_value
 
 
 class DataBase():

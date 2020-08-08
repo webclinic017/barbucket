@@ -226,39 +226,51 @@ class TwsConnector():
             No errors
         """
 
-        # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = get_config_value('tws_connector',
-            'non_systemic_codes')
-        NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
-        if errorCode not in NON_SYSTEMIC_CODES:
-            print('Systemic problem detected. ' + str(errorCode) + ' - ' + 
-                errorString)
-            self.abort_operation = True
+        # # Abort receiving if systematical problem is detected
+        # NON_SYSTEMIC_CODES = get_config_value('tws_connector',
+        #     'non_systemic_codes')
+        # NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
+        # if errorCode not in NON_SYSTEMIC_CODES:
+        #     print('Systemic problem detected. ' + str(errorCode) + ' - ' + 
+        #         errorString)
+        #     self.abort_operation = True
 
-        # Write error info to contract database, if error is related to contract
-        if contract is not None:
-            status_code = errorCode
-            status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
-            self.__contracts_db.update_contract_status(
-                symbol=contract.symbol,
-                exchange=contract.exchange,
-                currency=contract.currency,
-                status_code=status_code,
-                status_text=status_text)
-            print(contract.symbol + '_' + contract.exchange + ' ' + status_text)    
+        # # Write error info to contract database, if error is related to contract
+        # if contract is not None:
+        #     status_code = errorCode
+        #     status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
+        #     self.__contracts_db.update_contract_status(
+        #         symbol=contract.symbol,
+        #         exchange=contract.exchange,
+        #         currency=contract.currency,
+        #         status_code=status_code,
+        #         status_text=status_text)
+        #     print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
 
 
     def get_contract_details(self):
         # Create connection object
         ib = ib_insync.ib.IB()
-        ib.errorEvent += self.__on_get_histo_error
+        ib.errorEvent += self.__on_get_details_error
 
         IP = get_config_value('tws_connector', 'ip')
         PORT = int(get_config_value('tws_connector', 'port'))
         ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
+        # Exchange codes
+        exchange_codes = {
+            "NASDAQ": "ISLAND",
+            "NYSE": "NYSE",
+            "ARCA": "ARCA",
+            "AMEX": "AMEX",
+            "FWB": "FWB",
+            "IBIS": "IBIS",
+            "LSE": "LSE",
+            "LSEETF": "LSEETF"
+        }
+
         ### Get list of all contracts with details missing
-        
+        contracts = [1]
         try:
             # Iterate over contracts
             for con_id in contracts:
@@ -268,9 +280,9 @@ class TwsConnector():
                     print('Aborting operation.')
                     break
 
-                contract = self.__contracts_db.get_contracts(contract_id = con_id)[0]
-                debug_string = contract['broker_symbol'] + '_' + contract['exchange']
-                print(debug_string, end='')
+                # contract = self.__contracts_db.get_contracts(contract_id = con_id)[0]
+                # debug_string = contract['broker_symbol'] + '_' + contract['exchange']
+                # print(debug_string, end='')
                 
                 # Create contract and request data
                 print(' Requsting data.', end='')
@@ -280,26 +292,27 @@ class TwsConnector():
                     currency=contract['currency'])
                 details = ib.reqContractDetails(ib_contract)
                 
-                if len(details) == 0:
-                    print('No data received.', end='')
-                    # Check data quality
-                    # self.__data_quality_check.handle_single_contract(
-                    #     contract['contract_id'])
-                    # print(' Quality check done.')
-                    print('-------------------------')
-                    continue
+                # if len(details) == 0:
+                #     print('No data received.', end='')
+                #     # Check data quality
+                #     # self.__data_quality_check.handle_single_contract(
+                #     #     contract['contract_id'])
+                #     # print(' Quality check done.')
+                #     print('-------------------------')
+                #     continue
 
                 print(' Receiving completed.', end='')
+                print(details)
 
                 ### Inserting into database
 
                 ### write finished info to contracts database
 
-                print(' Data stored.', end='')
+                # print(' Data stored.', end='')
 
                 ### Check data quality
-                print(' Qualty check done.')
-                print('-------------------------')
+                # print(' Qualty check done.')
+                # print('-------------------------')
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')
