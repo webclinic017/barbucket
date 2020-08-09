@@ -72,6 +72,21 @@ class DataBase():
                 contract_id INTEGER,
                 universe TEXT);""")
 
+        cur.execute("""
+            CREATE TABLE contract_details (
+                contract_id INTEGER,
+                industry TEXT,
+                category TEXT,
+                subcategrory TEXT, 
+                ib_con_id INTEGER, 
+                primary_exchange TEXT,
+                stock_typus TEXT,
+                FOREIGN KEY (contract_id)
+                    REFERENCES contracts (contract_id)
+                        ON UPDATE CASCADE
+                        ON DELETE CASCADE,
+                UNIQUE (contract_id));""")
+
         conn.commit()
         cur.close()
         self.disconnect(conn)
