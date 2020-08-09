@@ -8,6 +8,7 @@ import configparser
 
 from barbucket.universes_db import UniversesDB
 from barbucket.contracts_db import ContractsDB
+from barbucket.contract_details_db import ContractDetailsDB
 from barbucket.quotes_db import QuotesDB
 from barbucket.data_quality_check import DataQualityCheck
 from barbucket.config import get_config_value
@@ -18,6 +19,7 @@ class TwsConnector():
     def __init__(self):
         self.__universes_db = UniversesDB()
         self.__contracts_db = ContractsDB()
+        self.__contract_details_db = ContractDetailsDB()
         self.__quotes_db = QuotesDB()
         self.__data_quality_check = DataQualityCheck()
         self.abort_operation = False
@@ -269,28 +271,43 @@ class TwsConnector():
             "LSEETF": "LSEETF"
         }
 
-        ### Get list of all contracts with details missing
-        contracts = [1]
+        # Get all contract_ids
+        contracts = self.__contracts_db.get_contracts()
+
         try:
             # Iterate over contracts
-            for con_id in contracts:
+            for contract in contracts:
+
+                con_id = contract["contract_id"]
 
                 # Abort requesting data
                 if self.abort_operation is True:
                     print('Aborting operation.')
                     break
 
-                # contract = self.__contracts_db.get_contracts(contract_id = con_id)[0]
-                # debug_string = contract['broker_symbol'] + '_' + contract['exchange']
-                # print(debug_string, end='')
+                debug_string = contract['broker_symbol'] + '_' + contract['exchange']
+                print(debug_string, end='')
                 
-                # Create contract and request data
+                # Abort contract, if details are already present in db
+                details = self.__contract_details_db.get_contract_details(
+                    contract_id=con_id)
+                if details != None:
+                    print('Details already present in db.')
+                    continue
+                
+                # Create contract-object and request data
                 print(' Requsting data.', end='')
                 ib_contract = ib_insync.contract.Stock(
                     symbol=contract['broker_symbol'],
                     exchange=exchange_codes[contract['exchange']],
                     currency=contract['currency'])
+
                 details = ib.reqContractDetails(ib_contract)
+                if len(details) > 0:
+                    details = details[0]
+                else:
+                    print("No details returned.")
+                    continue
                 
                 # if len(details) == 0:
                 #     print('No data received.', end='')
@@ -302,17 +319,18 @@ class TwsConnector():
                 #     continue
 
                 print(' Receiving completed.', end='')
-                print(details)
 
                 ### Inserting into database
+                self.__contract_details_db.insert_contract_details(con_id,
+                    details.industry, details.category, details.subcategory,
+                    details.contract.conId, details.contract.primaryExchange,
+                    details.stockType)
 
-                ### write finished info to contracts database
-
-                # print(' Data stored.', end='')
+                print(' Data stored.', end='')
 
                 ### Check data quality
                 # print(' Qualty check done.')
-                # print('-------------------------')
+                print('-------------------------')
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')

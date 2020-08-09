@@ -69,7 +69,7 @@ class TwsConnector(object):
     # python barbucket.py tws get_details
     def get_details(self):
         tws_conn.get_contract_details()
-        print(f"Finished collecting historical data")
+        print(f"Finished collecting details")
 
 
 class Cli(object):
