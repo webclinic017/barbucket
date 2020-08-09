@@ -1,7 +1,7 @@
 import sqlite3
 import time
 from bs4 import BeautifulSoup
-from selenium import webdriver
+import requests
 
 from barbucket.database import DataBase
 
@@ -132,12 +132,7 @@ class ContractsDB(DataBase):
     def __read_ib_listing_singlepage(self, ctype, exchange):
         url = f"https://www.interactivebrokers.com/en/index.php?f=567"\
             + f"&exch={exchange}"
-        options = webdriver.ChromeOptions()
-        options.add_argument('headless')
-        browser = webdriver.Chrome(chrome_options=options)
-        browser.get(url)
-        html = browser.page_source
-        browser.quit()
+        html = requests.get(url).text
 
         soup = BeautifulSoup(html, 'html.parser')
         tables = soup.find_all('table', \
@@ -160,29 +155,35 @@ class ContractsDB(DataBase):
 
 
     def __read_ib_listing_paginated(self, ctype, exchange):
-        options = webdriver.ChromeOptions()
-        options.add_argument('headless')
-        browser = webdriver.Chrome(chrome_options=options)
         website_data = []
         page = 1
 
         while True:
+            # Get website
             print(str(page))
             url = f"https://www.interactivebrokers.com/en/index.php?f=2222"\
                 + f"&exch={exchange}&showcategories=STK&p=&cc=&limit=100"\
                 + f"&page={page}"
-            browser.get(url)
-            html = browser.page_source
+            html = requests.get(url).text
+
+            # Correct error from IB
+            if "(click link for more details)</span></th>\n                       </th>" in html:
+                html = html.replace(\
+                    "(click link for more details)</span></th>\n                       </th>\n",\
+                    "(click link for more details)</span></th>\n")
+                print("Error fixed.")
+
+            # Parse HTML
             soup = BeautifulSoup(html, 'html.parser')
             tables = soup.find_all('table', \
                 class_='table table-striped table-bordered')
+            rows = tables[2].tbody.find_all('tr')
 
             # Empty table -> End is reached
-            rows = tables[2].tbody.find_all('tr')
             if rows == []:
-                browser.quit()
                 return website_data
 
+            # Add data from this page to 'website_data'
             for row in rows:
                 cols = row.find_all('td')
                 row_dict = {
@@ -194,6 +195,7 @@ class ContractsDB(DataBase):
                     'exchange': exchange.upper()}
                 website_data.append(row_dict)
 
+            # Prepare for next page
             page += 1
             time.sleep(3) #show some mercy to webserver
 
