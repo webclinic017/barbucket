@@ -262,6 +262,7 @@ class TwsConnector():
         # Exchange codes
         exchange_codes = {
             "NASDAQ": "ISLAND",
+            "ISLAND": "ISLAND",
             "NYSE": "NYSE",
             "ARCA": "ARCA",
             "AMEX": "AMEX",

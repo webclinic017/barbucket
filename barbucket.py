@@ -47,7 +47,7 @@ class Database(object):
 
 class Contracts(object):
     # python barbucket.py contracts sync_listing --contract_type stock
-    #   --exchanges "[nasdaq,nyse,arca,amex]"
+    #   --exchanges island
     def sync_listing(self, contract_type, exchange):
         cont_db.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
         print(f"Finished for {contract_type} on {exchange}.")
