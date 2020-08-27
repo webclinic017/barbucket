@@ -1,12 +1,14 @@
 import fire
 
 from barbucket.contracts_db import ContractsDB
+from barbucket.contract_details_db import ContractDetailsDB
 from barbucket.quotes_db import QuotesDB
 from barbucket.universes_db import UniversesDB
 from barbucket.tws_connector import TwsConnector
 from barbucket.data_quality_check import DataQualityCheck
 
 cont_db = ContractsDB()
+details_db = ContractDetailsDB()
 quot_db = QuotesDB()
 univ_db = UniversesDB()
 tws_conn = TwsConnector()
@@ -47,10 +49,15 @@ class Database(object):
 
 class Contracts(object):
     # python barbucket.py contracts sync_listing --contract_type stock
-    #   --exchanges island
+    #   --exchanges island/arca/nyse
     def sync_listing(self, contract_type, exchange):
         cont_db.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
         print(f"Finished for {contract_type} on {exchange}.")
+
+    # python barbucket.py contracts ingest_tw_files
+    def ingest_tw_files(self):
+        details_db.ingest_tw_files()
+        print(f"Finished ingesting files.")
 
 
 class Universes(object):
