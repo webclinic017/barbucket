@@ -73,7 +73,7 @@ class DataBase():
                 universe TEXT);""")
 
         cur.execute("""
-            CREATE TABLE contract_details (
+            CREATE TABLE contract_details_ib (
                 contract_id INTEGER,
                 industry TEXT,
                 category TEXT,
@@ -81,6 +81,21 @@ class DataBase():
                 ib_con_id INTEGER, 
                 primary_exchange TEXT,
                 stock_typus TEXT,
+                FOREIGN KEY (contract_id)
+                    REFERENCES contracts (contract_id)
+                        ON UPDATE CASCADE
+                        ON DELETE CASCADE,
+                UNIQUE (contract_id));""")
+
+        cur.execute("""
+            CREATE TABLE contract_details_tw (
+                contract_id INTEGER,
+                market_cap TEXT,
+                avg_vol_30_in_curr INTEGER,
+                country TEXT,
+                employees INTEGER,
+                profit INTEGER,
+                revenue INTEGER,
                 FOREIGN KEY (contract_id)
                     REFERENCES contracts (contract_id)
                         ON UPDATE CASCADE

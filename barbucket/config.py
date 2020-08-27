@@ -24,6 +24,10 @@ def init_config_file():
     path = Path.home()
     if not Path.is_dir(path / ".barbucket"):
         Path.mkdir(path / ".barbucket")
+    
+    if not Path.is_dir(path / ".barbucket/tw_screener"):
+        Path.mkdir(path / ".barbucket/tw_screener")
+    
     path = path / ".barbucket/config.ini"
     __parser.read_dict(__default_config)
     with open(path, 'w') as file:
