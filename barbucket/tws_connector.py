@@ -290,7 +290,7 @@ class TwsConnector():
                 print(debug_string, end='')
                 
                 # Abort contract, if details are already present in db
-                details = self.__contract_details_db.get_contract_details(
+                details = self.__contract_details_db.get_ib_contract_details(
                     contract_id=con_id)
                 if details != None:
                     print('Details already present in db.')
@@ -322,7 +322,7 @@ class TwsConnector():
                 print(' Receiving completed.', end='')
 
                 ### Inserting into database
-                self.__contract_details_db.insert_contract_details(con_id,
+                self.__contract_details_db.insert_ib_contract_details(con_id,
                     details.industry, details.category, details.subcategory,
                     details.contract.conId, details.contract.primaryExchange,
                     details.stockType)
