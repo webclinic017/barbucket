@@ -42,14 +42,17 @@ class DataBase():
         cur.execute("""
             CREATE TABLE contracts (
                 contract_id INTEGER NOT NULL PRIMARY KEY,
-                type TEXT,
+                contract_type_from_listing TEXT,
+                contract_type_from_details TEXT,
                 exchange_symbol TEXT, 
                 broker_symbol TEXT, 
                 name TEXT, 
                 currency TEXT, 
                 exchange TEXT, 
-                status_code INTEGER,
-                status_text TEXT);""")
+                primary_exchange TEXT,
+                industry TEXT,
+                category TEXT,
+                subcategory TEXT);""")
 
         cur.execute("""
             CREATE TABLE quotes (
@@ -73,21 +76,6 @@ class DataBase():
                 universe TEXT);""")
 
         cur.execute("""
-            CREATE TABLE contract_details_ib (
-                contract_id INTEGER,
-                industry TEXT,
-                category TEXT,
-                subcategrory TEXT, 
-                ib_con_id INTEGER, 
-                primary_exchange TEXT,
-                stock_typus TEXT,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id));""")
-
-        cur.execute("""
             CREATE TABLE contract_details_tw (
                 contract_id INTEGER,
                 market_cap TEXT,
@@ -96,6 +84,19 @@ class DataBase():
                 employees INTEGER,
                 profit INTEGER,
                 revenue INTEGER,
+                FOREIGN KEY (contract_id)
+                    REFERENCES contracts (contract_id)
+                        ON UPDATE CASCADE
+                        ON DELETE CASCADE,
+                UNIQUE (contract_id));""")
+
+        cur.execute("""
+            CREATE TABLE quotes_status (
+                contract_id INTEGER,
+                status_code INTEGER,
+                status_text TEXT,
+                daily_quotes_requested_from TEXT,
+                daily_quotes_requested_till TEXT,
                 FOREIGN KEY (contract_id)
                     REFERENCES contracts (contract_id)
                         ON UPDATE CASCADE

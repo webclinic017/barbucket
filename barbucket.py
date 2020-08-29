@@ -1,14 +1,14 @@
 import fire
 
 from barbucket.contracts_db import ContractsDB
-from barbucket.contract_details_db import ContractDetailsDB
+from barbucket.contract_details_db import ContractTwDetailsDB
 from barbucket.quotes_db import QuotesDB
 from barbucket.universes_db import UniversesDB
 from barbucket.tws_connector import TwsConnector
 from barbucket.data_quality_check import DataQualityCheck
 
 cont_db = ContractsDB()
-details_db = ContractDetailsDB()
+details_db = ContractTwDetailsDB()
 quot_db = QuotesDB()
 univ_db = UniversesDB()
 tws_conn = TwsConnector()
@@ -72,11 +72,6 @@ class TwsConnector(object):
     def get_histo_data(self, universe):
         tws_conn.get_historical_data(universe)
         print(f"Finished collecting historical data for universe: {universe}")
-
-    # python barbucket.py tws get_details
-    def get_details(self):
-        tws_conn.get_contract_details()
-        print(f"Finished collecting details")
 
 
 class Cli(object):

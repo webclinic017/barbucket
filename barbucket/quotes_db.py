@@ -50,3 +50,25 @@ class QuotesDB(DataBase):
         conn.commit()
         cur.close()
         self.disconnect(conn)
+
+
+    def update_quotes_status(self, symbol, exchange, currency, status_code, 
+        status_text):
+        pass
+        # status_text = self.remove_special_chars(status_text)
+        
+        # query = f"""UPDATE contracts 
+        #             SET status_code = {status_code}, 
+        #                 status_text = '{status_text}' 
+        #             WHERE (broker_symbol = '{symbol}' 
+        #                 AND exchange = '{exchange}'
+        #                 AND currency = '{currency}');"""
+        
+        # conn = self.connect()
+        # cur = conn.cursor()
+
+        # cur.execute(query)
+
+        # conn.commit()
+        # cur.close()
+        # self.disconnect(conn)
