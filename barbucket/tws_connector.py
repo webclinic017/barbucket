@@ -304,35 +304,34 @@ class TwsConnector():
 
     def get_contract_details(self, contract_type_from_listing, broker_symbol, exchange, currency):
 
-        # Create connection object
-        ib = ib_insync.ib.IB()
-        ib.errorEvent += self.__on_get_details_error
-
-        IP = get_config_value('tws_connector', 'ip')
-        PORT = int(get_config_value('tws_connector', 'port'))
-        ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-
-        debug_string = broker_symbol + '_' + exchange
+        debug_string = "Getting IB contract details for " + broker_symbol + '_' + exchange
         print(debug_string, end='')
-
-        # Create contract-object and request data
-        print(' Requsting data.', end='')
+        
+        # Create contract object
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
             exchange=self.__encode_exchange(exchange),
             currency=currency)
+            
+        # Create connection object and connect
+        ib = ib_insync.ib.IB()
+        ib.errorEvent += self.__on_get_details_error
+        IP = get_config_value('tws_connector', 'ip')
+        PORT = int(get_config_value('tws_connector', 'port'))
+        ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
+        # Request data and disconnect
+        print(' Requsting data.', end='')
         details = ib.reqContractDetails(ib_contract)
+        print(' Receiving completed.')
+        ib.disconnect()
+
+        # Check returned data
         if len(details) > 0:
             details = details[0]
         else:
             print("No details returned.")
             return None
-        print(' Receiving completed.')
-
-        # Disconnect
-        ib.disconnect()
-        print('Disconnected.')
 
         # Decode exchange names
         details.contract.exchange = \

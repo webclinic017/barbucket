@@ -36,6 +36,10 @@ class ContractsDB(DataBase):
             broker_symbol=broker_symbol,
             exchange=exchange,
             currency=currency)
+
+        if details == None:
+            print("Error. No details returned from TWS. Aborting contract.")
+            return
         
         # Store combined values into db
         conn = self.connect()
@@ -226,8 +230,6 @@ class ContractsDB(DataBase):
             # Empty table -> End is reached
             if rows == []:
                 return website_data
-            if page == 2:
-                return website_data
 
             # Add data from this page to 'website_data'
             for row in rows:
@@ -273,10 +275,10 @@ class ContractsDB(DataBase):
                     break
             if not exists:
                 print('deleting: ' + db_row['broker_symbol'] + ' - ' + exchange)
-                self.delete_contract(
-                    symbol=db_row['broker_symbol'], \
-                    exchange=exchange.upper(),
-                    currency=db_row['currency'])
+                # self.delete_contract(
+                #     symbol=db_row['broker_symbol'], \
+                #     exchange=exchange.upper(),
+                #     currency=db_row['currency'])
                 deleted_rows += 1
         print('deleted rows: ' + str(deleted_rows))
 
