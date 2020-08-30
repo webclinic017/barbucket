@@ -17,13 +17,56 @@ from barbucket.config import get_config_value
 class TwsConnector():
     
     def __init__(self):
-        # self.__universes_db = UniversesDB()
-        # self.__contracts_db = ContractsDB()
-        # self.__contract_details_db = ContractDetailsDB()
-        # self.__quotes_db = QuotesDB()
-        # self.__data_quality_check = DataQualityCheck()
-
         self.abort_operation = False
+
+
+
+    def __encode_exchange(self, exchange):
+        exchange_codes = {
+            'NASDAQ': "ISLAND",     # NASDAQ / Island
+            'ISLAND': "ISLAND",     # NASDAQ / Island
+            'NYSE': "NYSE",         # NYSE
+            'ARCA': "ARCA",         # Archipelago
+            'AMEX': "AMEX",         # American Stock Exchange
+            'BATS': "BATS",         # Better Alternative Trading System
+
+            'VSE': "VSE",           # Vancouver Stock Exchange
+
+            'FWB': "FWB",           # Frankfurter Wertpapierbörse
+            'IBIS': "IBIS",         # XETRA
+            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
+
+            'LSE': "LSE",           # London Stock Exchange
+            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
+
+            'SBF': "SBF"}           # Euronext France
+
+        return exchange_codes[exchange]
+
+
+
+    def __decode_exchange(self, exchange):
+        exchange_codes = {
+            'ISLAND': "NASDAQ",     # NASDAQ / Island
+            'NASDAQ': "NASDAQ",     # NASDAQ / Island
+            'NYSE': "NYSE",         # NYSE
+            'ARCA': "ARCA",         # Archipelago
+            'AMEX': "AMEX",         # American Stock Exchange
+            'BATS': "BATS",         # Better Alternative Trading System
+
+            'VSE': "VSE",           # Vancouver Stock Exchange
+
+            'FWB': "FWB",           # Frankfurter Wertpapierbörse
+            'IBIS': "IBIS",         # XETRA
+            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
+
+            'LSE': "LSE",           # London Stock Exchange
+            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
+
+            'SBF': "SBF"}           # Euronext France
+
+        return exchange_codes[exchange]
+
 
 
     def __on_get_histo_error(self, reqId, errorCode, errorString, contract):
@@ -63,6 +106,7 @@ class TwsConnector():
             #     status_code=status_code,
             #     status_text=status_text)
             print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
+
 
 
     def get_historical_data(self, universe):
@@ -217,6 +261,7 @@ class TwsConnector():
         # print('******** All done. ********')
 
 
+
     def __on_get_details_error(self, reqId, errorCode, errorString, contract):
         """
         Is called on errors and writes error details to contracts db.
@@ -256,21 +301,9 @@ class TwsConnector():
         #     print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
 
 
+
     def get_contract_details(self, contract_type_from_listing, broker_symbol, exchange, currency):
 
-        # Exchange codes
-        exchange_codes = {
-            "NASDAQ": "ISLAND",
-            "ISLAND": "ISLAND",
-            "NYSE": "NYSE",
-            "ARCA": "ARCA",
-            "AMEX": "AMEX",
-            "FWB": "FWB",
-            "IBIS": "IBIS",
-            "SWB": "SWB",
-            "LSE": "LSE",
-            "LSEETF": "LSEETF"}
-        
         # Create connection object
         ib = ib_insync.ib.IB()
         ib.errorEvent += self.__on_get_details_error
@@ -286,7 +319,7 @@ class TwsConnector():
         print(' Requsting data.', end='')
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
-            exchange=exchange_codes[exchange],
+            exchange=self.__encode_exchange(exchange),
             currency=currency)
 
         details = ib.reqContractDetails(ib_contract)
@@ -300,4 +333,11 @@ class TwsConnector():
         # Disconnect
         ib.disconnect()
         print('Disconnected.')
+
+        # Decode exchange names
+        details.contract.exchange = \
+            self.__decode_exchange(details.contract.exchange)
+        details.contract.primaryExchange = \
+            self.__decode_exchange(details.contract.primaryExchange)
+
         return details

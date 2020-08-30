@@ -68,8 +68,9 @@ class ContractTwDetailsDB(DataBase):
 
                 # Get contract id
                 ticker = row["Ticker"].replace(".", " ")
-                filters = {'exchange_symbol': ticker,
-                    'primary_exchange': exchange_codes[row["Exchange"]]}
+                filters = {'primary_exchange': exchange_codes[row["Exchange"]],
+                    'contract_type_from_listing': "stock",
+                    'exchange_symbol': ticker}
                 columns = ['contract_id']
                 result = self.__contracts_db.get_contracts(
                     filters=filters,
