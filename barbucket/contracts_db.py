@@ -4,61 +4,70 @@ from bs4 import BeautifulSoup
 import requests
 
 from barbucket.database import DataBase
+from barbucket.tws_connector import TwsConnector
 
 
 class ContractsDB(DataBase):
 
     def __init__(self):
+        self.__tws_connector = TwsConnector()
+
         self.__website_data = []
 
 
-    def create_contract(self, ctype, exchange_symbol, broker_symbol, name,\
-        currency, exchange, status_code=0, status_text='new contract'):
+    def create_contract(self, contract_type_from_listing, broker_symbol, exchange, currency):
         # Todo: Return success or not
 
-        status_text = self.remove_special_chars(status_text)
-
+        # Get IB contract details from TWS
+        details = self.__tws_connector.get_contract_details(
+            contract_type_from_listing=contract_type_from_listing,
+            broker_symbol=broker_symbol,
+            exchange=exchange,
+            currency=currency)
+        
+        # Store combined values into db
         conn = self.connect()
         cur = conn.cursor()
 
-        cur.execute("""INSERT INTO contracts (type, exchange_symbol,
-            broker_symbol, name, currency, exchange, status_code, status_text) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (ctype, exchange_symbol, \
-            broker_symbol, name, currency, exchange, status_code, status_text))
+        cur.execute("""INSERT INTO contracts (
+            contract_id,
+            contract_type_from_listing,
+            contract_type_from_details,
+            exchange_symbol, 
+            broker_symbol,
+            name,
+            currency,
+            exchange,
+            primary_exchange,
+            industry,
+            category,
+            subcategory) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",(
+            details.contract.conId,
+            contract_type_from_listing,
+            details.stockType,
+            details.contract.localSymbol,
+            broker_symbol,
+            details.longName,
+            currency,
+            details.contract.exchange,
+            details.contract.primaryExchange,
+            details.industry,
+            details.category,
+            details.subcategory))
 
         conn.commit()
         cur.close()
         self.disconnect(conn)
 
 
-    def get_contracts(self, contract_id='*', ctype='*', broker_symbol='*', \
-        exchange_symbol='*', name='*', currency='*', exchange='*', \
-        status_code='*', status_text='*'):
+    def get_contracts(self, filters={}, return_columns=[]):
         """
         returns a list of sqlite3.Row objects
         """
 
-        query = 'SELECT * FROM contracts'
-
-        filters = {}
-        if contract_id != '*': filters.update({'contract_id': contract_id})
-        if ctype != '*': filters.update({'type': ctype})
-        if broker_symbol != '*': filters.update({'broker_symbol': broker_symbol})
-        if exchange_symbol != '*': filters.update({'exchange_symbol': exchange_symbol})
-        if name != '*': filters.update({'name': name})
-        if currency != '*': filters.update({'currency': currency})
-        if exchange != '*': filters.update({'exchange': exchange.upper()})
-        if status_code != '*': filters.update({'status_code': status_code})
-        if status_text != '*': filters.update({'status_text': status_text})
-
-        if len(filters) > 0:
-            query += ' WHERE '
-        
-        for key, value in filters.items():
-            query += (key + " = '" + str(value) + "' and ")
-
-        if len(filters) > 0:
-            query = query[:-5]
+        # Check if given filters and return-columns are valid
+        query = """SELECT name FROM PRAGMA_TABLE_INFO("contracts");"""
 
         conn = self.connect()
         conn.row_factory = sqlite3.Row
@@ -71,28 +80,48 @@ class ContractsDB(DataBase):
         cur.close()
         self.disconnect(conn)
 
-        return result
+        existing_columns = []
+        for row in result:
+            existing_columns.append(row["name"])
 
+        for key in filters:
+            if key not in existing_columns:
+                print(f"Error. Filter key '{key}' not found in columns.")
+                return None
 
-    def update_contract_status(self, symbol, exchange, currency, status_code, 
-        status_text):
-        status_text = self.remove_special_chars(status_text)
-        
-        query = f"""UPDATE contracts 
-                    SET status_code = {status_code}, 
-                        status_text = '{status_text}' 
-                    WHERE (broker_symbol = '{symbol}' 
-                        AND exchange = '{exchange}'
-                        AND currency = '{currency}');"""
-        
+        for column in return_columns:
+            if column not in existing_columns:
+                print(f"Error. Return-column key '{column}' not found in columns.")
+                return None
+
+        # Prepare query to get requested values from db
+        query = 'SELECT * FROM contracts'
+
+        if len(return_columns) > 0:
+            cols = ", ".join(return_columns)
+            query = query.replace("*", cols)
+
+        if len(filters) > 0:
+            query += ' WHERE '
+
+            for key, value in filters.items():
+                query += (key + " = '" + str(value) + "' and ")
+
+            query = query[:-5]
+
+        # Get requested values from db
         conn = self.connect()
+        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
         cur.execute(query)
+        result = cur.fetchall()
 
         conn.commit()
         cur.close()
         self.disconnect(conn)
+
+        return result
 
 
     def delete_contract(self, symbol, exchange, currency):
@@ -129,7 +158,7 @@ class ContractsDB(DataBase):
         self.disconnect(conn)
 
 
-    def __read_ib_listing_singlepage(self, ctype, exchange):
+    def __read_ib_exchange_listing_singlepage(self, ctype, exchange):
         url = f"https://www.interactivebrokers.com/en/index.php?f=567"\
             + f"&exch={exchange}"
         html = requests.get(url).text
@@ -154,7 +183,7 @@ class ContractsDB(DataBase):
         return website_data
 
 
-    def __read_ib_listing_paginated(self, ctype, exchange):
+    def __read_ib_exchange_listing_paginated(self, ctype, exchange):
         website_data = []
         page = 1
 
@@ -182,6 +211,8 @@ class ContractsDB(DataBase):
             # Empty table -> End is reached
             if rows == []:
                 return website_data
+            if page == 2:
+                return website_data
 
             # Add data from this page to 'website_data'
             for row in rows:
@@ -203,15 +234,17 @@ class ContractsDB(DataBase):
     def sync_contracts_to_listing(self, ctype, exchange):
         # Todo: Return statistics
 
-        # Get contracts from websites
+        # Get all contracts from websites
         print(f'exchange: {exchange}')
         if ctype.lower() == "etf":
-            self.__website_data = self.__read_ib_listing_singlepage(ctype, exchange)
+            self.__website_data = self.__read_ib_exchange_listing_singlepage(ctype, exchange)
         elif ctype.lower() == "stock":
-            self.__website_data = self.__read_ib_listing_paginated(ctype, exchange)
+            self.__website_data = self.__read_ib_exchange_listing_paginated(ctype, exchange)
 
-        # Get contracts from database for deleting
-        database_data = self.get_contracts(ctype=ctype, exchange=exchange)
+        # Get all contracts from database
+        filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
+        columns = ['broker_symbol']
+        database_data = self.get_contracts(filters=filters, return_columns=columns)
 
         # Delete contracts from database, that are not present in website
         deleted_rows = 0
@@ -241,12 +274,10 @@ class ContractsDB(DataBase):
             if not exists:
                 print('creating: ' + web_row['broker_symbol'] + ' - ' + exchange.upper())
                 self.create_contract(
-                    ctype=ctype,
-                    exchange_symbol=web_row['exchange_symbol'],
+                    contract_type_from_listing=ctype,
                     broker_symbol=web_row['broker_symbol'],
-                    name=web_row['name'],
-                    currency=web_row['currency'],
-                    exchange=exchange.upper(),)
+                    exchange=exchange.upper(),
+                    currency=web_row['currency'])
                 added_rows += 1
         print('added rows: ' + str(added_rows))
 

@@ -28,6 +28,10 @@ class UniversesDB(DataBase):
         self.disconnect(conn)
 
 
+    def get_universes(self):
+        pass
+
+
     def get_universe_members(self, universe):
         """
         returns a list of sqlite3.Row objects ???
@@ -68,51 +72,3 @@ class UniversesDB(DataBase):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-
-
-    def update_russell3000(self):
-
-        self.delete_universe("russell3000")
-        
-        exchange_map = {
-            "NASDAQ": "nasdaq",
-            "New York Stock Exchange Inc.": "nyse",
-            "Cboe BZX formerly known as BATS": "nyse",
-            "Nyse Mkt Llc": "nyse"
-        }
-
-        file_url = "https://www.ishares.com/us/products/239714/ishares-russell-3000-etf/1467271812596.ajax?fileType=csv&fileName=IWV_holdings&dataType=fund"
-        file_path = "IWV_holdings.csv"
-        listing = pd.read_csv(file_path, header=9)
-        contracts_not_found = 0
-        contracts_with_multi_results = 0
-        contracts_added = 0
-
-        for _, row in listing.iterrows():
-            
-            if row["Exchange"] in exchange_map.keys():
-                matches = self.__contracts_db.get_contracts(
-                    ctype="stock",
-                    exchange_symbol=row["Ticker"],
-                    exchange=exchange_map[row["Exchange"]])
-                if len(matches) == 0:
-                    contracts_not_found += 1
-                elif len(matches) > 1:
-                    contracts_with_multi_results += 1
-                else:
-                    self.__create_membership(
-                        contract_id=matches[0]["contract_id"],
-                        universe="russell3000")
-                    contracts_added += 1
-
-            else:
-                contracts_not_found += 1
-
-        print(f"Length of listing: {len(listing)}")
-        print(f"Contracts not found: {contracts_not_found + contracts_with_multi_results}")
-        print(f"Contracts added to universe: {contracts_added}")
-
-
-    def update_universe(self, universe):
-        if universe.lower() == "russell3000":
-            self.update_russell3000()

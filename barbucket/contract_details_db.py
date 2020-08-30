@@ -7,50 +7,10 @@ from barbucket.database import DataBase
 from barbucket.contracts_db import ContractsDB
 
 
-class ContractDetailsDB(DataBase):
+class ContractTwDetailsDB(DataBase):
 
     def __init__(self):
         self.__contracts_db = ContractsDB()
-
-
-    def insert_ib_contract_details(self, contract_id, industry, category,
-        subcategrory, ib_con_id, primary_exchange, stock_type):
-
-        conn = self.connect()
-        cur = conn.cursor()
-
-        cur.execute("""REPLACE INTO contract_details_ib (contract_id, industry,
-            category, subcategrory, ib_con_id, primary_exchange, stock_typus) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)""", (contract_id, industry, category,
-            subcategrory, ib_con_id, primary_exchange, stock_type))
-
-        conn.commit()
-        cur.close()
-        self.disconnect(conn)
-
-
-    def get_ib_contract_details(self, contract_id):
-
-        query = f"""SELECT contract_id, industry, category, subcategrory,
-                        ib_con_id, primary_exchange, stock_typus
-                    FROM contract_details_ib
-                    WHERE contract_id = {contract_id};"""
-
-        conn = self.connect()
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-
-        cur.execute(query)
-        result = cur.fetchall()
-
-        conn.commit()
-        cur.close()
-        self.disconnect(conn)
-
-        if len(result) > 0:
-            return result[0]
-        else:
-            return None
 
 
     def __insert_tw_details(self, contract_id, market_cap, avg_vol_30_in_curr,
@@ -59,10 +19,22 @@ class ContractDetailsDB(DataBase):
         conn = self.connect()
         cur = conn.cursor()
 
-        cur.execute("""REPLACE INTO contract_details_tw (contract_id, market_cap,
-            avg_vol_30_in_curr, country, employees, profit, revenue) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)""", (contract_id, market_cap,
-            avg_vol_30_in_curr, country, employees, profit, revenue))
+        cur.execute("""REPLACE INTO contract_details_tw (
+            contract_id,
+            market_cap,
+            avg_vol_30_in_curr,
+            country,
+            employees,
+            profit,
+            revenue) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)""", (
+            contract_id,
+            market_cap,
+            avg_vol_30_in_curr,
+            country,
+            employees,
+            profit,
+            revenue))
 
         conn.commit()
         cur.close()
@@ -95,33 +67,41 @@ class ContractDetailsDB(DataBase):
             for _, row in df.iterrows():
 
                 # Get contract id
-                ticker =row["Ticker"].replace(".", " ")
+                ticker = row["Ticker"].replace(".", " ")
+                filters = {'exchange_symbol': ticker,
+                    'primary_exchange': exchange_codes[row["Exchange"]]}
+                columns = ['contract_id']
                 result = self.__contracts_db.get_contracts(
-                    exchange_symbol=ticker,
-                    exchange=exchange_codes[row["Exchange"]])
+                    filters=filters,
+                    return_columns=columns)
 
                 if len(result) == 1:
-                    # Write details to db
+                    # Prepare the data
                     contract_id = result[0]["contract_id"]
+
                     avg_vol_30_in_curr = row["Average Volume (30 day)"] * \
                         row["Simple Moving Average (30)"]
                     if pd.isna(avg_vol_30_in_curr):
                         avg_vol_30_in_curr = 0
                     else:
                         avg_vol_30_in_curr = int(avg_vol_30_in_curr)
+
                     if pd.isna(row["Number of Employees"]):
                         employees = 0
                     else:
                         employees = int(row["Number of Employees"])
+
                     if pd.isna(row["Gross Profit (FY)"]):
                         profit = 0
                     else:
                         profit = int(row["Gross Profit (FY)"])
+                        
                     if pd.isna(row["Total Revenue (FY)"]):
                         revenue = 0
                     else:
                         revenue = int(row["Total Revenue (FY)"])
                         
+                    # Write details to db
                     self.__insert_tw_details(
                         contract_id=contract_id,
                         market_cap=row["Market Capitalization"],
