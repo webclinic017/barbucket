@@ -50,7 +50,7 @@ class ContractsDB(DataBase):
             broker_symbol,
             details.longName,
             currency,
-            exchange,
+            details.contract.exchange,
             details.contract.primaryExchange,
             details.industry,
             details.category,
@@ -211,8 +211,7 @@ class ContractsDB(DataBase):
             # Empty table -> End is reached
             if rows == []:
                 return website_data
-            # TRYOUT
-            if page == 3:
+            if page == 2:
                 return website_data
 
             # Add data from this page to 'website_data'

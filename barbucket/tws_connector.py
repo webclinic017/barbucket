@@ -267,6 +267,7 @@ class TwsConnector():
             "AMEX": "AMEX",
             "FWB": "FWB",
             "IBIS": "IBIS",
+            "SWB": "SWB",
             "LSE": "LSE",
             "LSEETF": "LSEETF"}
         
