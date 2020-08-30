@@ -9,10 +9,12 @@ class DataBase():
     __DB_PATH = Path.home() / ".barbucket/database.db"
 
 
+
     def __init__(self):
         # If database file does not exist, initialize it
         if not Path.is_file(DataBase.__DB_PATH):
             self.init_database()
+
 
 
     def connect(self):
@@ -23,8 +25,10 @@ class DataBase():
         return conn
 
 
+
     def disconnect(self, conn):
         conn.close()
+
 
 
     def init_database(self):
@@ -103,9 +107,18 @@ class DataBase():
                         ON DELETE CASCADE,
                 UNIQUE (contract_id));""")
 
+        cur.execute("""
+            CREATE VIEW all_contract_info AS
+                SELECT *
+                    FROM contracts
+                    LEFT JOIN contract_details_tw ON
+                        contracts.contract_id = contract_details_tw.contract_id
+                    WHERE exchange = primary_exchange;""")
+
         conn.commit()
         cur.close()
         self.disconnect(conn)
+
 
 
     @staticmethod

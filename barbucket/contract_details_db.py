@@ -13,6 +13,55 @@ class ContractTwDetailsDB(DataBase):
         self.__contracts_db = ContractsDB()
 
 
+
+    def __encode_exchange(self, exchange):
+        exchange_codes = {
+            'NASDAQ': "ISLAND",     # NASDAQ / Island
+            'ISLAND': "ISLAND",     # NASDAQ / Island
+            'NYSE': "NYSE",         # NYSE
+            'ARCA': "NYSE ARCA",    # Archipelago
+            'AMEX': "AMEX",         # American Stock Exchange
+            'BATS': "BATS",         # Better Alternative Trading System
+
+            'VSE': "VSE",           # Vancouver Stock Exchange
+
+            'FWB': "FWB",           # Frankfurter Wertpapierbörse
+            'IBIS': "XETR",         # XETRA
+            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
+
+            'LSE': "LSE",           # London Stock Exchange
+            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
+
+            'SBF': "SBF"}           # Euronext France
+
+        return exchange_codes[exchange]
+
+
+
+    def __decode_exchange(self, exchange):
+        exchange_codes = {
+            'ISLAND': "NASDAQ",     # NASDAQ / Island
+            'NASDAQ': "NASDAQ",     # NASDAQ / Island
+            'NYSE': "NYSE",         # NYSE
+            'NYSE ARCA': "ARCA",    # Archipelago
+            'AMEX': "AMEX",         # American Stock Exchange
+            'BATS': "BATS",         # Better Alternative Trading System
+
+            'VSE': "VSE",           # Vancouver Stock Exchange
+
+            'FWB': "FWB",           # Frankfurter Wertpapierbörse
+            'XETR': "IBIS",         # XETRA
+            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
+
+            'LSE': "LSE",           # London Stock Exchange
+            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
+
+            'SBF': "SBF"}           # Euronext France
+
+        return exchange_codes[exchange]
+
+
+
     def __insert_tw_details(self, contract_id, market_cap, avg_vol_30_in_curr,
             country, employees, profit, revenue):
 
@@ -41,19 +90,8 @@ class ContractTwDetailsDB(DataBase):
         self.disconnect(conn)
 
 
-    def ingest_tw_files(self):
 
-        # Exchange codes
-        exchange_codes = {
-            "NASDAQ": "ISLAND",
-            "NYSE": "NYSE",
-            "NYSE ARCA": "ARCA",
-            "AMEX": "AMEX",
-            "FWB": "FWB",
-            "IBIS": "IBIS",
-            "LSE": "LSE",
-            "LSEETF": "LSEETF"}
-        
+    def ingest_tw_files(self):
         mypath = Path.home() / ".barbucket/tw_screener"
         screener_files = [f for f in os.listdir(mypath) if
             os.path.isfile(os.path.join(mypath, f))]
@@ -68,8 +106,8 @@ class ContractTwDetailsDB(DataBase):
 
                 # Get contract id
                 ticker = row["Ticker"].replace(".", " ")
-                filters = {'primary_exchange': exchange_codes[row["Exchange"]],
-                    'contract_type_from_listing': "stock",
+                filters = {'primary_exchange': self.__decode_exchange(row["Exchange"]),
+                    'contract_type_from_listing': "STOCK",
                     'exchange_symbol': ticker}
                 columns = ['contract_id']
                 result = self.__contracts_db.get_contracts(
