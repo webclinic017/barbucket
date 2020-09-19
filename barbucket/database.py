@@ -82,7 +82,7 @@ class DataBase():
         cur.execute("""
             CREATE TABLE contract_details_tw (
                 contract_id INTEGER,
-                market_cap TEXT,
+                market_cap INTEGER,
                 avg_vol_30_in_curr INTEGER,
                 country TEXT,
                 employees INTEGER,
