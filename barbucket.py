@@ -61,10 +61,11 @@ class Contracts(object):
 
 
 class Universes(object):
-    # python barbucket.py universes update --universe russell3000
-    def update(self, universe):
-        univ_db.update_universe(universe)
-        print(f"Updated universe {universe}.")
+    # python barbucket.py universes create --name my_univ
+    #   --contract_ids [22,33,789]
+    def create(self, name, contract_ids):
+        univ_db.create_universe(name, contract_ids)
+        print(f"Created universe {name}.")
 
 
 class TwsConnector(object):
