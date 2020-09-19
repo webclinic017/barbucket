@@ -97,7 +97,7 @@ class ContractsDB(DataBase):
 
         existing_columns = []
         for row in result:
-            existing_columns.append(row["name"])
+            existing_columns.append(row['name'])
 
         for key in filters:
             if key not in existing_columns:
@@ -122,7 +122,7 @@ class ContractsDB(DataBase):
             for key, value in filters.items():
                 query += (key + " = '" + str(value) + "' and ")
 
-            query = query[:-5]
+            query = query[:-5]      #remove trailing 'and'
 
         # Get requested values from db
         conn = self.connect()
