@@ -31,11 +31,13 @@ class ContractsDB(DataBase):
             return
 
         # Get IB contract details from TWS
+        self.__tws_connector.connect()
         details = self.__tws_connector.get_contract_details(
             contract_type_from_listing=contract_type_from_listing,
             broker_symbol=broker_symbol,
             exchange=exchange,
             currency=currency)
+        self.__tws_connector.disconnect()
 
         if details == None:
             print("Error. No details returned from TWS. Aborting contract.")
@@ -82,6 +84,7 @@ class ContractsDB(DataBase):
         """
 
         # Check if given filters and return-columns are valid
+        # Query existing columns
         query = """SELECT name FROM PRAGMA_TABLE_INFO("contracts");"""
 
         conn = self.connect()
@@ -99,11 +102,13 @@ class ContractsDB(DataBase):
         for row in result:
             existing_columns.append(row['name'])
 
+        # Check if given keys are in existing columns
         for key in filters:
             if key not in existing_columns:
                 print(f"Error. Filter key '{key}' not found in columns.")
                 return None
 
+        # Check if given return_columns are in existing columns
         for column in return_columns:
             if column not in existing_columns:
                 print(f"Error. Return-column key '{column}' not found in columns.")

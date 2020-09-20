@@ -113,7 +113,9 @@ class DataBase():
                     FROM contracts
                     LEFT JOIN contract_details_tw ON
                         contracts.contract_id = contract_details_tw.contract_id
-                    WHERE exchange = primary_exchange;""")
+                    LEFT JOIN quotes_status ON
+                        contracts.contract_id = quotes_status.contract_id
+                    WHERE exchange = primary_exchange""")
 
         conn.commit()
         cur.close()

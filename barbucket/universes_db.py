@@ -2,7 +2,6 @@ import sqlite3
 import pandas as pd
 
 from barbucket.database import DataBase
-from barbucket.contracts_db import ContractsDB
 
 
 class UniversesDB(DataBase):
@@ -11,7 +10,6 @@ class UniversesDB(DataBase):
         """
 
         """
-        self.__contracts_db = ContractsDB()
 
 
 

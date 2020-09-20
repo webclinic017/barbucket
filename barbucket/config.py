@@ -6,7 +6,8 @@ __parser = configparser.ConfigParser(allow_no_value=True)
 __default_config = {
     'database': {},
     'contracts': {},
-    'quotes': {},
+    'quotes': {
+        'redownload_days': "5"},
     'quality_check': {
         'min_quotes_count': "250",
         'max_missing_quotes_at_end': "4",
@@ -15,8 +16,7 @@ __default_config = {
         'non_systemic_codes': "162,200,354,2104,2106,2158",
         'ip': "127.0.0.1",
         'port': "7497",
-        '\# Minimum number of business days until new download is started': "",
-        'redownload_days': "5"}}
+        '\# Minimum number of business days until new download is started': "5"}}
 
 
 # Create file if not present and fill with default values
