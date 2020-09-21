@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from ib_insync import contract
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -29,6 +30,9 @@ class QuotesDB(DataBase):
 
         cur.executemany("""REPLACE INTO quotes (contract_id, date, open, high, 
             low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?)""", quotes)
+        # Important to 'REPLACE' because last quote of download is incomplete, 
+        # if quote interval was unfinished. Needs to be replaced by complete 
+        # quote with overlapping subsequent quotes download
 
         conn.commit()
         cur.close()
@@ -68,44 +72,70 @@ class QuotesDB(DataBase):
 
 
     def get_quotes_status(self, contract_id):
-        query = f"""SELECT *
-                    FROM quotes_status
-                    WHERE contract_id = {contract_id};"""
-        
         conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        cur.execute(query)
+        cur.execute("""SELECT *
+                    FROM quotes_status
+                    WHERE contract_id = ?;""", contract_id)
         result = cur.fetchall()
 
         conn.commit()
         cur.close()
         self.disconnect(conn)
 
-        return result[0]
+        if len(result) > 0:
+            return result[0]
+        else:
+            return None
 
 
 
     def update_quotes_status(self, contract_id, status_code, status_text,
         daily_quotes_requested_from, daily_quotes_requested_till):
-        status_text = self.remove_special_chars(status_text)
-        # Todo: Only update given values
+        """ Status code:
+        1: Successfully downloaded quotes
+        >1: TWS error code
+        """
 
-        query = f"""
-            UPDATE quotes_status 
-                SET status_code = {status_code}, 
-                    status_text = '{status_text}',
-                    daily_quotes_requested_from = '{daily_quotes_requested_from}',
-                    daily_quotes_requested_till = '{daily_quotes_requested_till}',
-                WHERE contract_id = {contract_id};"""
-        
+        # If no entry exists, create an empty one
+        if self.get_quotes_status(contract_id) == None:
+            conn = self.connect()
+            cur = conn.cursor()
+            cur.execute("""INSERT INTO quotes_status (
+                contract_id,
+                status_code,
+                status_text,
+                daily_quotes_requested_from, 
+                daily_quotes_requested_till) 
+                VALUES (?, ?, ?, ?)""",(
+                contract_id,
+                None,
+                None,
+                None,
+                None))
+            conn.commit()
+            cur.close()
+            self.disconnect(conn)
+
+        # Update new data to database
+        parameter_data = {'status_code': status_code,
+            'status_text': status_text,
+            'daily_quotes_requested_from': daily_quotes_requested_from,
+            'daily_quotes_requested_till': daily_quotes_requested_till}
+
         conn = self.connect()
         cur = conn.cursor()
 
-        cur.execute(query)
+        for column, value in parameter_data.items():
+            if value is not None:
+                cur.execute(f"""UPDATE quotes_status
+                    SET {column} = ?
+                    WHERE contract_id = ?)""",
+                    (value, contract_id))
+                conn.commit()
 
-        conn.commit()
         cur.close()
         self.disconnect(conn)
 
@@ -120,10 +150,10 @@ class QuotesDB(DataBase):
         contract_ids = self.__universes_db.get_universe_members(universe)
 
         self.__tws_connector.connect()
-
         try:    
             for contract_id in contract_ids:
-                # Abort requesting data
+
+                # Abort, don't process further contracts
                 if (self.__abort_operation is True)\
                     or (self.__tws_connector.has_error() is True):
                     print('Aborting operation.')
@@ -131,16 +161,17 @@ class QuotesDB(DataBase):
 
                 # Get contracts data
                 filters = {'contract_id': contract_id}
-                columns = ['broker_symbol', 'exchange', 'currency',
-                    'daily_quotes_requested_from', 'daily_quotes_requested_till']
+                columns = ['broker_symbol', 'exchange', 'currency']
                 contract = self.__contracts_db.get_contracts(filters = filters,
                     return_columns=columns)[0]
+                existing_quotes = self.get_quotes_status(contract_id)
+
                 debug_string = contract['broker_symbol'] + '_' + contract['exchange']
                 print(debug_string, end='')
-        
+
                 # Calculate length of requested data
-                if contract['status_code'] == 1:
-                    start_date = (contract['status_text'].split(':'))[1]
+                if existing_quotes['status_code'] == 1:
+                    start_date = (existing_quotes['daily_quotes_requsted_till'])
                     end_date = datetime.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
@@ -157,18 +188,19 @@ class QuotesDB(DataBase):
                     duration_str = str(ndays) + ' D'
                 else:
                     duration_str = "15 Y"
-            
-                # Request quotes from tws
-                # todo
 
-                # Add conid to result
-                # todo
+                # Request quotes from tws
+                quotes = self.__tws_connector.get_historical_data(
+                    contract_id=contract_id,
+                    symbol=contract['broker_symbol'],
+                    exchange=contract['exchange'],
+                    currency=contract['currency'],
+                    duration=duration_str)
 
                 # Inserting quotes into database
                 self.__quotes_db.insert_quotes(quotes=quotes)
 
-                # write finished info to contracts database
-                status_code = 1
+                # Write finished info to contracts database
                 timestamp_now = datetime.now()
                 string_now = timestamp_now.strftime('%Y-%m-%d')
                 status_text = 'downloaded:' + string_now
@@ -176,7 +208,7 @@ class QuotesDB(DataBase):
                     symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
                     currency=contract['currency'],
-                    status_code=status_code,
+                    status_code=1,
                     status_text=status_text
                 )
                 print(' Data stored.', end='')

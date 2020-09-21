@@ -3,24 +3,18 @@ import ib_insync
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import os
-import configparser
 
-# from barbucket.universes_db import UniversesDB
-# from barbucket.contracts_db import ContractsDB
-# from barbucket.contract_details_db import ContractDetailsDB
-# from barbucket.quotes_db import QuotesDB
-# from barbucket.data_quality_check import DataQualityCheck
 from barbucket.config import get_config_value
 
 
 class TwsConnector():
-    
+
     def __init__(self):
         # Create connection object
         self.__ib = ib_insync.ib.IB()
         # Register own error handler on ib hook
         self.__ib.errorEvent += self.__on_tws_error
+
         self.__connection_error = False
 
 
@@ -137,7 +131,8 @@ class TwsConnector():
 
 
 
-    def get_historical_data(self, symbol, exchange, currency, duration):
+    def get_historical_data(self, contract_id, symbol, exchange, currency, 
+        duration):
         """
         Description
 
@@ -176,7 +171,8 @@ class TwsConnector():
         # Reformatting of received bars
         quotes = []
         for bar in bars:
-            quote = (bar.date.strftime('%Y-%m-%d'),
+            quote = (contract_id,
+                bar.date.strftime('%Y-%m-%d'),
                 bar.open,
                 bar.high,
                 bar.low,
@@ -200,7 +196,7 @@ class TwsConnector():
             exchange=self.__encode_exchange(exchange),
             currency=currency)
 
-        # Request data and disconnect
+        # Request data
         print(' Requsting data.', end='')
         details = self.__ib.reqContractDetails(ib_contract)
         print(' Receiving completed.')

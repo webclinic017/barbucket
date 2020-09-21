@@ -81,7 +81,7 @@ class DataBase():
 
         cur.execute("""
             CREATE TABLE contract_details_tw (
-                contract_id INTEGER,
+                contract_id INTEGER UNIQUE,
                 market_cap INTEGER,
                 avg_vol_30_in_curr INTEGER,
                 country TEXT,
@@ -96,7 +96,7 @@ class DataBase():
 
         cur.execute("""
             CREATE TABLE quotes_status (
-                contract_id INTEGER,
+                contract_id INTEGER UNIQUE,
                 status_code INTEGER,
                 status_text TEXT,
                 daily_quotes_requested_from TEXT,

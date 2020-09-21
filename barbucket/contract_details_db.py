@@ -91,20 +91,35 @@ class ContractTwDetailsDB(DataBase):
 
 
 
+    def insert_new_entry(self, contract_id):
+        self.__insert_tw_details(
+            contract_id=contract_id,
+            market_cap="NULL",
+            avg_vol_30_in_curr="NULL",
+            country="NULL",
+            employees="NULL",
+            profit="NULL",
+            revenue="NULL")
+
+
+
     def ingest_tw_files(self):
         mypath = Path.home() / ".barbucket/tw_screener"
         screener_files = [f for f in os.listdir(mypath) if
             os.path.isfile(os.path.join(mypath, f))]
 
+        # Iterate over files in directory
         for file in screener_files:
             if file.startswith("Done_"):
                 continue
 
+            # Read file
             df = pd.read_csv(mypath / file, sep=",")
 
+            # Iterate over rows
             for _, row in df.iterrows():
 
-                # Get contract id
+                # Find corresponding contract id
                 ticker = row["Ticker"].replace(".", " ")
                 filters = {'primary_exchange': self.__decode_exchange(row["Exchange"]),
                     'contract_type_from_listing': "STOCK",
