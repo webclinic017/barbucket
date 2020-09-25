@@ -6,7 +6,7 @@ from datetime import date
 from barbucket.database import DatabaseConnector
 from barbucket.config import get_config_value
 from barbucket.universes import UniversesDatabase
-from barbucket.tws import TwsConnector
+from barbucket.tws import Tws
 from barbucket.contracts import ContractsDatabase
 
 
@@ -161,7 +161,7 @@ class Quotes():
     def fetch_historical_quotes(self, universe):
         # Instanciate necessary objects
         universe_db = UniversesDatabase()
-        tws_connector = TwsConnector()
+        tws = Tws()
         contracts_db = ContractsDatabase()
         quotes_db = QuotesDatabase()
         quotes_status_db = QuotesStatusDatabase()
@@ -173,13 +173,13 @@ class Quotes():
         # Get universe members
         contract_ids = universe_db.get_universe_members(universe=universe)
 
-        tws_connector.connect()
-        try:    
+        tws.connect()
+        try:
             for contract_id in contract_ids:
 
                 # Abort, don't process further contracts
                 if (self.__abort_tws_operation is True)\
-                    or (tws_connector.has_error() is True):
+                    or (tws.has_error() is True):
                     print('Aborting operation.')
                     break
 
@@ -219,7 +219,7 @@ class Quotes():
                     quotes_till = date.today().strftime('%Y-%m-%d')
 
                 # Request quotes from tws
-                quotes = tws_connector.download_historical_data(
+                quotes = tws.download_historical_data(
                     contract_id=contract_id,
                     symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
@@ -243,5 +243,5 @@ class Quotes():
             self.__abort_tws_operation = True
 
         finally:
-            tws_connector.disconnect()
+            tws.disconnect()
             print('Disconnected.')

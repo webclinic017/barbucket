@@ -197,6 +197,13 @@ class IbExchangeListings():
 
 class Contracts():
 
+    def get_contracts(self, filters={}, return_columns=[]):
+        contracts_db = ContractsDatabase()
+        contracts = contracts_db.get_contracts(filters=filters,
+            return_columns=return_columns)
+        return contracts
+
+
     def create_contract(self, contract_type_from_listing, broker_symbol, exchange, currency):
         # Todo: Return success or not
 
