@@ -2,12 +2,12 @@
 import ib_insync
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 from barbucket.config import get_config_value
+from barbucket.tools import Tools
 
 
-class TwsConnector():
+class Tws():
 
     def __init__(self):
         # Create connection object
@@ -18,58 +18,10 @@ class TwsConnector():
         self.__connection_error = False
 
 
-
-    def __encode_exchange(self, exchange):
-        exchange_codes = {
-            'NASDAQ': "ISLAND",     # NASDAQ / Island
-            'ISLAND': "ISLAND",     # NASDAQ / Island
-            'NYSE': "NYSE",         # NYSE
-            'ARCA': "ARCA",         # Archipelago
-            'AMEX': "AMEX",         # American Stock Exchange
-            'BATS': "BATS",         # Better Alternative Trading System
-
-            'VSE': "VSE",           # Vancouver Stock Exchange
-
-            'FWB': "FWB",           # Frankfurter Wertpapierbörse
-            'IBIS': "IBIS",         # XETRA
-            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
-
-            'LSE': "LSE",           # London Stock Exchange
-            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
-
-            'SBF': "SBF"}           # Euronext France
-
-        return exchange_codes[exchange]
-
-
-
-    def __decode_exchange(self, exchange):
-        exchange_codes = {
-            'ISLAND': "NASDAQ",     # NASDAQ / Island
-            'NASDAQ': "NASDAQ",     # NASDAQ / Island
-            'NYSE': "NYSE",         # NYSE
-            'ARCA': "ARCA",         # Archipelago
-            'AMEX': "AMEX",         # American Stock Exchange
-            'BATS': "BATS",         # Better Alternative Trading System
-
-            'VSE': "VSE",           # Vancouver Stock Exchange
-
-            'FWB': "FWB",           # Frankfurter Wertpapierbörse
-            'IBIS': "IBIS",         # XETRA
-            'SWB': "SWB",           # Stuttgarter Wertpapierbörse
-
-            'LSE': "LSE",           # London Stock Exchange
-            'LSEETF': "LSEETF",     # London Stock Exchange: ETF
-
-            'SBF': "SBF"}           # Euronext France
-
-        return exchange_codes[exchange]
-
-
-
     def __on_tws_error(self, reqId, errorCode, errorString, contract):
         """
-        Is called on errors and writes error details to contracts db.
+        Is called from 'ib_insync' as callback on errors and writes error
+        details to quotes_status in database.
 
         Args:
             reqId: Description.
@@ -107,12 +59,10 @@ class TwsConnector():
             print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
 
 
-
     def connect(self,):
         IP = get_config_value('tws_connector', 'ip')
         PORT = int(get_config_value('tws_connector', 'port'))
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-
 
 
     def disconnect(self,):
@@ -120,19 +70,16 @@ class TwsConnector():
         self.__connection_error = False
 
 
-
     def is_connected(self,):
         return self.__ib.isConnected()
-
 
 
     def has_error(self,):
         return self.__connection_error
 
 
-
-    def get_historical_data(self, contract_id, symbol, exchange, currency, 
-        duration):
+    def download_historical_quotes(self, contract_id, symbol, exchange,
+        currency, duration):
         """
         Description
 
@@ -182,9 +129,10 @@ class TwsConnector():
         return quotes
 
 
+    def download_contract_details(self, contract_type_from_listing,
+        broker_symbol, exchange, currency):
 
-    def get_contract_details(self, contract_type_from_listing, broker_symbol,
-        exchange, currency):
+        tools = Tools()
 
         debug_string = f"""Getting IB contract details for 
             {broker_symbol}_{exchange}"""
@@ -193,7 +141,7 @@ class TwsConnector():
         # Create contract object
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
-            exchange=self.__encode_exchange(exchange),
+            exchange=tools.encode_exchange(exchange),
             currency=currency)
 
         # Request data
@@ -210,8 +158,8 @@ class TwsConnector():
 
         # Decode exchange names
         details.contract.exchange = \
-            self.__decode_exchange(details.contract.exchange)
+            tools.decode_exchange(details.contract.exchange)
         details.contract.primaryExchange = \
-            self.__decode_exchange(details.contract.primaryExchange)
+            tools.decode_exchange(details.contract.primaryExchange)
 
         return details
