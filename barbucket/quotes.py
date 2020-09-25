@@ -1,31 +1,24 @@
 import sqlite3
-import os
-from ib_insync import contract
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import date
 
-
-from barbucket.database import DataBase
+from barbucket.database import DatabaseConnector
 from barbucket.config import get_config_value
-from barbucket.universes_db import UniversesDB
-from barbucket.tws_connector import TwsConnector
-from barbucket.contracts_db import ContractsDB
+from barbucket.universes import UniversesDatabase
+from barbucket.tws import TwsConnector
+from barbucket.contracts import ContractsDatabase
 
 
-class QuotesDB(DataBase):
+class QuotesDatabase():
 
     def __init__(self):
-        self.__universes_db = UniversesDB
-        self.__tws_connector = TwsConnector
-        self.__contracts_db = ContractsDB
-
-        self.__abort_operation = False
-
+        pass
 
 
     def insert_quotes(self, quotes):
-        conn = self.connect()
+        db_connection = DatabaseConnector()
+        conn = db_connection.connect()
         cur = conn.cursor()
 
         cur.executemany("""REPLACE INTO quotes (contract_id, date, open, high, 
@@ -36,20 +29,21 @@ class QuotesDB(DataBase):
 
         conn.commit()
         cur.close()
-        self.disconnect(conn)
-
+        db_connection.disconnect(conn)
 
 
     def get_quotes(self, contract_id):
+        # Todo: Sanitize query
 
         query = f"""SELECT date, open, high, low, close, volume
                     FROM quotes
                     WHERE contract_id = {contract_id}
                     ORDER BY date ASC;"""
 
-        conn = self.connect()
+        db_connection = DatabaseConnector()
+        conn = db_connection.connect()
         df = pd.read_sql_query(query, conn)
-        self.disconnect(conn)
+        db_connection.disconnect(conn)
 
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
             # more flexible to provide just strings
@@ -58,21 +52,49 @@ class QuotesDB(DataBase):
         return df
 
 
+    # def delete_quotes_before_date(self, contract_id, date):
+    #     conn = self.connect()
+    #     cur = conn.cursor()
+    #     cur.execute(f"""DELETE FROM quotes
+    #                     WHERE (contract_id = {contract_id}
+    #                         AND date(date) <= '{date}')""")
+    #     conn.commit()
+    #     cur.close()
+    #     self.disconnect(conn)
 
-    def delete_quotes_before_date(self, contract_id, date):
-        conn = self.connect()
+
+class QuotesStatusDatabase():
+
+    def __init__(self):
+        pass
+
+
+    def create_empty_quotes_status(self, contract_id):
+        db_connection = DatabaseConnector()
+        conn = db_connection.connect()
         cur = conn.cursor()
-        cur.execute(f"""DELETE FROM quotes
-                        WHERE (contract_id = {contract_id}
-                            AND date(date) <= '{date}')""")
+
+        cur.execute("""INSERT INTO quotes_status (
+            contract_id,
+            status_code,
+            status_text,
+            daily_quotes_requested_from, 
+            daily_quotes_requested_till) 
+            VALUES (?, ?, ?, ?)""",(
+            contract_id,
+            None,
+            None,
+            None,
+            None))
+
         conn.commit()
         cur.close()
-        self.disconnect(conn)
-
+        db_connection.disconnect(conn)
 
 
     def get_quotes_status(self, contract_id):
-        conn = self.connect()
+        db_connection = DatabaseConnector()
+        conn = db_connection.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -83,13 +105,13 @@ class QuotesDB(DataBase):
 
         conn.commit()
         cur.close()
-        self.disconnect(conn)
+        db_connection.disconnect(conn)
 
+        # Todo: Do not check for error
         if len(result) > 0:
             return result[0]
         else:
             return None
-
 
 
     def update_quotes_status(self, contract_id, status_code, status_text,
@@ -98,26 +120,6 @@ class QuotesDB(DataBase):
         1: Successfully downloaded quotes
         >1: TWS error code
         """
-
-        # If no entry exists, create an empty one
-        if self.get_quotes_status(contract_id) == None:
-            conn = self.connect()
-            cur = conn.cursor()
-            cur.execute("""INSERT INTO quotes_status (
-                contract_id,
-                status_code,
-                status_text,
-                daily_quotes_requested_from, 
-                daily_quotes_requested_till) 
-                VALUES (?, ?, ?, ?)""",(
-                contract_id,
-                None,
-                None,
-                None,
-                None))
-            conn.commit()
-            cur.close()
-            self.disconnect(conn)
 
         # Update new data to database
         parameter_data = {'status_code': status_code,
@@ -128,10 +130,10 @@ class QuotesDB(DataBase):
         conn = self.connect()
         cur = conn.cursor()
 
-        for column, value in parameter_data.items():
+        for key, value in parameter_data.items():
             if value is not None:
                 cur.execute(f"""UPDATE quotes_status
-                    SET {column} = ?
+                    SET {key} = ?
                     WHERE contract_id = ?)""",
                     (value, contract_id))
                 conn.commit()
@@ -141,38 +143,60 @@ class QuotesDB(DataBase):
 
 
 
-    def download_quotes(self, universe):
+class Quotes():
+
+    def __init__(self):
+        self.__abort_tws_operation = False
+
+
+    def get_contract_quotes(self, contract_id):
+        quotes_db = QuotesDatabase()
+        return quotes_db.get_quotes(contract_id=contract_id)
+
+
+    def get_universe_quotes(self, universe):
+        pass
+
+
+    def fetch_historical_quotes(self, universe):
+        # Instanciate necessary objects
+        universe_db = UniversesDatabase()
+        tws_connector = TwsConnector()
+        contracts_db = ContractsDatabase()
+        quotes_db = QuotesDatabase()
+        quotes_status_db = QuotesStatusDatabase()
+
         # Get config constants
         REDOWNLOAD_DAYS = int(get_config_value('quotes',
             'redownload_days'))
 
         # Get universe members
-        contract_ids = self.__universes_db.get_universe_members(universe)
+        contract_ids = universe_db.get_universe_members(universe=universe)
 
-        self.__tws_connector.connect()
+        tws_connector.connect()
         try:    
             for contract_id in contract_ids:
 
                 # Abort, don't process further contracts
-                if (self.__abort_operation is True)\
-                    or (self.__tws_connector.has_error() is True):
+                if (self.__abort_tws_operation is True)\
+                    or (tws_connector.has_error() is True):
                     print('Aborting operation.')
                     break
 
                 # Get contracts data
                 filters = {'contract_id': contract_id}
                 columns = ['broker_symbol', 'exchange', 'currency']
-                contract = self.__contracts_db.get_contracts(filters = filters,
+                contract = contracts_db.get_contracts(filters = filters,
                     return_columns=columns)[0]
-                existing_quotes = self.get_quotes_status(contract_id)
+                quotes_status = quotes_status_db.get_quotes_status(contract_id)
 
                 debug_string = contract['broker_symbol'] + '_' + contract['exchange']
                 print(debug_string, end='')
 
                 # Calculate length of requested data
-                if existing_quotes['status_code'] == 1:
-                    start_date = (existing_quotes['daily_quotes_requsted_till'])
-                    end_date = datetime.today().strftime('%Y-%m-%d')
+                if quotes_status['status_code'] == 1:
+                    start_date = (quotes_status['daily_quotes_requsted_till'])
+                    end_date = date.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
                         print(' Existing data is only ' + str(ndays) + 
@@ -186,11 +210,16 @@ class QuotesDB(DataBase):
                         continue
                     ndays += 6
                     duration_str = str(ndays) + ' D'
+                    quotes_from = quotes_status['daily_quotes_requsted_from']
+                    quotes_till = end_date
                 else:
                     duration_str = "15 Y"
+                    quotes_from = date.today()
+                    quotes_from.year -= 15
+                    quotes_till = date.today().strftime('%Y-%m-%d')
 
                 # Request quotes from tws
-                quotes = self.__tws_connector.get_historical_data(
+                quotes = tws_connector.download_historical_data(
                     contract_id=contract_id,
                     symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
@@ -198,25 +227,21 @@ class QuotesDB(DataBase):
                     duration=duration_str)
 
                 # Inserting quotes into database
-                self.__quotes_db.insert_quotes(quotes=quotes)
+                quotes_db.insert_quotes(quotes=quotes)
 
                 # Write finished info to contracts database
-                timestamp_now = datetime.now()
-                string_now = timestamp_now.strftime('%Y-%m-%d')
-                status_text = 'downloaded:' + string_now
-                self.__contracts_db.update_contract_status(
-                    symbol=contract['broker_symbol'],
-                    exchange=contract['exchange'],
-                    currency=contract['currency'],
+                quotes_status_db.update_quotes_status(
+                    contract_id=contract_id,
                     status_code=1,
-                    status_text=status_text
-                )
+                    status_text="Successful",
+                    daily_quotes_requested_from=quotes_from,
+                    daily_quotes_requested_till=quotes_till)
                 print(' Data stored.', end='')
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')
-            self.__abort_operation = True
+            self.__abort_tws_operation = True
 
         finally:
-            self.__tws_connector.disconnect()
+            tws_connector.disconnect()
             print('Disconnected.')
