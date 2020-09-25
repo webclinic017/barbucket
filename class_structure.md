@@ -17,7 +17,7 @@
 
 ## Database
 + init_database -> DatabaseConnector
-### DatabaseConnector
+#### DatabaseConnector
 + connect
 + disconnect
 
@@ -52,20 +52,19 @@
 + get_quotes_status
 + update_quotes_status
 
-## Tws
-+ download_historical_quotes -> TwsConnector
-+ download_contract_details -> TwsConnector
-### TwsConnector
-+ connect
-+ disconnect
+### Tws
++ download_historical_quotes
++ download_contract_details
+- connect
+- disconnect
 
-## Universes
+### Universes
 + create_universe
 + get_universes
 + get_universe_members
 + delete universe
 - create_membership
 
-## Tools
+#### Tools
 + encode
 + decode
