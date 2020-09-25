@@ -51,12 +51,14 @@ class AppInterface():
 
     def get_universes(self,):
         universes = UniversesDatabase()
-        universes.get_universes()
+        result = universes.get_universes()
+        return result
 
 
     def get_universe_members(self, universe):
         universes = UniversesDatabase()
-        universes.get_universe_members(universe)
+        members = universes.get_universe_members(universe)
+        return members
 
 
     def delete_universe(self, universe):

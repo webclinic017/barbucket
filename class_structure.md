@@ -5,7 +5,7 @@
 + get_contracts -> Contracts
 + sync_contracts_to_listing -> Contracts
 (group tv_details)
-+ ingest_tw_files -> TvDetails
++ ingest_tv_files -> TvDetails
 (group quotes)
 + fetch_historical_quotes -> Quotes
 + get_quotes -> Quotes
