@@ -2,28 +2,21 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 
-from barbucket.config import get_config_value
 
-
-class DataBase():
-    __DB_PATH = Path.home() / ".barbucket/database.db"
-
-
+class DatabaseConnector():
+    DB_PATH = Path.home() / ".barbucket/database.db"
+    # Todo: Follow dependency injection principle
 
     def __init__(self):
-        # If database file does not exist, initialize it
-        if not Path.is_file(DataBase.__DB_PATH):
-            self.init_database()
-
+        pass
 
 
     def connect(self):
-        conn = sqlite3.connect(DataBase.__DB_PATH)
+        conn = sqlite3.connect(DatabaseConnector.DB_PATH)
         conn.execute("""
             PRAGMA foreign_keys = 1;
         """)
         return conn
-
 
 
     def disconnect(self, conn):
@@ -31,16 +24,25 @@ class DataBase():
 
 
 
+class Database():
+
+    def __init__(self):
+        # If database file does not exist, initialize it
+        if not Path.is_file(DatabaseConnector.DB_PATH):
+            self.init_database()
+
+
     def init_database(self):
-        # backup old database
-        if Path.is_file(DataBase.__DB_PATH):
+        # backup old database if exists
+        if Path.is_file(DatabaseConnector.DB_PATH):
             now = datetime.now()
             timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
             new_name = Path.home() / f".barbucket/database_backup_{timestamp}.db"
-            DataBase.__DB_PATH.rename(new_name)
+            DatabaseConnector.DB_PATH.rename(new_name)
 
         # create new database and connect to
-        conn = self.connect()
+        db_connector = DatabaseConnector()
+        conn = db_connector.connect()
         cur = conn.cursor()
 
         cur.execute("""
@@ -119,14 +121,4 @@ class DataBase():
 
         conn.commit()
         cur.close()
-        self.disconnect(conn)
-
-
-
-    @staticmethod
-    def remove_special_chars(input_string):
-        special_chars = ["'"]
-        result = input_string
-        for char in special_chars:
-            result = result.replace(char, '')
-        return result
+        db_connector.disconnect(conn)
