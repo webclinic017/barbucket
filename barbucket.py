@@ -3,7 +3,6 @@ import fire
 from barbucket.app_interface import AppInterface
 
 
-
 app = AppInterface()
 
 
@@ -40,8 +39,8 @@ class Database(object):
 
 
 class Contracts(object):
-    # python barbucket.py contracts sync_listing --contract_type stock
-    #   --exchange island/arca/nyse
+    # python barbucket.py contracts sync_listing --contract_type STOCK
+    #   --exchange NASDAQ/ARCA/NYSE
     def sync_listing(self, contract_type, exchange):
         app.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
         print(f"Master listing synced for {contract_type}s on {exchange}.")
@@ -50,7 +49,7 @@ class Contracts(object):
 class TvDetails(object):
     # python barbucket.py tvdetails ingest_files
     def ingest_tv_files(self):
-        app.ingest_tw_files()
+        app.ingest_tv_files()
         print(f"Finished ingesting TV files.")
 
 
