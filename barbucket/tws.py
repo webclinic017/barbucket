@@ -134,14 +134,13 @@ class Tws():
 
         tools = Tools()
 
-        debug_string = f"""Getting IB contract details for 
-            {broker_symbol}_{exchange}"""
+        debug_string = f"Getting IB contract details for {broker_symbol}_{exchange}"
         print(debug_string, end='')
         
         # Create contract object
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
-            exchange=tools.encode_exchange(exchange),
+            exchange=tools.encode_exchange_ib(exchange),
             currency=currency)
 
         # Request data
@@ -158,8 +157,8 @@ class Tws():
 
         # Decode exchange names
         details.contract.exchange = \
-            tools.decode_exchange(details.contract.exchange)
+            tools.decode_exchange_ib(details.contract.exchange)
         details.contract.primaryExchange = \
-            tools.decode_exchange(details.contract.primaryExchange)
+            tools.decode_exchange_ib(details.contract.primaryExchange)
 
         return details
