@@ -1,5 +1,5 @@
 import numpy as np
-from datetime import date
+from datetime import date, timedelta
 from datetime import datetime
 import os
 from pathlib import Path
@@ -28,7 +28,7 @@ class AppInterface():
         # backup old database if exists
         if Path.is_file(DatabaseConnector.DB_PATH):
             now = datetime.now()
-            timestamp = now.strftime("%Y-%m-%d_%H:%M:%S")
+            timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
             new_name = Path.home() / f".barbucket/database_backup_{timestamp}.db"
             DatabaseConnector.DB_PATH.rename(new_name)
 
@@ -74,7 +74,7 @@ class AppInterface():
                 universe TEXT);""")
 
         cur.execute("""
-            CREATE TABLE contract_details_tw (
+            CREATE TABLE contract_details_tv (
                 contract_id INTEGER UNIQUE,
                 market_cap INTEGER,
                 avg_vol_30_in_curr INTEGER,
@@ -105,8 +105,8 @@ class AppInterface():
             CREATE VIEW all_contract_info AS
                 SELECT *
                     FROM contracts
-                    LEFT JOIN contract_details_tw ON
-                        contracts.contract_id = contract_details_tw.contract_id
+                    LEFT JOIN contract_details_tv ON
+                        contracts.contract_id = contract_details_tv.contract_id
                     LEFT JOIN quotes_status ON
                         contracts.contract_id = quotes_status.contract_id
                     WHERE exchange = primary_exchange""")
@@ -244,7 +244,7 @@ class AppInterface():
         tools = Tools()
         
         # Create list of path+filename of all files in directory
-        dir_path = Path.home() / ".barbucket/tw_screener"
+        dir_path = Path.home() / ".barbucket/tv_screener"
         screener_files = [
             os.path.join(dir_path, f) for f in os.listdir(dir_path) if
             os.path.isfile(os.path.join(dir_path, f))]
@@ -256,7 +256,8 @@ class AppInterface():
             for row in file_data:
                 # Find corresponding contract id
                 ticker = row['ticker'].replace(".", " ")
-                filters = {'primary_exchange': tools.decode_exchange(row['exchange']),
+                filters = {'primary_exchange': \
+                    tools.decode_exchange_tv(row['exchange']),
                     'contract_type_from_listing': "STOCK",
                     'exchange_symbol': ticker}
                 columns = ['contract_id']
@@ -268,7 +269,7 @@ class AppInterface():
 
                     # Write details to db
                     contract_id = result[0]['contract_id']
-                    tv_details_db.insert_tw_details(
+                    tv_details_db.insert_tv_details(
                         contract_id=contract_id,
                         market_cap=row['market_cap'],
                         avg_vol_30_in_curr=row['avg_vol_30_in_curr'],
@@ -299,6 +300,7 @@ class AppInterface():
         contracts_db = ContractsDatabase()
         quotes_db = QuotesDatabase()
         quotes_status_db = QuotesStatusDatabase()
+        tools = Tools()
 
         # Get config constants
         REDOWNLOAD_DAYS = int(get_config_value('quotes',
@@ -329,7 +331,7 @@ class AppInterface():
 
                 # Calculate length of requested data
                 if quotes_status['status_code'] == 1:
-                    start_date = (quotes_status['daily_quotes_requsted_till'])
+                    start_date = (quotes_status['daily_quotes_requested_till'])
                     end_date = date.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
@@ -349,28 +351,37 @@ class AppInterface():
                 else:
                     duration_str = "15 Y"
                     quotes_from = date.today()
-                    quotes_from.year -= 15
+                    fifteen_years = timedelta(days=5479)
+                    quotes_from -= fifteen_years
                     quotes_till = date.today().strftime('%Y-%m-%d')
 
                 # Request quotes from tws
-                quotes = tws.download_historical_data(
+                quotes = tws.download_historical_quotes(
                     contract_id=contract_id,
                     symbol=contract['broker_symbol'],
-                    exchange=contract['exchange'],
+                    exchange=tools.encode_exchange_ib(contract['exchange']),
                     currency=contract['currency'],
                     duration=duration_str)
 
-                # Inserting quotes into database
-                quotes_db.insert_quotes(quotes=quotes)
+                if quotes is not None:
+                    # Inserting quotes into database
+                    quotes_db.insert_quotes(quotes=quotes)
 
-                # Write finished info to contracts database
-                quotes_status_db.update_quotes_status(
-                    contract_id=contract_id,
-                    status_code=1,
-                    status_text="Successful",
-                    daily_quotes_requested_from=quotes_from,
-                    daily_quotes_requested_till=quotes_till)
-                print(' Data stored.', end='')
+                    # Write finished info to contracts database
+                    quotes_status_db.update_quotes_status(
+                        contract_id=contract_id,
+                        status_code=1,
+                        status_text="Successful",
+                        daily_quotes_requested_from=quotes_from,
+                        daily_quotes_requested_till=quotes_till)
+                    print(' Data stored.', end='')
+
+                else:
+                    # Write error info to contracts database
+                    # Todo: See error-method of Tws-class
+                    pass
+
+                print("Finished.")
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')
