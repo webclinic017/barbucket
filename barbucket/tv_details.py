@@ -9,14 +9,14 @@ class TvDetailsDatabase():
         pass
 
 
-    def insert_tw_details(self, contract_id, market_cap, avg_vol_30_in_curr,
+    def insert_tv_details(self, contract_id, market_cap, avg_vol_30_in_curr,
         country, employees, profit, revenue):
 
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
 
-        cur.execute("""REPLACE INTO contract_details_tw (
+        cur.execute("""REPLACE INTO contract_details_tv (
             contract_id,
             market_cap,
             avg_vol_30_in_curr,
@@ -39,14 +39,14 @@ class TvDetailsDatabase():
 
 
     def create_empty_entry(self, contract_id):
-        self.insert_tw_details(
+        self.insert_tv_details(
             contract_id=contract_id,
-            market_cap="NULL",
-            avg_vol_30_in_curr="NULL",
-            country="NULL",
-            employees="NULL",
-            profit="NULL",
-            revenue="NULL")
+            market_cap=None,
+            avg_vol_30_in_curr=None,
+            country=None,
+            employees=None,
+            profit=None,
+            revenue=None)
 
 
 
@@ -70,7 +70,7 @@ class TvDetailsFile():
             # Prepare the data
             row_formated['ticker'] = row['Ticker']
             row_formated['exchange'] = row['Exchange']
-            row_formated['market_cap'] = row['Market Capitalization']
+            row_formated['market_cap'] = int(row['Market Capitalization'])
 
             avg_vol_30_in_curr = row["Average Volume (30 day)"] * \
                 row["Simple Moving Average (30)"]
