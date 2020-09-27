@@ -1,7 +1,7 @@
 # ide stuff
 .idea/
 .ipynb_checkpoints/
-.vscode/
+.vscode/settings.json
 .vs/
 
 # pycache
@@ -12,7 +12,6 @@ __pycache__/
 
 # data
 data/*
-ib_tws_api/data/*
 *.db
 *.csv
 
