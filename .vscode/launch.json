@@ -31,6 +31,16 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "ib_details fetch",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/barbucket.py",
+            "args": [
+                "ib_details",
+                "fetch"
+            ],
+            "console": "integratedTerminal"
+        },        {
             "name": "tv_details ingest_files",
             "type": "python",
             "request": "launch",
@@ -52,7 +62,7 @@
                 "--universe",
                 "test_univ",
                 "--contract_ids",
-                "[8,18,28,38] " // Trailing space necessary for debugger
+                "[208,364,178,146] " // Trailing space necessary for debugger
             ],
             "console": "integratedTerminal"
         },
