@@ -131,7 +131,7 @@ class UniversesDatabase():
 
         cur.execute("""SELECT contract_id 
             FROM universe_memberships 
-            WHERE universe = ?;""", universe)
+            WHERE universe = ?;""", (universe,))
         row_list = cur.fetchall()
 
         conn.commit()
@@ -152,7 +152,7 @@ class UniversesDatabase():
         cur = conn.cursor()
 
         cur.execute("DELETE FROM universe_memberships WHERE universe = ?;",
-            universe)
+            (universe,))
 
         conn.commit()
         cur.close()
