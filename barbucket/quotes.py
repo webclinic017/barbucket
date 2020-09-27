@@ -46,44 +46,10 @@ class QuotesDatabase():
         return df
 
 
-    # def delete_quotes_before_date(self, contract_id, date):
-    #     conn = self.connect()
-    #     cur = conn.cursor()
-    #     cur.execute(f"""DELETE FROM quotes
-    #                     WHERE (contract_id = {contract_id}
-    #                         AND date(date) <= '{date}')""")
-    #     conn.commit()
-    #     cur.close()
-    #     self.disconnect(conn)
-
-
 class QuotesStatusDatabase():
 
     def __init__(self):
         pass
-
-
-    def create_empty_quotes_status(self, contract_id):
-        db_connection = DatabaseConnector()
-        conn = db_connection.connect()
-        cur = conn.cursor()
-
-        cur.execute("""INSERT INTO quotes_status (
-            contract_id,
-            status_code,
-            status_text,
-            daily_quotes_requested_from, 
-            daily_quotes_requested_till) 
-            VALUES (?, ?, ?, ?, ?)""",(
-            contract_id,
-            None,
-            None,
-            None,
-            None))
-
-        conn.commit()
-        cur.close()
-        db_connection.disconnect(conn)
 
 
     def get_quotes_status(self, contract_id):
@@ -108,30 +74,40 @@ class QuotesStatusDatabase():
             return None
 
 
-    def update_quotes_status(self, contract_id, status_code, status_text,
+    def insert_quotes_status(self, contract_id, status_code, status_text,
         daily_quotes_requested_from, daily_quotes_requested_till):
         """ Status code:
         1: Successfully downloaded quotes
         >1: TWS error code
         """
+ 
+        existing_status = self.get_quotes_status(contract_id=contract_id)
 
-        # Update new data to database
-        parameter_data = {'status_code': status_code,
-            'status_text': status_text,
-            'daily_quotes_requested_from': daily_quotes_requested_from,
-            'daily_quotes_requested_till': daily_quotes_requested_till}
+        if (status_code is None) and (existing_status is not None):
+            status_code = existing_status['status_code']
+        if (status_text is None) and (existing_status is not None):
+            status_text = existing_status['status_text']
+        if (daily_quotes_requested_from is None) and (existing_status is not None):
+            daily_quotes_requested_from = existing_status['daily_quotes_requested_from']
+        if (daily_quotes_requested_till is None) and (existing_status is not None):
+            daily_quotes_requested_till = existing_status['daily_quotes_requested_till']
 
         db_connection = DatabaseConnector()
         conn = db_connection.connect()
         cur = conn.cursor()
 
-        for key, value in parameter_data.items():
-            if value is not None:
-                cur.execute(f"""UPDATE quotes_status
-                    SET {key} = ?
-                    WHERE contract_id = ?""",
-                    (value, contract_id))
-                conn.commit()
+        cur.execute("""REPLACE into quotes_status(
+            contract_id,
+            status_code,
+            status_text,
+            daily_quotes_requested_from,
+            daily_quotes_requested_till) VALUES(?, ?, ?, ?, ?)""", (
+            contract_id,
+            status_code,
+            status_text,
+            daily_quotes_requested_from,
+            daily_quotes_requested_till))
+        conn.commit()
 
         cur.close()
         db_connection.disconnect(conn)

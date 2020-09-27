@@ -38,17 +38,6 @@ class TvDetailsDatabase():
         db_connector.disconnect(conn)
 
 
-    def create_empty_entry(self, contract_id):
-        self.insert_tv_details(
-            contract_id=contract_id,
-            market_cap=None,
-            avg_vol_30_in_curr=None,
-            country=None,
-            employees=None,
-            profit=None,
-            revenue=None)
-
-
 
 class TvDetailsFile():
 

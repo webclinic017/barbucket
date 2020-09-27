@@ -46,6 +46,13 @@ class Contracts(object):
         print(f"Master listing synced for {contract_type}s on {exchange}.")
 
 
+class IbDetails(object):
+    # python barbucket.py ib_details fetch
+    def fetch(self,):
+        app.fetch_ib_contract_details()
+        print(("Updatet master listings with IB details."))
+
+
 class TvDetails(object):
     # python barbucket.py tv_details ingest_files
     def ingest_files(self):
@@ -89,6 +96,7 @@ class Cli(object):
         self.playground = Playground()
         self.database = Database()
         self.contracts = Contracts()
+        self.ib_details = IbDetails()
         self.tv_details = TvDetails()
         self.quotes = Quotes()
         self.universes = Universes()

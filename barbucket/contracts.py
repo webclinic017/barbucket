@@ -1,6 +1,7 @@
 import sqlite3
 import time
 from bs4 import BeautifulSoup
+from numpy.core import numeric
 import requests
 
 from barbucket.database import DatabaseConnector
@@ -12,50 +13,30 @@ class ContractsDatabase():
         pass
 
 
-    def create_contract_entry(self, contract):
-        # Important! Only to be used by 'Contracts' class. To create a new
-            # contract for the whole app, there is more to be done!
-
-        # Returns automaticallly created contract_id of created contract
-
+    def create_contract(self, contract_type_from_listing, exchange_symbol,
+        broker_symbol, name, currency, exchange):
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
 
         cur.execute("""INSERT INTO contracts (
             contract_type_from_listing,
-            contract_type_from_details,
             exchange_symbol, 
             broker_symbol,
             name,
             currency,
-            exchange,
-            primary_exchange,
-            industry,
-            category,
-            subcategory) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",(
-            contract['contract_type_from_listing'],
-            contract['contract_type_from_details'],
-            contract['exchange_symbol'], 
-            contract['broker_symbol'],
-            contract['name'],
-            contract['currency'],
-            contract['exchange'],
-            contract['primary_exchange'],
-            contract['industry'],
-            contract['category'],
-            contract['subcategory']))
-
-        cur.execute("SELECT last_insert_rowid()")
-        row_id = cur.fetchall()
-        contract_id = row_id[0][0]
+            exchange) 
+            VALUES (?, ?, ?, ?, ?, ?)""",(
+            contract_type_from_listing,
+            exchange_symbol, 
+            broker_symbol,
+            name,
+            currency,
+            exchange))
 
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
-
-        return contract_id
 
 
     def get_contracts(self, filters={}, return_columns=[]):
@@ -65,7 +46,7 @@ class ContractsDatabase():
 
         # Check if given filters and return-columns are valid
         # Query existing columns
-        query = """SELECT name FROM PRAGMA_TABLE_INFO("contracts");"""
+        query = """SELECT name FROM PRAGMA_TABLE_INFO("all_contract_info");"""
 
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
@@ -96,19 +77,26 @@ class ContractsDatabase():
                 return None
 
         # Prepare query to get requested values from db
-        query = 'SELECT * FROM contracts'
+        query = "SELECT * FROM all_contract_info"
 
         if len(return_columns) > 0:
             cols = ", ".join(return_columns)
             query = query.replace("*", cols)
 
         if len(filters) > 0:
-            query += ' WHERE '
+            query += " WHERE "
 
             for key, value in filters.items():
-                query += (key + " = '" + str(value) + "' and ")
+                if value == "NULL":
+                    query += (key + " IS " + str(value) + " and ")
+                elif isinstance(value, str):
+                    query += (key + " = '" + str(value) + "' and ")
+                elif isinstance(value, (int, float)):
+                    query += (key + " = " + str(value) + " and ")
+
 
             query = query[:-5]      #remove trailing 'and'
+            query += ";"
 
         # Get requested values from db
         conn = db_connector.connect()
@@ -221,6 +209,10 @@ class IbExchangeListings():
             # Empty table -> End is reached
             if rows == []:
                 return website_data
+            #################################################################
+            if page == 3:
+                return website_data
+            #################################################################
 
             # Add data from this page to 'website_data'
             for row in rows:
