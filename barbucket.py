@@ -32,7 +32,7 @@ class Database(object):
     def reset(self):
         print("You sure? (y/n): ", end="")
         if input().lower() == "y":
-            app.reset_database()
+            app.init_database()
             print("Initialized databse.")
         else:
             print("Aborted")
@@ -47,8 +47,8 @@ class Contracts(object):
 
 
 class TvDetails(object):
-    # python barbucket.py tvdetails ingest_files
-    def ingest_tv_files(self):
+    # python barbucket.py tv_details ingest_files
+    def ingest_files(self):
         app.ingest_tv_files()
         print(f"Finished ingesting TV files.")
 
@@ -67,20 +67,20 @@ class Universes(object):
         app.create_universe(universe, contract_ids)
         print(f"Created universe {universe}.")
 
-    # python barbucket.py universes list
-    def list(self,):
+    # python barbucket.py universes list_universes
+    def list_universes(self,):
         universes = app.get_universes()
         print(f"Existing universes: {universes}.")
 
     # python barbucket.py universes members --name my_univ
-    def members(self, universe):
-        members = app.get_universe_members(universe=universe)
-        print(f"Members for universe {universe} are: {members}.")
+    def members(self, name):
+        members = app.get_universe_members(universe=name)
+        print(f"Members for universe {name} are: {members}.")
 
     # python barbucket.py universes delete --name my_univ
-    def delete(self, universe):
-        app.delete_universe(universe)
-        print(f"Deleted universe {universe}.")
+    def delete(self, name):
+        app.delete_universe(name)
+        print(f"Deleted universe {name}.")
 
 
 class Cli(object):
