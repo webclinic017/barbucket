@@ -48,7 +48,8 @@ class ContractsDatabase():
             contract['subcategory']))
 
         cur.execute("SELECT last_insert_rowid()")
-        contract_id = cur.fetchall()
+        row_id = cur.fetchall()
+        contract_id = row_id[0][0]
 
         conn.commit()
         cur.close()
@@ -220,10 +221,6 @@ class IbExchangeListings():
             # Empty table -> End is reached
             if rows == []:
                 return website_data
-    ######################
-            if page == 4:
-                return website_data
-    ######################
 
             # Add data from this page to 'website_data'
             for row in rows:
