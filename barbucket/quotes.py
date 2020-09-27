@@ -74,7 +74,7 @@ class QuotesStatusDatabase():
             status_text,
             daily_quotes_requested_from, 
             daily_quotes_requested_till) 
-            VALUES (?, ?, ?, ?)""",(
+            VALUES (?, ?, ?, ?, ?)""",(
             contract_id,
             None,
             None,
@@ -94,7 +94,7 @@ class QuotesStatusDatabase():
 
         cur.execute("""SELECT *
                     FROM quotes_status
-                    WHERE contract_id = ?;""", contract_id)
+                    WHERE contract_id = ?;""", (contract_id,))
         result = cur.fetchall()
 
         conn.commit()
@@ -121,16 +121,17 @@ class QuotesStatusDatabase():
             'daily_quotes_requested_from': daily_quotes_requested_from,
             'daily_quotes_requested_till': daily_quotes_requested_till}
 
-        conn = self.connect()
+        db_connection = DatabaseConnector()
+        conn = db_connection.connect()
         cur = conn.cursor()
 
         for key, value in parameter_data.items():
             if value is not None:
                 cur.execute(f"""UPDATE quotes_status
                     SET {key} = ?
-                    WHERE contract_id = ?)""",
+                    WHERE contract_id = ?""",
                     (value, contract_id))
                 conn.commit()
 
         cur.close()
-        self.disconnect(conn)
+        db_connection.disconnect(conn)
