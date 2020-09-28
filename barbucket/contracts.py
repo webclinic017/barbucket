@@ -209,10 +209,6 @@ class IbExchangeListings():
             # Empty table -> End is reached
             if rows == []:
                 return website_data
-            #################################################################
-            if page == 3:
-                return website_data
-            #################################################################
 
             # Add data from this page to 'website_data'
             for row in rows:

@@ -213,7 +213,7 @@ class AppInterface():
             for row in file_data:
                 # Find corresponding contract id
                 ticker = row['ticker'].replace(".", " ")
-                filters = {'primary_exchange': \
+                filters = {'exchange': \
                     tools.decode_exchange_tv(row['exchange']),
                     'contract_type_from_listing': "STOCK",
                     'exchange_symbol': ticker}
@@ -237,8 +237,7 @@ class AppInterface():
                 else:
                     ticker =row['ticker']
                     exchange = row['exchange']
-                    print(f"Error: {len(result)} results for {ticker} \
-                        on {exchange}.")
+                    print(f"Error: {len(result)} contracts found for '{ticker}' with on '{exchange}'.")
 
 
     def get_contract_quotes(self, contract_id):
@@ -277,6 +276,9 @@ class AppInterface():
                     break
 
                 # Get contracts data
+                debug_string = "Getting contract data. "
+                print(debug_string, end='')
+
                 filters = {'contract_id': contract_id}
                 columns = ['broker_symbol', 'exchange', 'currency']
                 contract = contracts_db.get_contracts(filters = filters,
@@ -334,14 +336,14 @@ class AppInterface():
                         status_text="Successful",
                         daily_quotes_requested_from=quotes_from,
                         daily_quotes_requested_till=quotes_till)
-                    print(' Data stored.', end='')
+                    print('Data stored.')
 
                 else:
                     # Write error info to contracts database
                     # Todo: See error-method of Tws-class
                     pass
 
-                print("Finished.")
+            print("Finished.")
 
         except KeyboardInterrupt:
             print('Keyboard interrupt detected.', end='')
@@ -383,13 +385,14 @@ class AppInterface():
                     exchange=contract['exchange'],
                     currency=contract['currency'])
 
-                ib_details_db.insert_ib_details(
-                    contract_id=contract['contract_id'],
-                    contract_type_from_details=contract_details.stockType,
-                    primary_exchange=contract_details.contract.primaryExchange,
-                    industry=contract_details.industry,
-                    category=contract_details.category,
-                    subcategory=contract_details.subcategory)
+                if contract_details is not None:
+                    ib_details_db.insert_ib_details(
+                        contract_id=contract['contract_id'],
+                        contract_type_from_details=contract_details.stockType,
+                        primary_exchange=contract_details.contract.primaryExchange,
+                        industry=contract_details.industry,
+                        category=contract_details.category,
+                        subcategory=contract_details.subcategory)
 
             tws.disconnect()
 
