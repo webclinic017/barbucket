@@ -4,6 +4,7 @@ from barbucket.app_interface import AppInterface
 
 
 app = AppInterface()
+# Todo: Check and sanitize all user inputs
 
 
 # Template

@@ -19,6 +19,7 @@ class DataQualityCheck():
     - the upper function, calling this function for each instrument, will create a dataframe
     from the returned dicts. The dataframe can then be inspected with the screener. If result is
     correct, it will be applied to the databases (alter pricedata or remove instrument)
+    - check for negative price values
     """
 
 
