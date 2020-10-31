@@ -17,6 +17,7 @@ requests = "*"
 trading-calendars = "*"
 fire = "*"
 beautifulsoup4 = "*"
+enlighten = "*"
 
 [requires]
 python_version = "3.8"

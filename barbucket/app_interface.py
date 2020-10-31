@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from datetime import datetime
 import os
 from pathlib import Path
+import enlighten
 
 from barbucket.database import DatabaseConnector
 from barbucket.contracts import ContractsDatabase, IbExchangeListings
@@ -265,6 +266,10 @@ class AppInterface():
         # Get universe members
         contract_ids = universe_db.get_universe_members(universe=universe)
 
+        # Setup progress bar
+        manager = enlighten.get_manager()
+        pbar = manager.counter(total=len(contract_ids), desc="Contracts", unit="contracts")
+
         tws.connect()
         try:
             for contract_id in contract_ids:
@@ -297,25 +302,18 @@ class AppInterface():
                     end_date = date.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
-                        print(' Existing data is only ' + str(ndays) + 
-                            ' days old. Contract aborted.')
-                        print('-------------------------')
+                        pbar.update()
                         continue
                     if ndays > 360:
-                        print(' Last Download is ' + str(ndays) + 
-                            ' days old. Contract aborted.')
-                        print('-------------------------')
+                        pbar.update()
                         continue
                     ndays += 6
                     duration_str = str(ndays) + ' D'
                     quotes_from = quotes_status['daily_quotes_requsted_from']
                     quotes_till = end_date
                 else:
-                    duration_str = "15 Y"
-                    quotes_from = date.today()
-                    fifteen_years = timedelta(days=5479)
-                    quotes_from -= fifteen_years
-                    quotes_till = date.today().strftime('%Y-%m-%d')
+                    pbar.update()
+                    continue
 
                 # Request quotes from tws
                 quotes = tws.download_historical_quotes(
@@ -340,8 +338,7 @@ class AppInterface():
 
                 else:
                     # Write error info to contracts database
-                    # Todo: See error-method of Tws-class
-                    pass
+                pbar.update()
 
             print("Finished.")
 
