@@ -164,6 +164,20 @@ class IbExchangeListings():
             + f"&exch={exchange}"
         html = requests.get(url).text
 
+        # Correct error from IB
+        old_lines = html.splitlines()
+        new_lines = []
+        corrections = 0
+        for line in old_lines:
+            if ('        <td align="left" valign="middle">' in line)\
+                and ("href" not in line):
+                    line = line.replace("</a>","")
+                    corrections += 1
+            new_lines.append(line)
+        html = "".join(new_lines)
+        if corrections == 0:
+            logging.info(f"IB error for singlepage listings no longer present.")
+
         soup = BeautifulSoup(html, 'html.parser')
         tables = soup.find_all('table', \
             class_='table table-striped table-bordered')
