@@ -26,7 +26,7 @@
                 "--contract_type",
                 "STOCK",
                 "--exchange",
-                "NASDAQ"
+                "NYSE"
             ],
             "console": "integratedTerminal"
         },
@@ -60,9 +60,9 @@
                 "universes",
                 "create",
                 "--universe",
-                "test_univ",
+                "all_etx",
                 "--contract_ids",
-                "[208,364,178,146] " // Trailing space necessary for debugger
+                "[1,2,3] " // Trailing space necessary for debugger
             ],
             "console": "integratedTerminal"
         },
@@ -99,7 +99,7 @@
                 "universes",
                 "delete",
                 "--name",
-                "test_univ"
+                "all_etx"
             ],
             "console": "integratedTerminal"
         },
@@ -112,7 +112,7 @@
                 "quotes",
                 "fetch",
                 "--universe",
-                "test_univ"
+                "all_etx"
             ],
             "console": "integratedTerminal"
         }

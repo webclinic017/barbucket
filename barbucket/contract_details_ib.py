@@ -1,6 +1,6 @@
 from barbucket.database import DatabaseConnector
 
-class IbDetailsDatabse():
+class IbDetailsDatabase():
 
     def __init__(self):
         pass

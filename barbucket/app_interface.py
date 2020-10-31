@@ -12,7 +12,7 @@ from barbucket.universes import UniversesDatabase
 from barbucket.quotes import QuotesDatabase, QuotesStatusDatabase
 from barbucket.tws import Tws
 from barbucket.contract_details_tv import TvDetailsDatabase, TvDetailsFile
-from barbucket.contract_details_ib import IbDetailsDatabse
+from barbucket.contract_details_ib import IbDetailsDatabase
 from barbucket.config import get_config_value
 from barbucket.tools import Tools
 
@@ -128,7 +128,11 @@ class AppInterface():
             CREATE TABLE universe_memberships (
                 membership_id INTEGER NOT NULL PRIMARY KEY,
                 contract_id INTEGER,
-                universe TEXT);""")
+                universe TEXT,
+                FOREIGN KEY (contract_id)
+                    REFERENCES contracts (contract_id)
+                        ON UPDATE CASCADE
+                        ON DELETE CASCADE);""")
 
         conn.commit()
         cur.close()
@@ -349,6 +353,13 @@ class AppInterface():
 
                 else:
                     # Write error info to contracts database
+                    error_code, error_text = tws.get_contract_error()
+                    quotes_status_db.insert_quotes_status(
+                        contract_id=contract_id,
+                        status_code=error_code,
+                        status_text=error_text,
+                        daily_quotes_requested_from=None,
+                        daily_quotes_requested_till=None)                
                 pbar.update()
 
             logging.info(f"Finished fetching historical quotes for universe {universe}.")
@@ -366,7 +377,7 @@ class AppInterface():
         contracts_db = ContractsDatabase()
         columns = ['contract_id', 'contract_type_from_listing',
             'broker_symbol', 'exchange', 'currency']
-        filters = {'market_cap': "NULL"}
+        filters = {'primary_exchange': "NULL"}
         contracts = contracts_db.get_contracts(filters=filters,
             return_columns=columns)
         logging.info(f"Found {len(contracts)} contracts with missing IB details in master listing.")
