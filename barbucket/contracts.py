@@ -46,38 +46,6 @@ class ContractsDatabase():
         returns a list of sqlite3.Row objects
         """
 
-        # Check if given filters and return-columns are valid
-        # Query existing columns
-        query = """SELECT name FROM PRAGMA_TABLE_INFO("all_contract_info");"""
-
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-
-        cur.execute(query)
-        columns = cur.fetchall()
-
-        conn.commit()
-        cur.close()
-        db_connector.disconnect(conn)
-
-        existing_columns = []
-        for column in columns:
-            existing_columns.append(column['name'])
-
-        # Check if given keys are in existing columns
-        for key in filters:
-            if key not in existing_columns:
-                print(f"Error. Filter key '{key}' not found in columns.")
-                return None
-
-        # Check if given return_columns are in existing columns
-        for column in return_columns:
-            if column not in existing_columns:
-                print(f"Error. Return-column key '{column}' not found in columns.")
-                return None
-
         # Prepare query to get requested values from db
         query = "SELECT * FROM all_contract_info"
 
@@ -102,6 +70,7 @@ class ContractsDatabase():
 
         # Get requested values from db
         logging.debug(f"Getting contracts from databse with query: {query}")
+        db_connector = DatabaseConnector()
         conn = db_connector.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
