@@ -3,6 +3,7 @@ import time
 from bs4 import BeautifulSoup
 from numpy.core import numeric
 import requests
+import logging
 
 from barbucket.database import DatabaseConnector
 
@@ -15,6 +16,7 @@ class ContractsDatabase():
 
     def create_contract(self, contract_type_from_listing, exchange_symbol,
         broker_symbol, name, currency, exchange):
+        logging.debug(f"Creating new contract {contract_type_from_listing}_{exchange}_{broker_symbol}_{currency}.")
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
@@ -99,6 +101,7 @@ class ContractsDatabase():
             query += ";"
 
         # Get requested values from db
+        logging.debug(f"Getting contracts from databse with query: {query}")
         conn = db_connector.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -187,7 +190,7 @@ class IbExchangeListings():
 
         while True:
             # Get website
-            print(str(page))
+            logging.info(f"Scraping IB exchange listing for {exchange}, page {page}.")
             url = f"https://www.interactivebrokers.com/en/index.php?f=2222"\
                 + f"&exch={exchange}&showcategories=STK&p=&cc=&limit=100"\
                 + f"&page={page}"
@@ -198,7 +201,8 @@ class IbExchangeListings():
                 html = html.replace(\
                     "(click link for more details)</span></th>\n                       </th>\n",\
                     "(click link for more details)</span></th>\n")
-                print("Error fixed.")
+            else:
+                logging.info(f"IB error for paginated listings no longer present.")
 
             # Parse HTML
             soup = BeautifulSoup(html, 'html.parser')

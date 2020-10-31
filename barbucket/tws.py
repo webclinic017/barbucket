@@ -2,6 +2,7 @@
 import ib_insync
 import pandas as pd
 import numpy as np
+import logging
 
 from barbucket.config import get_config_value
 from barbucket.tools import Tools
@@ -41,8 +42,7 @@ class Tws():
             'non_systemic_codes')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
-            print('Systemic problem detected. ' + str(errorCode) + ' - ' + 
-                errorString)
+            logging.error(f"Systemic problem in TWS connection detected. {errorCode}: {errorString}")
             self.__connection_error = True
 
         # Write error info to contract database, if error is related to contract
@@ -57,15 +57,18 @@ class Tws():
             #     status_code=status_code,
             #     status_text=status_text)
             print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
+            logging.error(f"Problem for {contract} detected. {errorCode}: {errorString}")
 
 
     def connect(self,):
         IP = get_config_value('tws_connector', 'ip')
         PORT = int(get_config_value('tws_connector', 'port'))
+        logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
 
     def disconnect(self,):
+        logging.info("Disconnecting from TWS.")
         self.__ib.disconnect()
         self.__connection_error = False
 
@@ -100,7 +103,7 @@ class Tws():
             currency=currency)
 
         # Request data
-        print(' Requsting data.', end='')
+        logging.info(f"Requesting historical quotes for {exchange}_{symbol}_{currency}_{duration.replace(' ', '')} at TWS.")
         bars = self.__ib.reqHistoricalData(
             ib_contract,
             endDateTime='',
@@ -108,25 +111,23 @@ class Tws():
             barSizeSetting='1 day',
             whatToShow='ADJUSTED_LAST',
             useRTH=True)
-        print(' Receiving completed.', end='')
+        logging.info(f"Received {len(bars)} quotes.")
 
         if len(bars) == 0:
-            print('No data received.', end='')
-            print('-------------------------')
             return None
-
-        # Reformatting of received bars
-        quotes = []
-        for bar in bars:
-            quote = (contract_id,
-                bar.date.strftime('%Y-%m-%d'),
-                bar.open,
-                bar.high,
-                bar.low,
-                bar.close,
-                bar.volume)
-            quotes.append(quote)
-        return quotes
+        else:
+            # Reformatting of received bars
+            quotes = []
+            for bar in bars:
+                quote = (contract_id,
+                    bar.date.strftime('%Y-%m-%d'),
+                    bar.open,
+                    bar.high,
+                    bar.low,
+                    bar.close,
+                    bar.volume)
+                quotes.append(quote)
+            return quotes
 
 
     def download_contract_details(self, contract_type_from_listing,
@@ -134,8 +135,6 @@ class Tws():
 
         tools = Tools()
 
-        debug_string = f"Getting IB contract details for {broker_symbol}_{exchange}"
-        print(debug_string, end='')
         
         # Create contract object
         ib_contract = ib_insync.contract.Stock(
@@ -144,15 +143,14 @@ class Tws():
             currency=currency)
 
         # Request data
-        print(' Requsting data.', end='')
+        logging.info(f"Requesting contract details for {broker_symbol}_{exchange}_{currency} at TWS")
         details = self.__ib.reqContractDetails(ib_contract)
-        print(' Receiving completed.')
 
         # Check returned data
+        logging.info(f"Received details for {len(details)} contracts.")
         if len(details) > 0:
             details = details[0]
         else:
-            print("No details returned.")
             return None
 
         # Decode exchange names

@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from datetime import datetime
 import os
 from pathlib import Path
+import logging
 import enlighten
 
 from barbucket.database import DatabaseConnector
@@ -14,6 +15,11 @@ from barbucket.contract_details_tv import TvDetailsDatabase, TvDetailsFile
 from barbucket.contract_details_ib import IbDetailsDatabse
 from barbucket.config import get_config_value
 from barbucket.tools import Tools
+
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger()
 
 
 class AppInterface():
@@ -33,6 +39,7 @@ class AppInterface():
             timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
             new_name = Path.home() / f".barbucket/database_backup_{timestamp}.db"
             DatabaseConnector.DB_PATH.rename(new_name)
+            logging.info(f'Created backup of existing database: {new_name}')
 
         # create new database and connect to
         db_connector = DatabaseConnector()
@@ -126,6 +133,7 @@ class AppInterface():
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
+        logging.info(f'Created new database.')
 
 
     def get_contracts(self, filters={}, return_columns=[]):
@@ -136,10 +144,8 @@ class AppInterface():
 
 
     def sync_contracts_to_listing(self, ctype, exchange):
-        # Todo: Return statistics
-
+        logging.info(f'Syncing {ctype} contracts on {exchange} to master listing.')
         # Get all contracts from websites
-        print(f'exchange: {exchange}')
         ib_listings = IbExchangeListings()
         website_data = []
         if ctype == "ETF":
@@ -164,13 +170,12 @@ class AppInterface():
                     exists = True
                     break
             if not exists:
-                print('deleting: ' + db_row['broker_symbol'] + ' - ' + exchange)
                 contracts_database.delete_contract(
                     symbol=db_row['broker_symbol'], \
                     exchange=exchange.upper(),
                     currency=db_row['currency'])
                 contracts_removed += 1
-        print('contracts removed: ' + str(contracts_removed))
+        logging.info(f'{contracts_removed} contracts removed from master listing.')
 
         # Add contracts from website to database, that are not present in database
         contracts_added = 0
@@ -182,7 +187,6 @@ class AppInterface():
                     exists = True
                     break
             if not exists:
-                print('creating: ' + web_row['broker_symbol'] + ' - ' + exchange)
                 contracts_database.create_contract(
                     contract_type_from_listing=ctype,
                     exchange_symbol=web_row['exchange_symbol'],
@@ -191,10 +195,10 @@ class AppInterface():
                     currency=web_row['currency'],
                     exchange=exchange.upper())
                 contracts_added += 1
-        print('contracts added: ' + str(contracts_added))
+        logging.info(f'{contracts_added} contracts added to master listing.')
 
 
-    def ingest_tv_files(self):
+    def ingest_tv_files(self):        
         # Instanciate necessary objects
         tv_details_db = TvDetailsDatabase()
         tv_details_file = TvDetailsFile()
@@ -209,6 +213,7 @@ class AppInterface():
 
         # Iterate over files in directory
         for tv_file in tv_screener_files:
+            logging.info(f"Ingesting TV file {tv_file}.")
             file_data = tv_details_file.get_data_from_file(file=tv_file)
 
             for row in file_data:
@@ -238,7 +243,7 @@ class AppInterface():
                 else:
                     ticker =row['ticker']
                     exchange = row['exchange']
-                    print(f"Error: {len(result)} contracts found for '{ticker}' with on '{exchange}'.")
+                    logging.warning(f"{len(result)} contracts found in master listing for '{ticker}' on '{exchange}'.")
 
 
     def get_contract_quotes(self, contract_id):
@@ -251,6 +256,8 @@ class AppInterface():
 
 
     def fetch_historical_quotes(self, universe):
+        logging.info(f"Fetching historical quotes for universe {universe}.")
+
         # Instanciate necessary objects
         universe_db = UniversesDatabase()
         tws = Tws()
@@ -277,41 +284,45 @@ class AppInterface():
                 # Abort, don't process further contracts
                 if (self.__abort_tws_operation is True)\
                     or (tws.has_error() is True):
-                    print('Aborting operation.')
+                    logging.info("Aborting historical quotes fetching.")
                     break
 
                 # Get contracts data
-                debug_string = "Getting contract data. "
-                print(debug_string, end='')
-
                 filters = {'contract_id': contract_id}
                 columns = ['broker_symbol', 'exchange', 'currency']
                 contract = contracts_db.get_contracts(filters = filters,
                     return_columns=columns)[0]
                 quotes_status = quotes_status_db.get_quotes_status(contract_id)
-
-                debug_string = contract['broker_symbol'] + '_' + contract['exchange']
-                print(debug_string, end='')
+                logging.info(f"Preparing to fetch hiostorical quotes for {contract['broker_symbol']} on {contract['exchange']}")
 
                 # Calculate length of requested data
                 if quotes_status is None:
-                    quotes_status = {'status_code': 0}
+                    duration_str = "15 Y"
+                    quotes_from = date.today()
+                    fifteen_years = timedelta(days=5479)
+                    quotes_from -= fifteen_years
+                    quotes_till = date.today().strftime('%Y-%m-%d')
 
-                if quotes_status['status_code'] == 1:
+                elif quotes_status['status_code'] == 1:
                     start_date = (quotes_status['daily_quotes_requested_till'])
                     end_date = date.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
+                        logging.info(f"Existing data is only {ndays} days old. Contract aborted.")
                         pbar.update()
                         continue
                     if ndays > 360:
+                        logging.info(f"Existing data is already {ndays} days old. Contract aborted.")
                         pbar.update()
                         continue
                     ndays += 6
                     duration_str = str(ndays) + ' D'
-                    quotes_from = quotes_status['daily_quotes_requsted_from']
+                    quotes_from = quotes_status['daily_quotes_requested_from']
                     quotes_till = end_date
+
                 else:
+                    # Todo: Enable retry of failed contracts
+                    logging.info("Contract already has error status. Skipped.")
                     pbar.update()
                     continue
 
@@ -325,6 +336,7 @@ class AppInterface():
 
                 if quotes is not None:
                     # Inserting quotes into database
+                    logging.info(f"Storing {len(quotes)} quotes to database.")
                     quotes_db.insert_quotes(quotes=quotes)
 
                     # Write finished info to contracts database
@@ -334,21 +346,19 @@ class AppInterface():
                         status_text="Successful",
                         daily_quotes_requested_from=quotes_from,
                         daily_quotes_requested_till=quotes_till)
-                    print('Data stored.')
 
                 else:
                     # Write error info to contracts database
                 pbar.update()
 
-            print("Finished.")
+            logging.info(f"Finished fetching historical quotes for universe {universe}.")
 
         except KeyboardInterrupt:
-            print('Keyboard interrupt detected.', end='')
+            logging.info("Keyboard interrupt detected.")
             self.__abort_tws_operation = True
 
         finally:
             tws.disconnect()
-            print('Disconnected.')
 
 
     def fetch_ib_contract_details(self,):
@@ -359,21 +369,21 @@ class AppInterface():
         filters = {'market_cap': "NULL"}
         contracts = contracts_db.get_contracts(filters=filters,
             return_columns=columns)
+        logging.info(f"Found {len(contracts)} contracts with missing IB details in master listing.")
 
-        if contracts is None:
-            print("No contracts with IB details missing.")
+        if len(contracts) == 0:
             return
 
         tws = Tws()
-        ib_details_db = IbDetailsDatabse()
+        ib_details_db = IbDetailsDatabase()
         tws.connect()
 
         try:
             for contract in contracts:
-                # Abort, don't process further contracts
+                # Check for abort conditions
                 if (self.__abort_tws_operation is True)\
                     or (tws.has_error() is True):
-                    print('Aborting operation.')
+                    logging.info(f"Abort fetching of IB details.")
                     break
 
                 contract_details = tws.download_contract_details(
@@ -394,12 +404,11 @@ class AppInterface():
             tws.disconnect()
 
         except KeyboardInterrupt:
-            print('Keyboard interrupt detected.', end='')
+            logging.info("Keyboard interrupt detected.")
             self.__abort_tws_operation = True
 
         finally:
             tws.disconnect()
-            print('Disconnected.')
 
 
     def create_universe(self, name, contract_ids):

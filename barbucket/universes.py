@@ -1,4 +1,5 @@
 import sqlite3
+import logging
 
 from barbucket.database import DatabaseConnector
 
@@ -86,13 +87,11 @@ class UniversesDatabase():
 
 
     def create_universe(self, name, contract_ids):
-        # Todo: If number of contracts < 1 abort
 
         # Insert memberships into db
+        logging.info(f"Creating universe '{name}' with {len(contract_ids)} members.")
         for contract_id in contract_ids:
             self.__create_membership(contract_id, name)
-
-        print(f"Successfully created universe '{name}' with {len(contract_ids)} members.")
 
 
     def get_universes(self):
@@ -147,6 +146,7 @@ class UniversesDatabase():
 
     def delete_universe(self, universe):
 
+        logging.info(f"Deleting universe '{universe}'.")
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
