@@ -17,6 +17,8 @@ class Tws():
         self.__ib.errorEvent += self.__on_tws_error
 
         self.__connection_error = False
+        self.__contract_error_status = None
+        self.__contract_error_code = None
 
 
     def __on_tws_error(self, reqId, errorCode, errorString, contract):
@@ -48,15 +50,8 @@ class Tws():
         # Write error info to contract database, if error is related to contract
         # Todo: Better check if error code is systemic or not
         if contract is not None:
-            status_code = errorCode
-            status_text = 'Error:' + str(errorCode) + '_' + str(errorString)
-            # self.__contracts_db.update_contract_status(
-            #     symbol=contract.symbol,
-            #     exchange=contract.exchange,
-            #     currency=contract.currency,
-            #     status_code=status_code,
-            #     status_text=status_text)
-            print(contract.symbol + '_' + contract.exchange + ' ' + status_text)
+            self.__contract_error_status = errorString
+            self.__contract_error_code = errorCode
             logging.error(f"Problem for {contract} detected. {errorCode}: {errorString}")
 
 
@@ -81,6 +76,10 @@ class Tws():
         return self.__connection_error
 
 
+    def get_contract_error(self,):
+        return [self.__contract_error_code, self.__contract_error_status]
+
+
     def download_historical_quotes(self, contract_id, symbol, exchange,
         currency, duration):
         """
@@ -95,6 +94,9 @@ class Tws():
         Raises:
             No errors
         """
+
+        self.__contract_error_status = None
+        self.__contract_error_code = None
 
         # Create contract
         ib_contract = ib_insync.contract.Stock(
