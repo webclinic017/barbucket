@@ -18,7 +18,8 @@ from barbucket.tools import Tools
 
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+FORMAT = "%(message)s"
+logging.basicConfig(format=FORMAT, level=logging.INFO)
 # logger = logging.getLogger()
 
 
