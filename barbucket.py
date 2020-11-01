@@ -1,4 +1,4 @@
-import fire
+import click
 
 from barbucket.app_interface import AppInterface
 
@@ -7,101 +7,100 @@ app = AppInterface()
 # Todo: Check and sanitize all user inputs
 
 
-# Template
-# class MyGroup(object):
-#     def my_command(self, my_argument_1, my_argument_2):
-        # Call code functions here
+# Initial group, not explicitly called
+@click.group()
+def cli():
+    pass
 
 
-# Playground
-class Playground(object):
-    # python barbucket.py playground listreader --my_list "[a,b]"
-    def listreader(self, my_list):
-        """
-        First line
-        Second line
-        :param my_list Parameter 1
-        :raises SomeError Description
-        :returns Some Text
-        """
-        for elem in my_list:
-            print(elem)
+# Group database
+@cli.group()
+def database():
+    """Local database commands"""
+
+@database.command()
+@click.confirmation_option(prompt="Are you sure you want to re-initialize the database?")
+def reset():
+    """(Re-)Initialize the local database"""
+    app.init_database()
+    click.echo("Initialized database.")
 
 
-class Database(object):
-    # python barbucket.py database reset
-    def reset(self):
-        print("You sure? (y/n): ", end="")
-        if input().lower() == "y":
-            app.init_database()
-            print("Initialized databse.")
-        else:
-            print("Aborted")
+# Group contracts
+@cli.group()
+def contracts():
+    """Contracts commands"""
+
+@contracts.command()
+@click.option("-t", "--type", "contract_type", required=True, type=str)
+@click.option("-e", "--exchange", "exchange", required=True, type=str)
+def sync_listing(contract_type, exchange):
+    """Sync master listing to IB exchange listing"""
+    app.sync_contracts_to_listing(ctype=contract_type.upper(), exchange=exchange.upper())
+    click.echo(f"Master listing synced for {contract_type.upper()} on {exchange.upper()}.")
+
+@contracts.command()
+def fetch_ib_details():
+    """Fetch details for all contracts from IB"""
+    app.fetch_ib_contract_details()
+    click.echo("Updated IB details for master listings.")
+
+@contracts.command()
+def fetch_tv_details():
+    """Fetch details for all contracts from TV files"""
+    app.ingest_tv_files()
+    click.echo(f"Finished ingesting TV files.")
 
 
-class Contracts(object):
-    # python barbucket.py contracts sync_listing --contract_type STOCK
-    #   --exchange NASDAQ/ARCA/NYSE
-    def sync_listing(self, contract_type, exchange):
-        app.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
-        print(f"Master listing synced for {contract_type}s on {exchange}.")
+# Group quotes
+@cli.group()
+def quotes():
+    """Quotes commands"""
+
+@quotes.command()
+@click.option("-u", "--universe", "universe", required=True, type=str)
+def fetch(universe):
+    """Fetch quotes from IB"""
+    app.fetch_historical_quotes(universe=universe)
+    click.echo(f"Finished collecting historical data for universe: {universe}")
 
 
-class IbDetails(object):
-    # python barbucket.py ib_details fetch
-    def fetch(self,):
-        app.fetch_ib_contract_details()
-        print(("Updatet master listings with IB details."))
+# Group universes
+@cli.group()
+def universes():
+    """Universes commands"""
 
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+@click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
+def create(name, contract_ids):
+    """Create new universe"""
+    con_list = [int(n) for n in contract_ids.split(",")]
+    app.create_universe(name=name, contract_ids=con_list)
+    click.echo(f"Created universe {name}.")
 
-class TvDetails(object):
-    # python barbucket.py tv_details ingest_files
-    def ingest_files(self):
-        app.ingest_tv_files()
-        print(f"Finished ingesting TV files.")
+@universes.command()
+def list():
+    """List all universes"""
+    result = app.get_universes()
+    click.echo(f"Existing universes: {result}.")
 
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+def members(name):
+    """List universes members"""
+    members = app.get_universe_members(universe=name)
+    click.echo(f"Members for universe {name} are: {members}.")
 
-class Quotes(object):
-    # python barbucket.py quotes fetch --universe my_universe
-    def fetch(self, universe):
-        app.fetch_historical_quotes(universe=universe)
-        print(f"Finished collecting historical data for universe: {universe}")
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+@click.confirmation_option(prompt="Are you sure you want to delete this universe?")
+def delete(name):
+    """Delete universe"""
+    app.delete_universe(universe=name)
+    click.echo(f"Deleted universe {name}.")
 
-
-class Universes(object):
-    # python barbucket.py universes create --universe my_univ
-    #   --contract_ids [22,33,789]
-    def create(self, universe, contract_ids):
-        app.create_universe(universe, contract_ids)
-        print(f"Created universe {universe}.")
-
-    # python barbucket.py universes list_universes
-    def list_universes(self,):
-        universes = app.get_universes()
-        print(f"Existing universes: {universes}.")
-
-    # python barbucket.py universes members --name my_univ
-    def members(self, name):
-        members = app.get_universe_members(universe=name)
-        print(f"Members for universe {name} are: {members}.")
-
-    # python barbucket.py universes delete --name my_univ
-    def delete(self, name):
-        app.delete_universe(name)
-        print(f"Deleted universe {name}.")
-
-
-class Cli(object):
-    def __init__(self):
-        # self.my_group = MyGroup()     # Template
-        self.playground = Playground()
-        self.database = Database()
-        self.contracts = Contracts()
-        self.ib_details = IbDetails()
-        self.tv_details = TvDetails()
-        self.quotes = Quotes()
-        self.universes = Universes()
 
 
 if __name__ == '__main__':
-  fire.Fire(Cli)
+    cli()

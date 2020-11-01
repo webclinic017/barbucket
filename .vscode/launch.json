@@ -23,7 +23,7 @@
             "args": [
                 "contracts",
                 "sync_listing",
-                "--contract_type",
+                "--type",
                 "STOCK",
                 "--exchange",
                 "NYSE"
@@ -31,23 +31,24 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "ib_details fetch",
+            "name": "contracts fetch_ib_details",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
-                "ib_details",
-                "fetch"
+                "contracts",
+                "fetch_ib_details"
             ],
             "console": "integratedTerminal"
-        },        {
-            "name": "tv_details ingest_files",
+        },
+        {
+            "name": "contracts fetch_tv_details",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
-                "tv_details",
-                "ingest_files"
+                "contracts",
+                "fetch_tv_details"
             ],
             "console": "integratedTerminal"
         },
@@ -59,21 +60,21 @@
             "args": [
                 "universes",
                 "create",
-                "--universe",
-                "all_etx",
+                "--name",
+                "test_univ",
                 "--contract_ids",
-                "[1,2,3] " // Trailing space necessary for debugger
+                "1,2,3"
             ],
             "console": "integratedTerminal"
         },
         {
-            "name": "universes list_universes",
+            "name": "universes list",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
                 "universes",
-                "list_universes"
+                "list"
             ],
             "console": "integratedTerminal"
         },
@@ -99,7 +100,8 @@
                 "universes",
                 "delete",
                 "--name",
-                "all_etx"
+                "test_univ",
+                "--yes"
             ],
             "console": "integratedTerminal"
         },
