@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 pytest = "*"
-jupyterlab = "*"
 
 [packages]
 pandas = "*"
@@ -15,7 +14,7 @@ ib-insync = "*"
 tqdm = "*"
 requests = "*"
 trading-calendars = "*"
-fire = "*"
+click = "*"
 beautifulsoup4 = "*"
 enlighten = "*"
 
