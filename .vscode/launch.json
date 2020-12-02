@@ -100,8 +100,7 @@
                 "universes",
                 "delete",
                 "--name",
-                "test_univ",
-                "--yes"
+                "test_univ"
             ],
             "console": "integratedTerminal"
         },
