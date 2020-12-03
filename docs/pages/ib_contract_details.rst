@@ -1,8 +1,11 @@
 Contract details from IB
 ========================
 
-| For all locally existing contracts, additional information can be downloaded from IB over the TWS
-| ``python barbucket contracts fetch_ib_details``
+For all locally existing contracts, additional information can be downloaded from IB over the TWS
+
+.. code-block:: console
+
+    python barbucket contracts fetch_ib_details
 
 The provided information is about contract type and contract sector and will be stored to the local database.
 
