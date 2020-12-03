@@ -22,3 +22,4 @@ Additional details to the existing contracts can be added from the free ``tradin
 * And execute ``python barbucket contracts fetch_tv_details``
 * For each contract in each file the software will try to find a corresponding contract and add the screener details.
  
+ 
