@@ -12,11 +12,9 @@ sphinx = "*"
 pandas = "*"
 numpy = "*"
 ib-insync = "*"
-tqdm = "*"
 requests = "*"
 trading-calendars = "*"
 click = "*"
-beautifulsoup4 = "*"
 enlighten = "*"
 
 [requires]

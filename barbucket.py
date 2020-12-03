@@ -41,7 +41,7 @@ def sync_listing(contract_type, exchange):
 
 @contracts.command()
 def fetch_ib_details():
-    """Fetch details for all contracts from IB"""
+    """Fetch details for all contracts from IB TWS"""
     app.fetch_ib_contract_details()
     click.echo("Updated IB details for master listings.")
 
@@ -60,7 +60,7 @@ def quotes():
 @quotes.command()
 @click.option("-u", "--universe", "universe", required=True, type=str)
 def fetch(universe):
-    """Fetch quotes from IB"""
+    """Fetch quotes from IB TWS"""
     app.fetch_historical_quotes(universe=universe)
     click.echo(f"Finished collecting historical data for universe: {universe}")
 
