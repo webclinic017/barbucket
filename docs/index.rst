@@ -10,6 +10,7 @@ https://github.com/croidzen/barbucket
    pages/installation
    pages/database
    pages/sync_exchange_listings
+   pages/ib_contract_details
    pages/tv_screener
    pages/universes
    pages/download_quotes

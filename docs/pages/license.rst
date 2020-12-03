@@ -1,6 +1,8 @@
 License
 =======
 
+Copyright (c) 2020 Martin Creutzenberg
+
 This software is provided under MIT License.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
