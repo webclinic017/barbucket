@@ -39,4 +39,4 @@ Check if the installation was successfull
 
 .. code-block:: console
 
-    python barbucket --help
+    python barbucket.py --help

@@ -14,6 +14,6 @@ You can delete all data by resetting the database
 
 .. code-block:: console
 
-    python barbucket databse reset
+    python barbucket.py databse reset
 
 The previously existing database will be stored as a backup in the same directory.

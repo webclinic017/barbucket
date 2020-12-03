@@ -5,7 +5,7 @@ To download historical quotes, IB's TWS needs to be running and API access enabl
 
 .. code-block:: console
 
-  python barbucket quotes fetch --universe my_universe
+  python barbucket.py quotes fetch --universe my_universe
 
 --name             Name of the universe to download quotes for
 

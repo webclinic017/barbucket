@@ -5,7 +5,7 @@ For all locally existing contracts, additional information can be downloaded fro
 
 .. code-block:: console
 
-    python barbucket contracts fetch_ib_details
+    python barbucket.py contracts fetch_ib_details
 
 The provided information is about contract type and contract sector and will be stored to the local database.
 

@@ -1,11 +1,13 @@
 Barbucket documentation
 =======================
-https://github.com/croidzen/barbucket
+Loading and storing historical price data of financial contracts
 
+`Barbucket on Github <https://github.com/croidzen/barbucket>`_
 
+Contents
+--------
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    pages/installation
    pages/database
