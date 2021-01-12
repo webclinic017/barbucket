@@ -168,6 +168,11 @@ class IbExchangeListings():
 
 
     def read_ib_exchange_listing_paginated(self, ctype, exchange):
+        """
+        Returns list of contracts
+        Returns -1 if aborted by user
+        """
+        
         website_data = []
         page = 1
 

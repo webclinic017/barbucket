@@ -159,6 +159,10 @@ class AppInterface():
         elif ctype == "STOCK":
             website_data = ib_listings.read_ib_exchange_listing_paginated(ctype, exchange)
 
+        # Abort, if webscraping was aborted by user
+        if website_data == []:
+            return
+
         # Get all contracts from database
         contracts_database = ContractsDatabase()
         filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
