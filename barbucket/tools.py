@@ -1,3 +1,6 @@
+import signal
+
+
 class Tools():
 
     def __init(self,):
@@ -84,3 +87,18 @@ class Tools():
             return exchange_codes[exchange]
         else:
             return exchange
+
+
+class GracefulExiter():
+
+    def __init__(self):
+        self.state = False
+        signal.signal(signal.SIGINT, self.change_state)
+
+    def change_state(self, signum, frame):
+        print("Gracefully stopping. Repeat to stop immediately.")
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        self.state = True
+
+    def exit(self):
+        return self.state
