@@ -14,7 +14,7 @@ from barbucket.tws import Tws
 from barbucket.contract_details_tv import TvDetailsDatabase, TvDetailsFile
 from barbucket.contract_details_ib import IbDetailsDatabase
 from barbucket.config import get_config_value
-from barbucket.tools import Tools
+from barbucket.tools import Tools, GracefulExiter
 
 
 # Setup logging
@@ -30,8 +30,6 @@ class AppInterface():
         # If database file does not exist, initialize it
         if not Path.is_file(DatabaseConnector.DB_PATH):
             self.init_database()
-
-        self.__abort_tws_operation = False
 
 
     def init_database(self):
@@ -287,13 +285,16 @@ class AppInterface():
         manager = enlighten.get_manager()
         pbar = manager.counter(total=len(contract_ids), desc="Contracts", unit="contracts")
 
+        exiter = GracefulExiter()
+
         tws.connect()
+        logging.info(f"Connnected to TWS.")
+
         try:
             for contract_id in contract_ids:
 
                 # Abort, don't process further contracts
-                if (self.__abort_tws_operation is True)\
-                    or (tws.has_error() is True):
+                if exiter.exit() or tws.has_error():
                     logging.info("Aborting historical quotes fetching.")
                     break
 
@@ -370,12 +371,9 @@ class AppInterface():
 
             logging.info(f"Finished fetching historical quotes for universe {universe}.")
 
-        except KeyboardInterrupt:
-            logging.info("Keyboard interrupt detected.")
-            self.__abort_tws_operation = True
-
         finally:
             tws.disconnect()
+            logging.info(f"Disconnnected from TWS.")
 
 
     def fetch_ib_contract_details(self,):
