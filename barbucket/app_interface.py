@@ -390,6 +390,10 @@ class AppInterface():
         if len(contracts) == 0:
             return
 
+        # Setup progress bar
+        manager = enlighten.get_manager()
+        pbar = manager.counter(total=len(contracts), desc="Contracts", unit="contracts")
+
         exiter = GracefulExiter()
 
         tws = Tws()
@@ -419,11 +423,7 @@ class AppInterface():
                         category=contract_details.category,
                         subcategory=contract_details.subcategory)
 
-            tws.disconnect()
-
-        except KeyboardInterrupt:
-            logging.info("Keyboard interrupt detected.")
-            self.__abort_tws_operation = True
+                pbar.update()
 
         finally:
             tws.disconnect()
