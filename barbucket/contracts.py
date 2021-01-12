@@ -4,8 +4,10 @@ from bs4 import BeautifulSoup
 from numpy.core import numeric
 import requests
 import logging
+import enlighten
 
 from barbucket.database import DatabaseConnector
+from barbucket.tools import GracefulExiter
 
 
 class ContractsDatabase():
@@ -176,6 +178,12 @@ class IbExchangeListings():
         website_data = []
         page = 1
 
+        # Setup progress bar
+        # manager = enlighten.get_manager()
+        # pbar = manager.counter(total=len(contracts), desc="Contracts", unit="contracts")
+
+        exiter = GracefulExiter()
+
         while True:
             # Get website
             logging.info(f"Scraping IB exchange listing for {exchange}, page {page}.")
@@ -213,6 +221,11 @@ class IbExchangeListings():
                     'currency': cols[3].text.strip(),
                     'exchange': exchange.upper()}
                 website_data.append(row_dict)
+
+            # Check for abort signal
+            if exiter.exit():
+                logging.info(f"Exiting on user request.")
+                return []
 
             # Prepare for next page
             page += 1
