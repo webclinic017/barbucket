@@ -37,3 +37,19 @@ INSERT INTO	contract_details_tw
 
 DROP TABLE contract_details_tw_temp;
 """
+
+
+"""
+/* Create new universe */
+
+INSERT INTO universe_memberships (contract_id, universe)
+	SELECT contract_id, 'germany_top_800_cap'
+			FROM all_contract_info
+			WHERE (
+				(exchange IN ('IBIS', 'FWB'))
+				and
+				(contract_type_from_details IN ('COMMON'))
+			)
+			ORDER BY market_cap DESC 
+			LIMIT 800
+"""

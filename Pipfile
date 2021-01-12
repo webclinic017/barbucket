@@ -8,6 +8,9 @@ pylint = "*"
 pytest = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
+# ipykernel = "*"
+jupyterlab = "*"
+tqdm = "*"
 
 [packages]
 pandas = "*"

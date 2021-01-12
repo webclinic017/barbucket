@@ -212,7 +212,3 @@ class IbExchangeListings():
             # Prepare for next page
             page += 1
             time.sleep(3) #show some mercy to webserver
-
-
-
-

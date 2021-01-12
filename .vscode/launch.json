@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "database reset",
             "type": "python",
             "request": "launch",
@@ -16,13 +23,13 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "contracts sync_listing",
+            "name": "contracts sync-listing",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
                 "contracts",
-                "sync_listing",
+                "sync-listing",
                 "--type",
                 "STOCK",
                 "--exchange",
@@ -31,24 +38,24 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "contracts fetch_ib_details",
+            "name": "contracts fetch-ib-details",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
                 "contracts",
-                "fetch_ib_details"
+                "fetch-ib-details"
             ],
             "console": "integratedTerminal"
         },
         {
-            "name": "contracts fetch_tv_details",
+            "name": "contracts fetch-tv-details",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/barbucket.py",
             "args": [
                 "contracts",
-                "fetch_tv_details"
+                "fetch-tv-details"
             ],
             "console": "integratedTerminal"
         },
@@ -113,7 +120,7 @@
                 "quotes",
                 "fetch",
                 "--universe",
-                "all_etx"
+                "germany_top_800_cap"
             ],
             "console": "integratedTerminal"
         }

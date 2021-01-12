@@ -20,12 +20,13 @@ from barbucket.tools import Tools
 # Setup logging
 FORMAT = "%(message)s"
 logging.basicConfig(format=FORMAT, level=logging.INFO)
-# logger = logging.getLogger()
 
 
 class AppInterface():
 
     def __init__(self):
+        # TODO: If config file does not exist, initialize it
+
         # If database file does not exist, initialize it
         if not Path.is_file(DatabaseConnector.DB_PATH):
             self.init_database()
@@ -34,6 +35,8 @@ class AppInterface():
 
 
     def init_database(self):
+        # TODO: Move to database.py, then call from here
+
         # backup old database if exists
         if Path.is_file(DatabaseConnector.DB_PATH):
             now = datetime.now()
@@ -261,6 +264,8 @@ class AppInterface():
 
 
     def fetch_historical_quotes(self, universe):
+        # Todo: Loop only over contracts, where quotes will be fetched.
+
         logging.info(f"Fetching historical quotes for universe {universe}.")
 
         # Instanciate necessary objects
@@ -374,6 +379,7 @@ class AppInterface():
 
 
     def fetch_ib_contract_details(self,):
+        # Todo: Add Enlighten progress bar
 
         contracts_db = ContractsDatabase()
         columns = ['contract_id', 'contract_type_from_listing',
