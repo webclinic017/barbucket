@@ -390,15 +390,17 @@ class AppInterface():
         if len(contracts) == 0:
             return
 
+        exiter = GracefulExiter()
+
         tws = Tws()
         ib_details_db = IbDetailsDatabase()
         tws.connect()
+        logging.info(f"Connnected to TWS.")
 
         try:
             for contract in contracts:
                 # Check for abort conditions
-                if (self.__abort_tws_operation is True)\
-                    or (tws.has_error() is True):
+                if exiter.exit() or tws.has_error():
                     logging.info(f"Abort fetching of IB details.")
                     break
 
@@ -425,6 +427,7 @@ class AppInterface():
 
         finally:
             tws.disconnect()
+            logging.info(f"Disconnnected from TWS.")
 
 
     def create_universe(self, name, contract_ids):
