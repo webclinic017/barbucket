@@ -11,8 +11,6 @@ class UniversesDatabase():
 
 
     def __create_membership(self, contract_id, universe):
-        # Todo: Return success or not
-
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()

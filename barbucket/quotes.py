@@ -27,8 +27,6 @@ class QuotesDatabase():
 
 
     def get_quotes(self, contract_id):
-        # Todo: Sanitize query
-
         query = f"""SELECT date, open, high, low, close, volume
                     FROM quotes
                     WHERE contract_id = {contract_id}
@@ -67,7 +65,6 @@ class QuotesStatusDatabase():
         cur.close()
         db_connection.disconnect(conn)
 
-        # Todo: Do not check for error
         if len(result) > 0:
             return result[0]
         else:

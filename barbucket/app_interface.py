@@ -25,16 +25,12 @@ logging.basicConfig(format=FORMAT, level=logging.INFO)
 class AppInterface():
 
     def __init__(self):
-        # TODO: If config file does not exist, initialize it
-
         # If database file does not exist, initialize it
         if not Path.is_file(DatabaseConnector.DB_PATH):
             self.init_database()
 
 
     def init_database(self):
-        # TODO: Move to database.py, then call from here
-
         # backup old database if exists
         if Path.is_file(DatabaseConnector.DB_PATH):
             now = datetime.now()
@@ -96,7 +92,6 @@ class AppInterface():
                         contracts.contract_id = contract_details_tv.contract_id
                     LEFT JOIN quotes_status ON
                         contracts.contract_id = quotes_status.contract_id;""")
-            # Todo: remove 'contract_id' columns of subtables
 
         cur.execute("""
             CREATE TABLE quotes (
@@ -266,8 +261,6 @@ class AppInterface():
 
 
     def fetch_historical_quotes(self, universe):
-        # Todo: Loop only over contracts, where quotes will be fetched.
-
         logging.info(f"Fetching historical quotes for universe {universe}.")
 
         # Instanciate necessary objects
@@ -336,7 +329,6 @@ class AppInterface():
                     quotes_till = end_date
 
                 else:
-                    # Todo: Enable retry of failed contracts
                     logging.info("Contract already has error status. Skipped.")
                     pbar.update()
                     continue
@@ -381,8 +373,6 @@ class AppInterface():
 
 
     def fetch_ib_contract_details(self,):
-        # Todo: Add Enlighten progress bar
-
         contracts_db = ContractsDatabase()
         columns = ['contract_id', 'contract_type_from_listing',
             'broker_symbol', 'exchange', 'currency']

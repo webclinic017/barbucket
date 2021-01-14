@@ -4,7 +4,6 @@ from pathlib import Path
 
 class DatabaseConnector():
     DB_PATH = Path.home() / ".barbucket/database.db"
-    # Todo: Follow dependency injection principle
 
     def __init__(self):
         pass

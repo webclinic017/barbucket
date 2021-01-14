@@ -48,7 +48,6 @@ class Tws():
             self.__connection_error = True
 
         # Write error info to contract database, if error is related to contract
-        # Todo: Better check if error code is systemic or not
         if contract is not None:
             self.__contract_error_status = errorString
             self.__contract_error_code = errorCode

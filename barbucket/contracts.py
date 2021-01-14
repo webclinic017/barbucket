@@ -88,8 +88,6 @@ class ContractsDatabase():
 
 
     def delete_contract(self, exchange, symbol, currency):
-        # Todo: Return number of deleted rows
-
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
@@ -108,8 +106,6 @@ class ContractsDatabase():
 
 
     def delete_contract_id(self, contract_id):
-        # Todo: Return number of deleted rows
-
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
