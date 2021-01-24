@@ -6,16 +6,20 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 pytest = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+# ipykernel = "*"
 jupyterlab = "*"
+tqdm = "*"
 
 [packages]
 pandas = "*"
 numpy = "*"
 ib-insync = "*"
-tqdm = "*"
 requests = "*"
 trading-calendars = "*"
-fire = "*"
+click = "*"
+enlighten = "*"
 beautifulsoup4 = "*"
 
 [requires]

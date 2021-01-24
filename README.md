@@ -2,21 +2,15 @@
 Loading and storing historical price data of financial contracts
 
 ## Features
-* Get symbols from exchanges
-* Download historical data for symbols
-* Perform calculations on subset of symbols
-* Show results in dynamic table
-* Show chart of selected row in table
+* Syncing local contracts database to IB's exchange listing
+* Adding fundamental data to local contracts database from Tradringview's screener
+* Creating groups of contracts (universes)
+* Downloading daily historical quotes for universes using IB's TWS API (market data subscriptions on IB are necessary)
+* Storage of downloaded quotes in a local database
 
-## Contribution
-* Status private
-* For contribution prease contact me
+## Status
+* Early alpha stage. Expect code- and data breaking modifications
+* Aimed at software developers. Knowlede about how to handle a databse is necessary to use this software
 
-## Installation
-* Chromedriver needed for scraping ib product listings. On macOS install brew, then: brew cask install chromedriver
-* Sqlite needed for storage of data. On macOS install brew, then: brew install sqlite
-* Python 3.x and pipenv. On macOS install brew, then: brew install pipenv
-* Clone this repo to you local drive. Packaging of this app is not planned.
-* Within the repo, cleate the virtual environment with: pipenv shell && pipenv install
-
-## Usage
+## Documentation
+* [barbucket.rtfd.io](http://barbucket.rtfd.io/)

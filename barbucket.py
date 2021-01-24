@@ -1,94 +1,105 @@
-import fire
+import click
 
-from barbucket.contracts_db import ContractsDB
-from barbucket.contract_details_db import ContractTwDetailsDB
-from barbucket.quotes_db import QuotesDB
-from barbucket.universes_db import UniversesDB
-from barbucket.tws_connector import TwsConnector
-from barbucket.data_quality_check import DataQualityCheck
-
-cont_db = ContractsDB()
-details_db = ContractTwDetailsDB()
-quot_db = QuotesDB()
-univ_db = UniversesDB()
-tws_conn = TwsConnector()
-dq_check = DataQualityCheck()
+from barbucket.app_interface import AppInterface
 
 
-# Template
-# class MyGroup(object):
-#     def my_command(self, my_argument_1, my_argument_2):
-        # Call code functions here
+app = AppInterface()
 
 
-# Playground
-class Playground(object):
-    # python barbucket.py playground listreader --my_list "[a,b]"
-    def listreader(self, my_list):
-        """
-        First line
-        Second line
-        :param my_list Parameter 1
-        :raises SomeError Description
-        :returns Some Text
-        """
-        for elem in my_list:
-            print(elem)
+# Initial group, not explicitly called
+@click.group()
+def cli():
+    pass
 
 
-class Database(object):
-    # python barbucket.py database init
-    def init(self):
-        print("You sure? (y/n): ", end="")
-        if input().lower() == "y":
-            cont_db.init_database()
-            print("Initialized databse.")
-        else:
-            print("Aborted")
+# Group database
+@cli.group()
+def database():
+    """Local database commands"""
+
+@database.command()
+@click.confirmation_option(prompt="Are you sure you want to re-initialize the database?")
+def reset():
+    """(Re-)Initialize the local database"""
+    app.init_database()
+    click.echo("Initialized database.")
 
 
-class Contracts(object):
-    # python barbucket.py contracts sync_listing --contract_type stock
-    #   --exchanges island/arca/nyse
-    def sync_listing(self, contract_type, exchange):
-        cont_db.sync_contracts_to_listing(ctype=contract_type, exchange=exchange)
-        print(f"Finished for {contract_type} on {exchange}.")
+# Group contracts
+@cli.group()
+def contracts():
+    """Contracts commands"""
 
-    # python barbucket.py contracts ingest_tw_files
-    def ingest_tw_files(self):
-        details_db.ingest_tw_files()
-        print(f"Finished ingesting files.")
+@contracts.command()
+@click.option("-t", "--type", "contract_type", required=True, type=str)
+@click.option("-e", "--exchange", "exchange", required=True, type=str)
+def sync_listing(contract_type, exchange):
+    """Sync master listing to IB exchange listing"""
+    app.sync_contracts_to_listing(ctype=contract_type.upper(), exchange=exchange.upper())
+    click.echo(f"Master listing synced for {contract_type.upper()} on {exchange.upper()}.")
 
+@contracts.command()
+def fetch_ib_details():
+    """Fetch details for all contracts from IB TWS"""
+    app.fetch_ib_contract_details()
+    click.echo("Updated IB details for master listings.")
 
-class Universes(object):
-    # python barbucket.py universes create --name my_univ
-    #   --contract_ids [22,33,789]
-    def create(self, name, contract_ids):
-        univ_db.create_universe(name, contract_ids)
-        print(f"Created universe {name}.")
-
-
-class TwsConnector(object):
-    # python barbucket.py tws get_histo_data --universe russell3000
-    def get_histo_data(self, universe):
-        tws_conn.get_historical_data(universe)
-        print(f"Finished collecting historical data for universe: {universe}")
+@contracts.command()
+def fetch_tv_details():
+    """Fetch details for all contracts from TV files"""
+    app.ingest_tv_files()
+    click.echo(f"Finished ingesting TV files.")
 
 
-class Cli(object):
-    def __init__(self):
-        # self.my_group = MyGroup()     # Template
-        self.playground = Playground()
-        self.database = Database()
-        self.contracts = Contracts()
-        self.universes = Universes()
-        self.tws = TwsConnector()
+# Group quotes
+@cli.group()
+def quotes():
+    """Quotes commands"""
+
+@quotes.command()
+@click.option("-u", "--universe", "universe", required=True, type=str)
+def fetch(universe):
+    """Fetch quotes from IB TWS"""
+    app.fetch_historical_quotes(universe=universe)
+    click.echo(f"Finished collecting historical data for universe: {universe}")
+
+
+# Group universes
+@cli.group()
+def universes():
+    """Universes commands"""
+
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+@click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
+def create(name, contract_ids):
+    """Create new universe"""
+    con_list = [int(n) for n in contract_ids.split(",")]
+    app.create_universe(name=name, contract_ids=con_list)
+    click.echo(f"Created universe {name}.")
+
+@universes.command()
+def list():
+    """List all universes"""
+    result = app.get_universes()
+    click.echo(f"Existing universes: {result}.")
+
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+def members(name):
+    """List universes members"""
+    members = app.get_universe_members(universe=name)
+    click.echo(f"Members for universe {name} are: {members}.")
+
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+@click.confirmation_option(prompt="Are you sure you want to delete this universe?")
+def delete(name):
+    """Delete universe"""
+    app.delete_universe(universe=name)
+    click.echo(f"Deleted universe {name}.")
+
 
 
 if __name__ == '__main__':
-  fire.Fire(Cli)
-
-# Old code
-# tws_conn.get_historical_data()
-# dq_check.handle_single_contract(contract_id=108)
-# dq_check.get_trading_calendar("FWB")
+    cli()

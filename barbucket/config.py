@@ -16,6 +16,7 @@ __default_config = {
         'non_systemic_codes': "162,200,354,2104,2106,2158",
         'ip': "127.0.0.1",
         'port': "7497",
+        '\# 7497 tws paper, 4002/4003 ibg paper/real': '', 
         '\# Minimum number of business days until new download is started': "5"}}
 
 
