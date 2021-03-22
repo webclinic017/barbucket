@@ -317,11 +317,13 @@ class AppInterface():
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
                         logging.info(f"Existing data is only {ndays} days old. Contract aborted.")
-                        pbar.update()
+                        pbar.total -= 1
+                        pbar.update(incr=0)
                         continue
                     if ndays > 360:
                         logging.info(f"Existing data is already {ndays} days old. Contract aborted.")
-                        pbar.update()
+                        pbar.total -= 1
+                        pbar.update(incr=0)
                         continue
                     ndays += 6
                     duration_str = str(ndays) + ' D'
@@ -330,7 +332,8 @@ class AppInterface():
 
                 else:
                     logging.info("Contract already has error status. Skipped.")
-                    pbar.update()
+                    pbar.total -= 1
+                    pbar.update(incr=0)
                     continue
 
                 # Request quotes from tws
