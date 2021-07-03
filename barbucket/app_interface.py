@@ -101,7 +101,7 @@ class AppInterface():
         logging.info(f'{contracts_added} contracts added to master listing.')
 
 
-    def ingest_tv_files(self):        
+    def ingest_tv_files(self):
         # Instanciate necessary objects
         tv_details_db = TvDetailsDatabase()
         tv_details_file = TvDetailsFile()
@@ -112,7 +112,8 @@ class AppInterface():
         dir_path = Path.home() / ".barbucket/tv_screener"
         tv_screener_files = [
             os.path.join(dir_path, f) for f in os.listdir(dir_path) if
-            os.path.isfile(os.path.join(dir_path, f))]
+            # os.path.isfile(os.path.join(dir_path, f))]
+            f.endswith(".csv")]
 
         # Iterate over files in directory
         for tv_file in tv_screener_files:
