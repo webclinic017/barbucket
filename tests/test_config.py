@@ -14,17 +14,6 @@ import configparser
 #     pass
 
 
-@pytest.fixture
-def mock_homepath(tmp_path, monkeypatch):
-    # Set-up code
-    # create substitution function
-    def mock_home():
-        return tmp_path
-
-    # substitue original function
-    monkeypatch.setattr(Path, "home", mock_home)
-
-
 def test_init_config_file(mock_homepath):
     # Run code
     cfg.init_config_file()
