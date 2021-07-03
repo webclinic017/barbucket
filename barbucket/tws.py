@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import logging
 
-from barbucket.config import get_config_value
+from barbucket.config import Config
 from barbucket.tools import Tools
 
 
@@ -39,8 +39,10 @@ class Tws():
             No errors
         """
 
+        config = Config()
+
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = get_config_value('tws_connector',
+        NON_SYSTEMIC_CODES = config.get_config_value('tws_connector',
             'non_systemic_codes')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
@@ -55,8 +57,10 @@ class Tws():
 
 
     def connect(self,):
-        IP = get_config_value('tws_connector', 'ip')
-        PORT = int(get_config_value('tws_connector', 'port'))
+        config = Config()
+
+        IP = config.get_config_value('tws_connector', 'ip')
+        PORT = int(config.get_config_value('tws_connector', 'port'))
         logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 

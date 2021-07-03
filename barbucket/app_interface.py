@@ -13,7 +13,7 @@ from barbucket.quotes import QuotesDatabase, QuotesStatusDatabase
 from barbucket.tws import Tws
 from barbucket.contract_details_tv import TvDetailsDatabase, TvDetailsFile
 from barbucket.contract_details_ib import IbDetailsDatabase
-from barbucket.config import get_config_value
+from barbucket.config import Config
 from barbucket.tools import Tools, GracefulExiter
 
 
@@ -168,10 +168,11 @@ class AppInterface():
         contracts_db = ContractsDatabase()
         quotes_db = QuotesDatabase()
         quotes_status_db = QuotesStatusDatabase()
+        config = Config()
         tools = Tools()
 
         # Get config constants
-        REDOWNLOAD_DAYS = int(get_config_value('quotes',
+        REDOWNLOAD_DAYS = int(config.get_config_value('quotes',
             'redownload_days'))
 
         # Get universe members
