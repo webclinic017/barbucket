@@ -1,10 +1,13 @@
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+import logging
+
+from barbucket.config import get_config_value
 
 
 class DatabaseConnector():
-    DB_PATH = Path.home() / ".barbucket/database.db"
+    DB_PATH = Path.home() / get_config_value('database', 'db_location')
 
     def __init__(self):
         pass

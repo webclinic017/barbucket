@@ -4,7 +4,9 @@ from pathlib import Path
 
 __parser = configparser.ConfigParser(allow_no_value=True)
 __default_config = {
-    'database': {},
+    'database': {
+        '\# db location within current users home folder': '',
+        'db_location': ".barbucket/database.db"},
     'contracts': {},
     'quotes': {
         'redownload_days': "5"},
