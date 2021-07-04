@@ -16,7 +16,7 @@ from pathlib import Path
 class MockConfig(config.Config):
     def __init__(self) -> None:
         # Read default config file
-        self._parser.read("barbucket/default_config.ini")
+        self._parser.read("default_config.ini")
 
 
 @pytest.fixture
@@ -50,10 +50,10 @@ def test_set_config_file_path(mock_cfg, mock_homepath):
 def test_create_config_file_if_not_present(mock_cfg, mock_homepath):
     Path.mkdir(Path.home() / ".barbucket")
     mock_cfg.create_config_file_if_not_present(
-            source_path="barbucket/default_config.ini",
+            source_path="default_config.ini",
             destination_path=(Path.home() / ".barbucket/config.ini")
     )
-    with open("barbucket/default_config.ini", 'r') as reader_default:
+    with open("default_config.ini", 'r') as reader_default:
         default_config = reader_default.readlines()
     with open((Path.home() / ".barbucket/config.ini"), 'r') as reader_new:
         new_config = reader_new.readlines()

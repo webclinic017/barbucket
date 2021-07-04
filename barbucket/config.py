@@ -18,7 +18,7 @@ class Config():
         self.set_config_file_path()
 
         self.create_config_file_if_not_present(
-                source_path="barbucket/default_config.ini",
+                source_path="default_config.ini",
                 destination_path=self._config_file_path)
 
         # Read current config file
