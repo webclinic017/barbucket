@@ -4,12 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pylint = "*"
 pytest = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
-# ipykernel = "*"
-jupyterlab = "*"
+ipykernel = "*"
 tqdm = "*"
 
 [packages]
