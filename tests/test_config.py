@@ -1,5 +1,5 @@
 import pytest
-import barbucket.config as cfg
+import barbucket.config as config
 from pathlib import Path
 import configparser
 
@@ -14,55 +14,58 @@ import configparser
 #     pass
 
 
-def test_init_config_file(mock_homepath):
-    # Run code
-    cfg.init_config_file()
-
-    # Create configparser and read file
-    parser = configparser.ConfigParser(allow_no_value=True)
-    path = Path.home() / ".barbucket/config.ini"
-    parser.read(path)
-
-    for section in cfg.__default_config:
-        options = cfg.__default_config[section]
-        for option in options:
-            code_value = cfg.__default_config[section][option]
-            file_value = parser.get(section, option)
-            assert code_value == file_value
+class MockConfig(config.Config):
+    def __init__(self) -> None:
+        # Read default config file
+        self._parser.read("barbucket/default_config.ini")
 
 
-def test_get_config_value(mock_homepath):
-    test_config = {
-    'section_1': {
-        'option_11': "123",
-        'option 12!': "-123.45",
-        'option 12!': "0"},
-    'section_2': {
-        'option_21': "123,456",
-        '\# Comment': "",
-        'option 22!': "Lorem Ipsum"}}
-
-    # Create configparser
-    parser = configparser.ConfigParser(allow_no_value=True)
-
-    # Write test configuration to file
-    path = Path.home()
-    if not Path.is_dir(path / ".barbucket"):
-        Path.mkdir(path / ".barbucket")
-    path = Path.home() / ".barbucket/config.ini"
-    parser.read_dict(test_config)
-    with open(path, 'w') as file:
-        parser.write(file)
-
-    # Read test configuration from file and assert
-    for section in test_config:
-        options = test_config[section]
-        for option in options:
-            code_value = test_config[section][option]
-            file_value = cfg.get_config_value(section, option)
-            if "," in code_value:
-                assert code_value.split(",") == file_value
-            else:
-                assert code_value == file_value
+@pytest.fixture
+def mock_cfg():
+    # Set-up object of MockConfig class
+    mock_conf = MockConfig()
+    yield mock_conf
 
 
+@pytest.fixture
+def mock_homepath(tmp_path, monkeypatch):
+    # Set-up code
+    # create substitution function
+    def mock_home():
+        return tmp_path
+
+    # substitue original function
+    monkeypatch.setattr(Path, "home", mock_home)
+
+
+def test_create_directories_if_not_present(mock_cfg, mock_homepath):
+    mock_cfg.create_directories_if_not_present()
+    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+
+
+def test_set_config_file_path(mock_cfg, mock_homepath):
+    mock_cfg.set_config_file_path()
+    assert mock_cfg._config_file_path == Path.home() / ".barbucket/config.ini"
+
+
+def test_create_config_file_if_not_present(mock_cfg, mock_homepath):
+    Path.mkdir(Path.home() / ".barbucket")
+    mock_cfg.create_config_file_if_not_present(
+            source_path="barbucket/default_config.ini",
+            destination_path=(Path.home() / ".barbucket/config.ini")
+    )
+    with open("barbucket/default_config.ini", 'r') as reader_default:
+        default_config = reader_default.readlines()
+    with open((Path.home() / ".barbucket/config.ini"), 'r') as reader_new:
+        new_config = reader_new.readlines()
+    assert default_config == new_config
+
+
+def test_get_config_value(mock_cfg, mock_homepath):
+    value = mock_cfg.get_config_value('database', 'db_location')
+    assert value == ".barbucket/database.db"
+
+
+def test_get_config_value_list(mock_cfg, mock_homepath):
+    value = mock_cfg.get_config_value('tws_connector', 'non_systemic_codes')
+    assert value == ["162", "200", "354", "2104", "2106", "2107", "2158"]

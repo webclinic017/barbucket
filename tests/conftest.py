@@ -1,7 +1,4 @@
 import pytest
-from pathlib import Path
-
-from barbucket.database import DatabaseCreator
 
 
 ### Fixture template
@@ -14,18 +11,4 @@ from barbucket.database import DatabaseCreator
 #     pass
 
 
-@pytest.fixture
-def mock_homepath(tmp_path, monkeypatch):
-    # Set-up code
-    # create substitution function
-    def mock_home():
-        return tmp_path
-
-    # substitue original function
-    monkeypatch.setattr(Path, "home", mock_home)
-
-
-@pytest.fixture
-def create_database(mock_homepath):
-    db_creator = DatabaseCreator()
-    db_creator._create_database()
+pass
