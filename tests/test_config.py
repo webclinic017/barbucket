@@ -3,12 +3,14 @@ import barbucket.config as config
 from pathlib import Path
 
 
-### Fixture template
 # @pytest.fixture
 # def return_object_name():
+#     """Fixture template"""
+#
 #     # Set-up code
-#     my_object = Class()
+#     my_object = MyClass()
 #     yield my_object
+#
 #     # Tear-down code
 #     pass
 
@@ -38,7 +40,19 @@ def mock_homepath(tmp_path, monkeypatch):
 
 
 def test_create_directories_if_not_present(mock_cfg, mock_homepath):
-    mock_cfg.create_directories_if_not_present()
+    mock_cfg.create_directories()
+    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+
+
+def test_create_directories_if_one_present(mock_cfg, mock_homepath):
+    Path.mkdir(Path.home() / ".barbucket")
+    mock_cfg.create_directories()
+    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+
+
+def test_create_directories_if_both_present(mock_cfg, mock_homepath):
+    Path.mkdir((Path.home() / ".barbucket/tw_screener"), parents=True)
+    mock_cfg.create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
@@ -60,11 +74,11 @@ def test_create_config_file_if_not_present(mock_cfg, mock_homepath):
     assert default_config == new_config
 
 
-def test_get_config_value(mock_cfg):
-    value = mock_cfg.get_config_value('database', 'db_location')
+def test_get_config_value_single(mock_cfg):
+    value = mock_cfg.get_config_value_single('database', 'db_location')
     assert value == ".barbucket/database.db"
 
 
 def test_get_config_value_list(mock_cfg):
-    value = mock_cfg.get_config_value('tws_connector', 'non_systemic_codes')
+    value = mock_cfg.get_config_value_list('tws_connector', 'non_systemic_codes')
     assert value == ["162", "200", "354", "2104", "2106", "2107", "2158"]
