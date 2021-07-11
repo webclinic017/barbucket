@@ -1,6 +1,8 @@
-import pytest
-import barbucket.config as config
 from pathlib import Path
+
+import pytest
+
+import barbucket.config as config
 
 
 # @pytest.fixture
@@ -22,7 +24,7 @@ class MockConfig(config.Config):
 
 
 @pytest.fixture
-def mock_cfg():
+def mock_cfg() -> MockConfig:
     # Set-up object of MockConfig class
     mock_conf = MockConfig()
     yield mock_conf
@@ -39,29 +41,29 @@ def mock_homepath(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", mock_home)
 
 
-def test_create_directories_if_not_present(mock_cfg, mock_homepath):
+def test_create_directories_if_not_present(mock_cfg, mock_homepath) -> None:
     mock_cfg.create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
-def test_create_directories_if_one_present(mock_cfg, mock_homepath):
+def test_create_directories_if_one_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
     mock_cfg.create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
-def test_create_directories_if_both_present(mock_cfg, mock_homepath):
+def test_create_directories_if_both_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir((Path.home() / ".barbucket/tw_screener"), parents=True)
     mock_cfg.create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
-def test_set_config_file_path(mock_cfg, mock_homepath):
+def test_set_config_file_path(mock_cfg, mock_homepath) -> None:
     mock_cfg.set_config_file_path()
     assert mock_cfg._config_file_path == Path.home() / ".barbucket/config.ini"
 
 
-def test_create_config_file_if_not_present(mock_cfg, mock_homepath):
+def test_create_config_file_if_not_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
     mock_cfg.create_config_file_if_not_present(
             source_path="default_config.ini",
@@ -74,11 +76,11 @@ def test_create_config_file_if_not_present(mock_cfg, mock_homepath):
     assert default_config == new_config
 
 
-def test_get_config_value_single(mock_cfg):
+def test_get_config_value_single(mock_cfg) -> None:
     value = mock_cfg.get_config_value_single('database', 'db_location')
     assert value == ".barbucket/database.db"
 
 
-def test_get_config_value_list(mock_cfg):
+def test_get_config_value_list(mock_cfg) -> None:
     value = mock_cfg.get_config_value_list('tws_connector', 'non_systemic_codes')
     assert value == ["162", "200", "354", "2104", "2106", "2107", "2158"]
