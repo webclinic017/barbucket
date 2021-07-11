@@ -1,8 +1,6 @@
 # ide stuff
-.idea/
 .ipynb_checkpoints/
-.vscode/settings.json
-.vs/
+.vscode/
 
 # pycache
 __pycache__/
