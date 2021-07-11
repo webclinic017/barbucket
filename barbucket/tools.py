@@ -3,7 +3,7 @@ import signal
 
 class Tools():
 
-    def __init(self,):
+    def __init__(self,):
         pass
 
 
