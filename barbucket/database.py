@@ -6,40 +6,77 @@ import logging
 from barbucket.config import Config
 
 
-class DatabaseConnector():
-    config = Config()
-    DB_PATH = Path.home() / config.get_config_value('database', 'db_location')
+class DbNotInitializedError(Exception):
+    """Custom exception for connecting to a non-present database."""
 
-    def __init__(self):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+
+class DatabaseConnector():
+    """Handles all non-specific database operations."""
+
+    __config = Config()
+    _DB_PATH = Path.home() / __config.get_config_value_single('database', 'db_location')
+
+    def __init__(self) -> None:
         pass
 
 
-    def connect(self):
-        conn = sqlite3.connect(DatabaseConnector.DB_PATH)
+    def connect(self) -> sqlite3.Connection:
+        """
+        Provides a 'connection'-object for the database.
+        Because in sqlite, PRAGMA orders need to be given to the connection object.
+        """
+
+        if not self._DB_PATH.is_file():
+            raise DbNotInitializedError(message="Database does not exist. Call 'init_database()' before connecting.")
+        # otherwise connect() would create an empty file
+
+        conn = sqlite3.connect(self._DB_PATH)
         conn.execute("""
             PRAGMA foreign_keys = 1;
         """)
         return conn
 
 
-    def disconnect(self, conn):
+    def disconnect(self, conn:sqlite3.Connection) -> None:
+        """Disconnects the connection to the database."""
+
         conn.close()
 
 
-    def _backup_database(self):
-        # backup old database if exists
-        if Path.is_file(DatabaseConnector.DB_PATH):
-            now = datetime.now()
-            timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-            new_name = Path.home() / f".barbucket/database_backup_{timestamp}.db"
-            DatabaseConnector.DB_PATH.rename(new_name)
-            logging.info(f'Created backup of existing database: {new_name}')
+    def archive_database(self) -> None:
+        """Archive the database by renaming the file."""
+
+        logging.info("Starting archivation of database.")
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S") # no colons in filenames
+        new_name = self._DB_PATH.parent / f"database_archived_{timestamp}.db"
+        try:
+            self._DB_PATH.rename(new_name)
+        except FileNotFoundError as e:
+            logging.exception("Database not archived, because no databse exists.")
+            raise FileNotFoundError from e
+        else:
+            logging.info(f"Database archived as: {new_name}")
 
 
-    def _create_db_schema(self):
-        # create new database and connect to
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
+    def _create_db_file(self) -> None:
+        """Create a new database file."""
+
+        conn = sqlite3.connect(self._DB_PATH)
+        conn.close()
+        logging.info("Created new database file.")
+
+
+    def _create_db_schema(self) -> None:
+        """Create schema in database."""
+
+        logging.info("Started creating database schema.")
+        conn = self.connect()
         cur = conn.cursor()
 
         cur.execute("""
@@ -131,11 +168,20 @@ class DatabaseConnector():
 
         conn.commit()
         cur.close()
-        db_connector.disconnect(conn)
-        logging.info(f'Created new database.')
+        self.disconnect(conn)
+        logging.info("Finished creating database schema.")
 
 
-    def init_database(self,):
-        self._backup_database()
-        self._create_db_schema()
+    def init_database(self) -> None:
+        """Initialize database if it doesnt exist. Else skip."""
+
+        logging.info("Starting to initialize database.")
+        if not self._DB_PATH.is_file():
+            logging.info("Database does not exist. Starting to create it.")
+            self._create_db_file()
+            self._create_db_schema()
+            logging.info("Database created. Finished initialization.")
+        else:
+            logging.info("Database already exists. Finished initialization.")
+
 
