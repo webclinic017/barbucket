@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from datetime import datetime
 import os
 from pathlib import Path
 import logging
@@ -26,19 +25,31 @@ logging.basicConfig(format=FORMAT, level=logging.INFO)
 class AppInterface():
 
     def __init__(self):
-        # If database file does not exist, initialize it
-        if not Path.is_file(DatabaseConnector.DB_PATH):
-            self.init_database()
+        # Instanciate necessary objects
+        self.db_connector = DatabaseConnector()
+        self.contracts_db = ContractsDatabase()
+        self.ib_listings = IbExchangeListings()
+        self.tv_details_db = TvDetailsDatabase()
+        self.tv_details_file = TvDetailsFile()
+        self.quotes_db = QuotesDatabase()
+        self.quotes_status_db = QuotesStatusDatabase()
+        self.universe_db = UniversesDatabase()
+        self.tws = Tws()
+        self.config = Config()
+        self.exiter = GracefulExiter()
+        self.tools = Tools()
 
 
-    def init_database(self):
-        db_connector = DatabaseConnector()
-        db_connector.init_database()
+        # Initialize database (create if not exists)
+        self.init_database()
+
+
+    def archive_database(self):
+        self.db_connector.archive_database()
 
 
     def get_contracts(self, filters={}, return_columns=[]):
-        contracts_db = ContractsDatabase()
-        contracts = contracts_db.get_contracts(filters=filters,
+        contracts = self.contracts_db.get_contracts(filters=filters,
             return_columns=return_columns)
         return contracts
 
@@ -46,22 +57,20 @@ class AppInterface():
     def sync_contracts_to_listing(self, ctype, exchange):
         logging.info(f'Syncing {ctype} contracts on {exchange} to master listing.')
         # Get all contracts from websites
-        ib_listings = IbExchangeListings()
         website_data = []
         if ctype == "ETF":
-            website_data = ib_listings.read_ib_exchange_listing_singlepage(ctype, exchange)
+            website_data = self.ib_listings.read_ib_exchange_listing_singlepage(ctype, exchange)
         elif ctype == "STOCK":
-            website_data = ib_listings.read_ib_exchange_listing_paginated(ctype, exchange)
+            website_data = self.ib_listings.read_ib_exchange_listing_paginated(ctype, exchange)
 
         # Abort, if webscraping was aborted by user
         if website_data == []:
             return
 
         # Get all contracts from database
-        contracts_database = ContractsDatabase()
         filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
         columns = ['broker_symbol', 'currency']
-        database_data = contracts_database.get_contracts(filters=filters,
+        database_data = self.contracts_database.get_contracts(filters=filters,
             return_columns=columns)
 
         # Delete contracts from database, that are not present in website
@@ -74,7 +83,7 @@ class AppInterface():
                     exists = True
                     break
             if not exists:
-                contracts_database.delete_contract(
+                self.contracts_database.delete_contract(
                     symbol=db_row['broker_symbol'], \
                     exchange=exchange.upper(),
                     currency=db_row['currency'])
@@ -91,7 +100,7 @@ class AppInterface():
                     exists = True
                     break
             if not exists:
-                contracts_database.create_contract(
+                self.contracts_database.create_contract(
                     contract_type_from_listing=ctype,
                     exchange_symbol=web_row['exchange_symbol'],
                     broker_symbol=web_row['broker_symbol'],
@@ -103,12 +112,7 @@ class AppInterface():
 
 
     def ingest_tv_files(self):
-        # Instanciate necessary objects
-        tv_details_db = TvDetailsDatabase()
-        tv_details_file = TvDetailsFile()
-        contracts_db = ContractsDatabase()
-        tools = Tools()
-        
+
         # Create list of path+filename of all files in directory
         dir_path = Path.home() / ".barbucket/tv_screener"
         tv_screener_files = [
@@ -119,17 +123,17 @@ class AppInterface():
         # Iterate over files in directory
         for tv_file in tv_screener_files:
             logging.info(f"Ingesting TV file {tv_file}.")
-            file_data = tv_details_file.get_data_from_file(file=tv_file)
+            file_data = self.tv_details_file.get_data_from_file(file=tv_file)
 
             for row in file_data:
                 # Find corresponding contract id
                 ticker = row['ticker'].replace(".", " ")
                 filters = {'exchange': \
-                    tools.decode_exchange_tv(row['exchange']),
+                    self.tools.decode_exchange_tv(row['exchange']),
                     'contract_type_from_listing': "STOCK",
                     'exchange_symbol': ticker}
                 columns = ['contract_id']
-                result = contracts_db.get_contracts(
+                result = self.contracts_db.get_contracts(
                     filters=filters,
                     return_columns=columns)
 
@@ -137,7 +141,7 @@ class AppInterface():
 
                     # Write details to db
                     contract_id = result[0]['contract_id']
-                    tv_details_db.insert_tv_details(
+                    self.tv_details_db.insert_tv_details(
                         contract_id=contract_id,
                         market_cap=row['market_cap'],
                         avg_vol_30_in_curr=row['avg_vol_30_in_curr'],
@@ -152,8 +156,7 @@ class AppInterface():
 
 
     def get_contract_quotes(self, contract_id):
-        quotes_db = QuotesDatabase()
-        return quotes_db.get_quotes(contract_id=contract_id)
+        return self.quotes_db.get_quotes(contract_id=contract_id)
 
 
     def get_universe_quotes(self, universe):
@@ -163,45 +166,34 @@ class AppInterface():
     def fetch_historical_quotes(self, universe):
         logging.info(f"Fetching historical quotes for universe {universe}.")
 
-        # Instanciate necessary objects
-        universe_db = UniversesDatabase()
-        tws = Tws()
-        contracts_db = ContractsDatabase()
-        quotes_db = QuotesDatabase()
-        quotes_status_db = QuotesStatusDatabase()
-        config = Config()
-        tools = Tools()
-
         # Get config constants
-        REDOWNLOAD_DAYS = int(config.get_config_value('quotes',
+        REDOWNLOAD_DAYS = int(self.config.get_config_value_single('quotes',
             'redownload_days'))
 
         # Get universe members
-        contract_ids = universe_db.get_universe_members(universe=universe)
+        contract_ids = self.universe_db.get_universe_members(universe=universe)
 
         # Setup progress bar
         manager = enlighten.get_manager()
         pbar = manager.counter(total=len(contract_ids), desc="Contracts", unit="contracts")
 
-        exiter = GracefulExiter()
-
-        tws.connect()
+        self.tws.connect()
         logging.info(f"Connnected to TWS.")
 
         try:
             for contract_id in contract_ids:
 
                 # Abort, don't process further contracts
-                if exiter.exit() or tws.has_error():
+                if self.exiter.exit() or self.tws.has_error():
                     logging.info("Aborting historical quotes fetching.")
                     break
 
                 # Get contracts data
                 filters = {'contract_id': contract_id}
                 columns = ['broker_symbol', 'exchange', 'currency']
-                contract = contracts_db.get_contracts(filters = filters,
+                contract = self.contracts_db.get_contracts(filters = filters,
                     return_columns=columns)[0]
-                quotes_status = quotes_status_db.get_quotes_status(contract_id)
+                quotes_status = self.quotes_status_db.get_quotes_status(contract_id)
                 logging.info(f"Preparing to fetch hiostorical quotes for {contract['broker_symbol']} on {contract['exchange']}")
 
                 # Calculate length of requested data
@@ -238,20 +230,20 @@ class AppInterface():
                     continue
 
                 # Request quotes from tws
-                quotes = tws.download_historical_quotes(
+                quotes = self.tws.download_historical_quotes(
                     contract_id=contract_id,
                     symbol=contract['broker_symbol'],
-                    exchange=tools.encode_exchange_ib(contract['exchange']),
+                    exchange=self.tools.encode_exchange_ib(contract['exchange']),
                     currency=contract['currency'],
                     duration=duration_str)
 
                 if quotes is not None:
                     # Inserting quotes into database
                     logging.info(f"Storing {len(quotes)} quotes to database.")
-                    quotes_db.insert_quotes(quotes=quotes)
+                    self.quotes_db.insert_quotes(quotes=quotes)
 
                     # Write finished info to contracts database
-                    quotes_status_db.insert_quotes_status(
+                    self.quotes_status_db.insert_quotes_status(
                         contract_id=contract_id,
                         status_code=1,
                         status_text="Successful",
@@ -260,8 +252,8 @@ class AppInterface():
 
                 else:
                     # Write error info to contracts database
-                    error_code, error_text = tws.get_contract_error()
-                    quotes_status_db.insert_quotes_status(
+                    error_code, error_text = self.tws.get_contract_error()
+                    self.quotes_status_db.insert_quotes_status(
                         contract_id=contract_id,
                         status_code=error_code,
                         status_text=error_text,
@@ -272,16 +264,15 @@ class AppInterface():
             logging.info(f"Finished fetching historical quotes for universe {universe}.")
 
         finally:
-            tws.disconnect()
+            self.tws.disconnect()
             logging.info(f"Disconnnected from TWS.")
 
 
     def fetch_ib_contract_details(self,):
-        contracts_db = ContractsDatabase()
         columns = ['contract_id', 'contract_type_from_listing',
             'broker_symbol', 'exchange', 'currency']
         filters = {'primary_exchange': "NULL"}
-        contracts = contracts_db.get_contracts(filters=filters,
+        contracts = self.contracts_db.get_contracts(filters=filters,
             return_columns=columns)
         logging.info(f"Found {len(contracts)} contracts with missing IB details in master listing.")
 
@@ -292,28 +283,24 @@ class AppInterface():
         manager = enlighten.get_manager()
         pbar = manager.counter(total=len(contracts), desc="Contracts", unit="contracts")
 
-        exiter = GracefulExiter()
-
-        tws = Tws()
-        ib_details_db = IbDetailsDatabase()
-        tws.connect()
+        self.tws.connect()
         logging.info(f"Connnected to TWS.")
 
         try:
             for contract in contracts:
                 # Check for abort conditions
-                if exiter.exit() or tws.has_error():
+                if self.exiter.exit() or self.tws.has_error():
                     logging.info(f"Abort fetching of IB details.")
                     break
 
-                contract_details = tws.download_contract_details(
+                contract_details = self.tws.download_contract_details(
                     contract_type_from_listing=contract['contract_type_from_listing'],
                     broker_symbol=contract['broker_symbol'],
                     exchange=contract['exchange'],
                     currency=contract['currency'])
 
                 if contract_details is not None:
-                    ib_details_db.insert_ib_details(
+                    self.ib_details_db.insert_ib_details(
                         contract_id=contract['contract_id'],
                         contract_type_from_details=contract_details.stockType,
                         primary_exchange=contract_details.contract.primaryExchange,
@@ -324,27 +311,23 @@ class AppInterface():
                 pbar.update()
 
         finally:
-            tws.disconnect()
+            self.tws.disconnect()
             logging.info(f"Disconnnected from TWS.")
 
 
     def create_universe(self, name, contract_ids):
-        universes = UniversesDatabase()
-        universes.create_universe(name=name, contract_ids=contract_ids)
+        self.universes.create_universe(name=name, contract_ids=contract_ids)
 
 
     def get_universes(self,):
-        universes = UniversesDatabase()
-        result = universes.get_universes()
+        result = self.universes.get_universes()
         return result
 
 
     def get_universe_members(self, universe):
-        universes = UniversesDatabase()
-        members = universes.get_universe_members(universe)
+        members = self.universes.get_universe_members(universe)
         return members
 
 
     def delete_universe(self, universe):
-        universes = UniversesDatabase()
-        universes.delete_universe(universe)
+        self.universes.delete_universe(universe)
