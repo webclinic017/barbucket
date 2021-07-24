@@ -29,22 +29,67 @@ def mock_db_connector(mock_homepath) -> MockDatabaseConnector:
     yield mock_db_connector
 
 
-def test_connect(mock_db_connector) -> None:
+def test_connect_existing(mock_db_connector) -> None:
+    # create file
+    conn = sqlite3.connect(mock_db_connector._DB_PATH)
+    conn.close()
+    
+    # connect
     conn = mock_db_connector.connect()
     assert isinstance(conn, sqlite3.dbapi2.Connection)
     mock_db_connector.disconnect(conn)
 
 
+def test_connect_nonexisting(mock_db_connector) -> None:
+    with pytest.raises(database.DbNotInitializedError):
+        assert mock_db_connector.connect()
+
+
 def test_disconnect(mock_db_connector) -> None:
+    # create file
+    conn = sqlite3.connect(mock_db_connector._DB_PATH)
+    conn.close()
+    
+    # connect
     conn = mock_db_connector.connect()
+
+    # disconnect
     mock_db_connector.disconnect(conn)
     with pytest.raises(sqlite3.ProgrammingError):
         assert conn.cursor()
 
 
-def test_init_database(mock_db_connector) -> None:
-    conn = mock_db_connector.connect()
+def test_archive_database_existing(mock_db_connector) -> None:
+    # create file
+    conn = sqlite3.connect(mock_db_connector._DB_PATH)
+    conn.close()
+
+    # archive
+    mock_db_connector.archive_database()
+
+    assert not Path.is_file(mock_db_connector._DB_PATH)
+
+
+def test_archive_database_nonexisting(mock_db_connector) -> None:
+    with pytest.raises(FileNotFoundError):
+        assert mock_db_connector.archive_database()
+
+
+def test_init_database_existing(mock_db_connector) -> None:
+    # create file
+    conn = sqlite3.connect(mock_db_connector._DB_PATH)
+    conn.close()
+    
+    # call init method
     mock_db_connector.init_database()
+
+    # test if did not crash
+    assert True
+
+
+def test_init_database_nonexisting(mock_db_connector) -> None:
+    mock_db_connector.init_database()
+    conn = mock_db_connector.connect()
 
     query = "SELECT name FROM sqlite_master WHERE type='table';"
 
@@ -58,6 +103,5 @@ def test_init_database(mock_db_connector) -> None:
     cur.close()
     mock_db_connector.disconnect(conn)
 
-    # schema = 
-    
-    # assert tables == 
+    assert len(tables) == 6
+
