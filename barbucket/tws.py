@@ -1,8 +1,7 @@
 # Imports
-import ib_insync
-import pandas as pd
-import numpy as np
 import logging
+
+import ib_insync
 
 from barbucket.config import Config
 from barbucket.tools import Tools

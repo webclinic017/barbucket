@@ -1,9 +1,9 @@
 import sqlite3
 import time
-from bs4 import BeautifulSoup
-from numpy.core import numeric
-import requests
 import logging
+
+from bs4 import BeautifulSoup
+import requests
 import enlighten
 
 from barbucket.database import DatabaseConnector

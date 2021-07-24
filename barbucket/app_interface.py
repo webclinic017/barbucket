@@ -1,10 +1,11 @@
-import numpy as np
 from datetime import date, timedelta
 from datetime import datetime
 import os
 from pathlib import Path
 import logging
+
 import enlighten
+import numpy as np
 
 from barbucket.database import DatabaseConnector
 from barbucket.contracts import ContractsDatabase, IbExchangeListings
