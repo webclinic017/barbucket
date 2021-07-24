@@ -18,11 +18,11 @@ def database():
     """Local database commands"""
 
 @database.command()
-@click.confirmation_option(prompt="Are you sure you want to re-initialize the database?")
-def reset():
-    """(Re-)Initialize the local database"""
-    app.init_database()
-    click.echo("Initialized database.")
+@click.confirmation_option(prompt="Are you sure you want to archive the database?")
+def archive():
+    """Archive the local database"""
+    app.archive_database()
+    click.echo("Archived database.")
 
 
 # Group contracts
