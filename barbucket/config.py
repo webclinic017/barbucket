@@ -12,11 +12,9 @@ class Config():
     def __init__(self,) -> None:
         """Prepare config file and read content"""
 
-        self.create_directories()
-
-        self.set_config_file_path()
-
-        self.create_config_file_if_not_present(
+        self._create_directories()
+        self._set_config_file_path()
+        self._create_config_file_if_not_present(
                 source_path="default_config.ini",
                 destination_path=self._config_file_path)
 
@@ -24,17 +22,16 @@ class Config():
         self._parser.read(self._config_file_path)
 
 
-    def create_directories(self,) -> None:
+    def _create_directories(self,) -> None:
         # Create both directories if not present, throws no exception if directories already present
         Path.mkdir((Path.home() / ".barbucket/tw_screener"), parents=True, exist_ok=True)
  
 
-    def set_config_file_path(self,) -> None:
+    def _set_config_file_path(self,) -> None:
         self._config_file_path = Path.home() / ".barbucket/config.ini"
 
 
-    def create_config_file_if_not_present(self, source_path:Path, destination_path:Path) -> None:
-
+    def _create_config_file_if_not_present(self, source_path:Path, destination_path:Path) -> None:
         # Create file with default config if none exists
         if not Path.is_file(destination_path):
             with open(source_path, 'r') as reader:
@@ -47,7 +44,6 @@ class Config():
         """Read a single config value"""
 
         return self._parser.get(section, option)
-
 
 
     def get_config_value_list(self, section:str, option:str) -> List[str]:
