@@ -29,10 +29,15 @@ def mock_db_connector(mock_homepath) -> MockDatabaseConnector:
     yield mock_db_connector
 
 
+def create_db_file(path:Path) -> None:
+    # create database file
+    conn = sqlite3.connect(path)
+    conn.close()
+
+
 def test_connect_existing(mock_db_connector) -> None:
     # create file
-    conn = sqlite3.connect(mock_db_connector._DB_PATH)
-    conn.close()
+    create_db_file(mock_db_connector._DB_PATH)
     
     # connect
     conn = mock_db_connector.connect()
@@ -47,8 +52,7 @@ def test_connect_nonexisting(mock_db_connector) -> None:
 
 def test_disconnect(mock_db_connector) -> None:
     # create file
-    conn = sqlite3.connect(mock_db_connector._DB_PATH)
-    conn.close()
+    create_db_file(mock_db_connector._DB_PATH)
     
     # connect
     conn = mock_db_connector.connect()
@@ -61,8 +65,7 @@ def test_disconnect(mock_db_connector) -> None:
 
 def test_archive_database_existing(mock_db_connector) -> None:
     # create file
-    conn = sqlite3.connect(mock_db_connector._DB_PATH)
-    conn.close()
+    create_db_file(mock_db_connector._DB_PATH)
 
     # archive
     mock_db_connector.archive_database()
@@ -77,8 +80,7 @@ def test_archive_database_nonexisting(mock_db_connector) -> None:
 
 def test_init_database_existing(mock_db_connector) -> None:
     # create file
-    conn = sqlite3.connect(mock_db_connector._DB_PATH)
-    conn.close()
+    create_db_file(mock_db_connector._DB_PATH)
     
     # call init method
     mock_db_connector.init_database()
