@@ -29,6 +29,7 @@ class AppInterface():
         self.db_connector = DatabaseConnector()
         self.contracts_db = ContractsDatabase()
         self.ib_listings = IbExchangeListings()
+        self.ib_details_db = IbDetailsDatabase()
         self.tv_details_db = TvDetailsDatabase()
         self.tv_details_file = TvDetailsFile()
         self.quotes_db = QuotesDatabase()
