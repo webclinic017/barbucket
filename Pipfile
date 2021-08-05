@@ -10,6 +10,7 @@ sphinx-rtd-theme = "*"
 ipykernel = "*"
 tqdm = "*"
 autopep8 = "*"
+pylint = "*"
 
 [packages]
 pandas = "*"
