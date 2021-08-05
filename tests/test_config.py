@@ -5,17 +5,6 @@ import pytest
 import barbucket.config as config
 
 
-# @pytest.fixture
-# def return_object_name():
-#     """Fixture template"""
-#
-#     # Set-up code
-#     my_object = MyClass()
-#     yield my_object
-#
-#     # Tear-down code
-#     pass
-
 
 class MockConfig(config.Config):
     def __init__(self) -> None:
@@ -42,30 +31,30 @@ def mock_homepath(tmp_path, monkeypatch):
 
 
 def test_create_directories_if_not_present(mock_cfg, mock_homepath) -> None:
-    mock_cfg.create_directories()
+    mock_cfg._create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
 def test_create_directories_if_one_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
-    mock_cfg.create_directories()
+    mock_cfg._create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
 def test_create_directories_if_both_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir((Path.home() / ".barbucket/tw_screener"), parents=True)
-    mock_cfg.create_directories()
+    mock_cfg._create_directories()
     assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
 
 
 def test_set_config_file_path(mock_cfg, mock_homepath) -> None:
-    mock_cfg.set_config_file_path()
+    mock_cfg._set_config_file_path()
     assert mock_cfg._config_file_path == Path.home() / ".barbucket/config.ini"
 
 
 def test_create_config_file_if_not_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
-    mock_cfg.create_config_file_if_not_present(
+    mock_cfg._create_config_file_if_not_present(
             source_path="default_config.ini",
             destination_path=(Path.home() / ".barbucket/config.ini")
     )
