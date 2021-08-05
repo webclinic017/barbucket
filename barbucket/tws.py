@@ -40,7 +40,7 @@ class Tws():
         config = Config()
 
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = config.get_config_value(
+        NON_SYSTEMIC_CODES = config.get_config_value_single(
             'tws_connector',
             'non_systemic_codes')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
@@ -59,8 +59,8 @@ class Tws():
     def connect(self,):
         config = Config()
 
-        IP = config.get_config_value('tws_connector', 'ip')
-        PORT = int(config.get_config_value('tws_connector', 'port'))
+        IP = config.get_config_value_single('tws_connector', 'ip')
+        PORT = int(config.get_config_value_single('tws_connector', 'port'))
         logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
