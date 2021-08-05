@@ -8,9 +8,8 @@ class TvDetailsDatabase():
     def __init__(self):
         pass
 
-
     def insert_tv_details(self, contract_id, market_cap, avg_vol_30_in_curr,
-        country, employees, profit, revenue):
+                          country, employees, profit, revenue):
 
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
@@ -38,12 +37,10 @@ class TvDetailsDatabase():
         db_connector.disconnect(conn)
 
 
-
 class TvDetailsFile():
 
     def __init__(self):
         pass
-
 
     def get_data_from_file(self, file):
 
@@ -55,7 +52,7 @@ class TvDetailsFile():
         for _, row in df.iterrows():
 
             row_formated = {}
-            
+
             # Prepare the data
             row_formated['ticker'] = row['Ticker']
             row_formated['exchange'] = row['Exchange']
@@ -79,7 +76,7 @@ class TvDetailsFile():
                 row_formated['profit'] = 0
             else:
                 row_formated['profit'] = int(row["Gross Profit (FY)"])
-                
+
             if pd.isna(row["Total Revenue (FY)"]):
                 row_formated['revenue'] = 0
             else:

@@ -6,7 +6,6 @@ class Tools():
     def __init__(self,):
         pass
 
-
     @staticmethod
     def remove_special_chars(input_string):
         special_chars = ["'"]
@@ -14,7 +13,6 @@ class Tools():
         for char in special_chars:
             result = result.replace(char, '')
         return result
-
 
     # Known exchanges:
     # 'ISLAND'          # NASDAQ / Island
@@ -35,9 +33,8 @@ class Tools():
 
     # 'SBF'             # Euronext France
 
-    # 'ENEXT.BE'        # 
-    # 'AEB'             # 
-
+    # 'ENEXT.BE'        #
+    # 'AEB'             #
 
     def encode_exchange_tv(self, exchange):
         # Encode from Barbucket-notation to TV-notation
@@ -51,7 +48,6 @@ class Tools():
         else:
             return exchange
 
-
     def decode_exchange_tv(self, exchange):
         # Decode from IB-notation to Barbucket-notation
         exchange_codes = {
@@ -64,7 +60,6 @@ class Tools():
         else:
             return exchange
 
-
     def encode_exchange_ib(self, exchange):
         # Encode from Barbucket-notation to IB-notation
         exchange_codes = {
@@ -75,7 +70,6 @@ class Tools():
             return exchange_codes[exchange]
         else:
             return exchange
-
 
     def decode_exchange_ib(self, exchange):
         # Decode from IB-notation to Barbucket-notation

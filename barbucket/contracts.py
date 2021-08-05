@@ -15,33 +15,33 @@ class ContractsDatabase():
     def __init__(self):
         pass
 
-
     def create_contract(self, contract_type_from_listing, exchange_symbol,
-        broker_symbol, name, currency, exchange):
-        logging.debug(f"Creating new contract {contract_type_from_listing}_{exchange}_{broker_symbol}_{currency}.")
+                        broker_symbol, name, currency, exchange):
+        logging.debug(
+            f"Creating new contract {contract_type_from_listing}_{exchange}_{broker_symbol}_{currency}.")
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
 
-        cur.execute("""INSERT INTO contracts (
-            contract_type_from_listing,
-            exchange_symbol, 
-            broker_symbol,
-            name,
-            currency,
-            exchange) 
-            VALUES (?, ?, ?, ?, ?, ?)""",(
-            contract_type_from_listing,
-            exchange_symbol, 
-            broker_symbol,
-            name,
-            currency,
-            exchange))
+        cur.execute(
+            """INSERT INTO contracts (
+                    contract_type_from_listing,
+                    exchange_symbol, 
+                    broker_symbol,
+                    name,
+                    currency,
+                    exchange) 
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+            (contract_type_from_listing,
+                exchange_symbol,
+                broker_symbol,
+                name,
+                currency,
+                exchange))
 
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
-
 
     def get_contracts(self, filters={}, return_columns=[]):
         """
@@ -66,8 +66,7 @@ class ContractsDatabase():
                 elif isinstance(value, (int, float)):
                     query += (key + " = " + str(value) + " and ")
 
-
-            query = query[:-5]      #remove trailing 'and'
+            query = query[:-5]  # remove trailing 'and'
             query += ";"
 
         # Get requested values from db
@@ -86,45 +85,43 @@ class ContractsDatabase():
 
         return contracts
 
-
     def delete_contract(self, exchange, symbol, currency):
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
 
-        cur.execute("""DELETE FROM contracts
-                        WHERE (broker_symbol = ? 
-                            AND exchange = ? 
-                            AND currency = ?);""",
-                            (symbol,
-                            exchange,
-                            currency))
+        cur.execute(
+            """DELETE FROM contracts
+                    WHERE (broker_symbol = ? 
+                        AND exchange = ? 
+                        AND currency = ?);""",
+            (symbol,
+             exchange,
+             currency))
 
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
-
 
     def delete_contract_id(self, contract_id):
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
         cur = conn.cursor()
 
-        cur.execute("""DELETE FROM contracts 
-                        WHERE contract_id = ?;""",
-                        contract_id)
+        cur.execute(
+            """DELETE FROM contracts 
+                    WHERE contract_id = ?;""",
+            contract_id)
 
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
 
 
-
 class IbExchangeListings():
 
     def __init__(self):
         pass
-
 
     def read_ib_exchange_listing_singlepage(self, ctype, exchange):
         url = f"https://www.interactivebrokers.com/en/index.php?f=567"\
@@ -136,17 +133,22 @@ class IbExchangeListings():
         new_lines = []
         corrections = 0
         for line in old_lines:
-            if ('        <td align="left" valign="middle">' in line)\
-                and ("href" not in line):
-                    line = line.replace("</a>","")
-                    corrections += 1
+            if (
+                ('        <td align="left" valign="middle">' in line)
+                and
+                ("href" not in line)
+            ):
+                line = line.replace("</a>", "")
+                corrections += 1
             new_lines.append(line)
         html = "".join(new_lines)
         if corrections == 0:
-            logging.info(f"IB error for singlepage listings no longer present.")
+            logging.info(
+                f"IB error for singlepage listings no longer present.")
 
         soup = BeautifulSoup(html, 'html.parser')
-        tables = soup.find_all('table', \
+        tables = soup.find_all(
+            'table',
             class_='table table-striped table-bordered')
 
         rows = tables[2].tbody.find_all('tr')
@@ -164,13 +166,12 @@ class IbExchangeListings():
 
         return website_data
 
-
     def read_ib_exchange_listing_paginated(self, ctype, exchange):
         """
         Returns list of contracts
         Returns -1 if aborted by user
         """
-        
+
         website_data = []
         page = 1
 
@@ -182,7 +183,8 @@ class IbExchangeListings():
 
         while True:
             # Get website
-            logging.info(f"Scraping IB exchange listing for {exchange}, page {page}.")
+            logging.info(
+                f"Scraping IB exchange listing for {exchange}, page {page}.")
             url = f"https://www.interactivebrokers.com/en/index.php?f=2222"\
                 + f"&exch={exchange}&showcategories=STK&p=&cc=&limit=100"\
                 + f"&page={page}"
@@ -190,15 +192,17 @@ class IbExchangeListings():
 
             # Correct error from IB
             if "(click link for more details)</span></th>\n                       </th>" in html:
-                html = html.replace(\
-                    "(click link for more details)</span></th>\n                       </th>\n",\
+                html = html.replace(
+                    "(click link for more details)</span></th>\n                       </th>\n",
                     "(click link for more details)</span></th>\n")
             else:
-                logging.info(f"IB error for paginated listings no longer present.")
+                logging.info(
+                    f"IB error for paginated listings no longer present.")
 
             # Parse HTML
             soup = BeautifulSoup(html, 'html.parser')
-            tables = soup.find_all('table', \
+            tables = soup.find_all(
+                'table',
                 class_='table table-striped table-bordered')
             rows = tables[2].tbody.find_all('tr')
 
@@ -225,4 +229,4 @@ class IbExchangeListings():
 
             # Prepare for next page
             page += 1
-            time.sleep(3) #show some mercy to webserver
+            time.sleep(3)  # show some mercy to webserver

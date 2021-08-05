@@ -9,7 +9,6 @@ class UniversesDatabase():
     def __init__(self):
         pass
 
-
     def __create_membership(self, contract_id, universe):
         db_connector = DatabaseConnector()
         conn = db_connector.connect()
@@ -22,14 +21,13 @@ class UniversesDatabase():
         cur.close()
         db_connector.disconnect(conn)
 
-
     def create_universe(self, name, contract_ids):
 
         # Insert memberships into db
-        logging.info(f"Creating universe '{name}' with {len(contract_ids)} members.")
+        logging.info(
+            f"Creating universe '{name}' with {len(contract_ids)} members.")
         for contract_id in contract_ids:
             self.__create_membership(contract_id, name)
-
 
     def get_universes(self):
         """
@@ -53,7 +51,6 @@ class UniversesDatabase():
             result.append(row['universe'])
 
         return result
-
 
     def get_universe_members(self, universe):
         """
@@ -80,7 +77,6 @@ class UniversesDatabase():
 
         return result
 
-
     def delete_universe(self, universe):
 
         logging.info(f"Deleting universe '{universe}'.")
@@ -88,7 +84,8 @@ class UniversesDatabase():
         conn = db_connector.connect()
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM universe_memberships WHERE universe = ?;",
+        cur.execute(
+            "DELETE FROM universe_memberships WHERE universe = ?;",
             (universe,))
 
         conn.commit()

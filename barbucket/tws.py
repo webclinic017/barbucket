@@ -19,7 +19,6 @@ class Tws():
         self.__contract_error_status = None
         self.__contract_error_code = None
 
-
     def __on_tws_error(self, reqId, errorCode, errorString, contract):
         """
         Is called from 'ib_insync' as callback on errors and writes error
@@ -41,19 +40,21 @@ class Tws():
         config = Config()
 
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = config.get_config_value('tws_connector',
+        NON_SYSTEMIC_CODES = config.get_config_value(
+            'tws_connector',
             'non_systemic_codes')
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
-            logging.error(f"Systemic problem in TWS connection detected. {errorCode}: {errorString}")
+            logging.error(
+                f"Systemic problem in TWS connection detected. {errorCode}: {errorString}")
             self.__connection_error = True
 
         # Write error info to contract database, if error is related to contract
         if contract is not None:
             self.__contract_error_status = errorString
             self.__contract_error_code = errorCode
-            logging.error(f"Problem for {contract} detected. {errorCode}: {errorString}")
-
+            logging.error(
+                f"Problem for {contract} detected. {errorCode}: {errorString}")
 
     def connect(self,):
         config = Config()
@@ -63,27 +64,22 @@ class Tws():
         logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
-
     def disconnect(self,):
         logging.info("Disconnecting from TWS.")
         self.__ib.disconnect()
         self.__connection_error = False
 
-
     def is_connected(self,):
         return self.__ib.isConnected()
-
 
     def has_error(self,):
         return self.__connection_error
 
-
     def get_contract_error(self,):
         return [self.__contract_error_code, self.__contract_error_status]
 
-
     def download_historical_quotes(self, contract_id, symbol, exchange,
-        currency, duration):
+                                   currency, duration):
         """
         Description
 
@@ -107,7 +103,8 @@ class Tws():
             currency=currency)
 
         # Request data
-        logging.info(f"Requesting historical quotes for {exchange}_{symbol}_{currency}_{duration.replace(' ', '')} at TWS.")
+        logging.info(
+            f"Requesting historical quotes for {exchange}_{symbol}_{currency}_{duration.replace(' ', '')} at TWS.")
         bars = self.__ib.reqHistoricalData(
             ib_contract,
             endDateTime='',
@@ -123,7 +120,8 @@ class Tws():
             # Reformatting of received bars
             quotes = []
             for bar in bars:
-                quote = (contract_id,
+                quote = (
+                    contract_id,
                     bar.date.strftime('%Y-%m-%d'),
                     bar.open,
                     bar.high,
@@ -133,13 +131,11 @@ class Tws():
                 quotes.append(quote)
             return quotes
 
-
     def download_contract_details(self, contract_type_from_listing,
-        broker_symbol, exchange, currency):
+                                  broker_symbol, exchange, currency):
 
         tools = Tools()
 
-        
         # Create contract object
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
@@ -147,7 +143,8 @@ class Tws():
             currency=currency)
 
         # Request data
-        logging.info(f"Requesting contract details for {broker_symbol}_{exchange}_{currency} at TWS")
+        logging.info(
+            f"Requesting contract details for {broker_symbol}_{exchange}_{currency} at TWS")
         details = self.__ib.reqContractDetails(ib_contract)
 
         # Check returned data

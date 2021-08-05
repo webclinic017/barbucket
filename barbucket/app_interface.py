@@ -40,29 +40,29 @@ class AppInterface():
         self.exiter = GracefulExiter()
         self.tools = Tools()
 
-
         # Initialize database (create if not exists)
-        self.init_database()
-
+        self.db_connector.init_database()
 
     def archive_database(self):
         self.db_connector.archive_database()
 
-
     def get_contracts(self, filters={}, return_columns=[]):
-        contracts = self.contracts_db.get_contracts(filters=filters,
+        contracts = self.contracts_db.get_contracts(
+            filters=filters,
             return_columns=return_columns)
         return contracts
 
-
     def sync_contracts_to_listing(self, ctype, exchange):
-        logging.info(f'Syncing {ctype} contracts on {exchange} to master listing.')
+        logging.info(
+            f'Syncing {ctype} contracts on {exchange} to master listing.')
         # Get all contracts from websites
         website_data = []
         if ctype == "ETF":
-            website_data = self.ib_listings.read_ib_exchange_listing_singlepage(ctype, exchange)
+            website_data = self.ib_listings.read_ib_exchange_listing_singlepage(
+                ctype, exchange)
         elif ctype == "STOCK":
-            website_data = self.ib_listings.read_ib_exchange_listing_paginated(ctype, exchange)
+            website_data = self.ib_listings.read_ib_exchange_listing_paginated(
+                ctype, exchange)
 
         # Abort, if webscraping was aborted by user
         if website_data == []:
@@ -71,7 +71,8 @@ class AppInterface():
         # Get all contracts from database
         filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
         columns = ['broker_symbol', 'currency']
-        database_data = self.contracts_database.get_contracts(filters=filters,
+        database_data = self.contracts_db.get_contracts(
+            filters=filters,
             return_columns=columns)
 
         # Delete contracts from database, that are not present in website
@@ -79,29 +80,36 @@ class AppInterface():
         for db_row in database_data:
             exists = False
             for web_row in website_data:
-                if (db_row['broker_symbol'] == web_row['broker_symbol']) and \
-                    (db_row['currency'] == web_row['currency']):
+                if (
+                    (db_row['broker_symbol'] == web_row['broker_symbol'])
+                    and
+                    (db_row['currency'] == web_row['currency'])
+                ):
                     exists = True
                     break
             if not exists:
-                self.contracts_database.delete_contract(
-                    symbol=db_row['broker_symbol'], \
+                self.contracts_db.delete_contract(
+                    symbol=db_row['broker_symbol'],
                     exchange=exchange.upper(),
                     currency=db_row['currency'])
                 contracts_removed += 1
-        logging.info(f'{contracts_removed} contracts removed from master listing.')
+        logging.info(
+            f'{contracts_removed} contracts removed from master listing.')
 
         # Add contracts from website to database, that are not present in database
         contracts_added = 0
         for web_row in website_data:
             exists = False
             for db_row in database_data:
-                if (web_row['broker_symbol'] == db_row['broker_symbol']) and\
-                    (web_row['currency'] == db_row['currency']):
+                if (
+                    (web_row['broker_symbol'] == db_row['broker_symbol'])
+                    and
+                    (web_row['currency'] == db_row['currency'])
+                ):
                     exists = True
                     break
             if not exists:
-                self.contracts_database.create_contract(
+                self.contracts_db.create_contract(
                     contract_type_from_listing=ctype,
                     exchange_symbol=web_row['exchange_symbol'],
                     broker_symbol=web_row['broker_symbol'],
@@ -110,7 +118,6 @@ class AppInterface():
                     exchange=exchange.upper())
                 contracts_added += 1
         logging.info(f'{contracts_added} contracts added to master listing.')
-
 
     def ingest_tv_files(self):
 
@@ -129,8 +136,8 @@ class AppInterface():
             for row in file_data:
                 # Find corresponding contract id
                 ticker = row['ticker'].replace(".", " ")
-                filters = {'exchange': \
-                    self.tools.decode_exchange_tv(row['exchange']),
+                filters = {
+                    'exchange': self.tools.decode_exchange_tv(row['exchange']),
                     'contract_type_from_listing': "STOCK",
                     'exchange_symbol': ticker}
                 columns = ['contract_id']
@@ -151,24 +158,23 @@ class AppInterface():
                         profit=row['profit'],
                         revenue=row['revenue'])
                 else:
-                    ticker =row['ticker']
+                    ticker = row['ticker']
                     exchange = row['exchange']
-                    logging.warning(f"{len(result)} contracts found in master listing for '{ticker}' on '{exchange}'.")
-
+                    logging.warning(
+                        f"{len(result)} contracts found in master listing for '{ticker}' on '{exchange}'.")
 
     def get_contract_quotes(self, contract_id):
         return self.quotes_db.get_quotes(contract_id=contract_id)
 
-
     def get_universe_quotes(self, universe):
         pass
-
 
     def fetch_historical_quotes(self, universe):
         logging.info(f"Fetching historical quotes for universe {universe}.")
 
         # Get config constants
-        REDOWNLOAD_DAYS = int(self.config.get_config_value_single('quotes',
+        REDOWNLOAD_DAYS = int(self.config.get_config_value_single(
+            'quotes',
             'redownload_days'))
 
         # Get universe members
@@ -176,7 +182,9 @@ class AppInterface():
 
         # Setup progress bar
         manager = enlighten.get_manager()
-        pbar = manager.counter(total=len(contract_ids), desc="Contracts", unit="contracts")
+        pbar = manager.counter(
+            total=len(contract_ids),
+            desc="Contracts", unit="contracts")
 
         self.tws.connect()
         logging.info(f"Connnected to TWS.")
@@ -192,10 +200,13 @@ class AppInterface():
                 # Get contracts data
                 filters = {'contract_id': contract_id}
                 columns = ['broker_symbol', 'exchange', 'currency']
-                contract = self.contracts_db.get_contracts(filters = filters,
+                contract = self.contracts_db.get_contracts(
+                    filters=filters,
                     return_columns=columns)[0]
-                quotes_status = self.quotes_status_db.get_quotes_status(contract_id)
-                logging.info(f"Preparing to fetch hiostorical quotes for {contract['broker_symbol']} on {contract['exchange']}")
+                quotes_status = self.quotes_status_db.get_quotes_status(
+                    contract_id)
+                logging.info(
+                    f"Preparing to fetch hiostorical quotes for {contract['broker_symbol']} on {contract['exchange']}")
 
                 # Calculate length of requested data
                 if quotes_status is None:
@@ -210,12 +221,14 @@ class AppInterface():
                     end_date = date.today().strftime('%Y-%m-%d')
                     ndays = np.busday_count(start_date, end_date)
                     if ndays <= REDOWNLOAD_DAYS:
-                        logging.info(f"Existing data is only {ndays} days old. Contract aborted.")
+                        logging.info(
+                            f"Existing data is only {ndays} days old. Contract aborted.")
                         pbar.total -= 1
                         pbar.update(incr=0)
                         continue
                     if ndays > 360:
-                        logging.info(f"Existing data is already {ndays} days old. Contract aborted.")
+                        logging.info(
+                            f"Existing data is already {ndays} days old. Contract aborted.")
                         pbar.total -= 1
                         pbar.update(incr=0)
                         continue
@@ -234,7 +247,8 @@ class AppInterface():
                 quotes = self.tws.download_historical_quotes(
                     contract_id=contract_id,
                     symbol=contract['broker_symbol'],
-                    exchange=self.tools.encode_exchange_ib(contract['exchange']),
+                    exchange=self.tools.encode_exchange_ib(
+                        contract['exchange']),
                     currency=contract['currency'],
                     duration=duration_str)
 
@@ -259,30 +273,34 @@ class AppInterface():
                         status_code=error_code,
                         status_text=error_text,
                         daily_quotes_requested_from=None,
-                        daily_quotes_requested_till=None)                
+                        daily_quotes_requested_till=None)
                 pbar.update()
 
-            logging.info(f"Finished fetching historical quotes for universe {universe}.")
+            logging.info(
+                f"Finished fetching historical quotes for universe {universe}.")
 
         finally:
             self.tws.disconnect()
             logging.info(f"Disconnnected from TWS.")
 
-
     def fetch_ib_contract_details(self,):
         columns = ['contract_id', 'contract_type_from_listing',
-            'broker_symbol', 'exchange', 'currency']
+                   'broker_symbol', 'exchange', 'currency']
         filters = {'primary_exchange': "NULL"}
-        contracts = self.contracts_db.get_contracts(filters=filters,
+        contracts = self.contracts_db.get_contracts(
+            filters=filters,
             return_columns=columns)
-        logging.info(f"Found {len(contracts)} contracts with missing IB details in master listing.")
+        logging.info(
+            f"Found {len(contracts)} contracts with missing IB details in master listing.")
 
         if len(contracts) == 0:
             return
 
         # Setup progress bar
         manager = enlighten.get_manager()
-        pbar = manager.counter(total=len(contracts), desc="Contracts", unit="contracts")
+        pbar = manager.counter(
+            total=len(contracts),
+            desc="Contracts", unit="contracts")
 
         self.tws.connect()
         logging.info(f"Connnected to TWS.")
@@ -315,20 +333,16 @@ class AppInterface():
             self.tws.disconnect()
             logging.info(f"Disconnnected from TWS.")
 
-
     def create_universe(self, name, contract_ids):
-        self.universes.create_universe(name=name, contract_ids=contract_ids)
-
+        self.universe_db.create_universe(name=name, contract_ids=contract_ids)
 
     def get_universes(self,):
-        result = self.universes.get_universes()
+        result = self.universe_db.get_universes()
         return result
 
-
     def get_universe_members(self, universe):
-        members = self.universes.get_universe_members(universe)
+        members = self.universe_db.get_universe_members(universe)
         return members
 
-
     def delete_universe(self, universe):
-        self.universes.delete_universe(universe)
+        self.universe_db.delete_universe(universe)

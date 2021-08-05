@@ -75,93 +75,93 @@ class DatabaseConnector():
         conn = self.connect()
         cur = conn.cursor()
 
-        cur.execute("""
-            CREATE TABLE contracts (
-                contract_id INTEGER NOT NULL PRIMARY KEY,
-                contract_type_from_listing TEXT,
-                exchange_symbol TEXT, 
-                broker_symbol TEXT, 
-                name TEXT,
-                currency TEXT, 
-                exchange TEXT);""")
+        cur.execute(
+            """CREATE TABLE contracts (
+                    contract_id INTEGER NOT NULL PRIMARY KEY,
+                    contract_type_from_listing TEXT,
+                    exchange_symbol TEXT, 
+                    broker_symbol TEXT, 
+                    name TEXT,
+                    currency TEXT, 
+                    exchange TEXT);""")
 
-        cur.execute("""
-            CREATE TABLE contract_details_ib (
-                contract_id INTEGER UNIQUE,
-                contract_type_from_details TEXT,
-                primary_exchange TEXT,
-                industry TEXT,
-                category TEXT,
-                subcategory TEXT,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id));""")
+        cur.execute(
+            """CREATE TABLE contract_details_ib (
+                    contract_id INTEGER UNIQUE,
+                    contract_type_from_details TEXT,
+                    primary_exchange TEXT,
+                    industry TEXT,
+                    category TEXT,
+                    subcategory TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
 
-        cur.execute("""
-            CREATE TABLE contract_details_tv (
-                contract_id INTEGER UNIQUE,
-                market_cap INTEGER,
-                avg_vol_30_in_curr INTEGER,
-                country TEXT,
-                employees INTEGER,
-                profit INTEGER,
-                revenue INTEGER,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id));""")
+        cur.execute(
+            """CREATE TABLE contract_details_tv (
+                    contract_id INTEGER UNIQUE,
+                    market_cap INTEGER,
+                    avg_vol_30_in_curr INTEGER,
+                    country TEXT,
+                    employees INTEGER,
+                    profit INTEGER,
+                    revenue INTEGER,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
 
-        cur.execute("""
-            CREATE VIEW all_contract_info AS
-                SELECT * FROM contracts
-                    LEFT JOIN contract_details_ib ON
-                        contracts.contract_id = contract_details_ib.contract_id
-                    LEFT JOIN contract_details_tv ON
-                        contracts.contract_id = contract_details_tv.contract_id
-                    LEFT JOIN quotes_status ON
-                        contracts.contract_id = quotes_status.contract_id;""")
+        cur.execute(
+            """CREATE VIEW all_contract_info AS
+                    SELECT * FROM contracts
+                        LEFT JOIN contract_details_ib ON
+                            contracts.contract_id = contract_details_ib.contract_id
+                        LEFT JOIN contract_details_tv ON
+                            contracts.contract_id = contract_details_tv.contract_id
+                        LEFT JOIN quotes_status ON
+                            contracts.contract_id = quotes_status.contract_id;""")
 
-        cur.execute("""
-            CREATE TABLE quotes (
-                contract_id INTEGER,
-                date TEXT,
-                open REAL,
-                high REAL, 
-                low REAL, 
-                close REAL,
-                volume REAL,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id, date));""")
+        cur.execute(
+            """CREATE TABLE quotes (
+                    contract_id INTEGER,
+                    date TEXT,
+                    open REAL,
+                    high REAL, 
+                    low REAL, 
+                    close REAL,
+                    volume REAL,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id, date));""")
 
-        cur.execute("""
-            CREATE TABLE quotes_status (
-                contract_id INTEGER UNIQUE,
-                status_code INTEGER,
-                status_text TEXT,
-                daily_quotes_requested_from TEXT,
-                daily_quotes_requested_till TEXT,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id));""")
+        cur.execute(
+            """CREATE TABLE quotes_status (
+                    contract_id INTEGER UNIQUE,
+                    status_code INTEGER,
+                    status_text TEXT,
+                    daily_quotes_requested_from TEXT,
+                    daily_quotes_requested_till TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
 
-        cur.execute("""
-            CREATE TABLE universe_memberships (
-                membership_id INTEGER NOT NULL PRIMARY KEY,
-                contract_id INTEGER,
-                universe TEXT,
-                FOREIGN KEY (contract_id)
-                    REFERENCES contracts (contract_id)
-                        ON UPDATE CASCADE
-                        ON DELETE CASCADE,
-                UNIQUE (contract_id, universe));""")
+        cur.execute(
+            """CREATE TABLE universe_memberships (
+                    membership_id INTEGER NOT NULL PRIMARY KEY,
+                    contract_id INTEGER,
+                    universe TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id, universe));""")
 
         conn.commit()
         cur.close()
