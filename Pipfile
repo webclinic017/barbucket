@@ -9,6 +9,7 @@ sphinx = "*"
 sphinx-rtd-theme = "*"
 ipykernel = "*"
 tqdm = "*"
+autopep8 = "*"
 
 [packages]
 pandas = "*"

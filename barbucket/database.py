@@ -14,7 +14,6 @@ class DbNotInitializedError(Exception):
         super().__init__(message)
 
 
-
 class DatabaseConnector():
     """Handles all non-specific database operations."""
 
@@ -24,7 +23,6 @@ class DatabaseConnector():
     def __init__(self) -> None:
         pass
 
-
     def connect(self) -> sqlite3.Connection:
         """
         Provides a 'connection'-object for the database.
@@ -32,7 +30,8 @@ class DatabaseConnector():
         """
 
         if not self._DB_PATH.is_file():
-            raise DbNotInitializedError(message="Database does not exist. Call 'init_database()' before connecting.")
+            raise DbNotInitializedError(
+                message="Database does not exist. Call 'init_database()' before connecting.")
         # otherwise connect() would create an empty file
 
         conn = sqlite3.connect(self._DB_PATH)
@@ -41,28 +40,26 @@ class DatabaseConnector():
         """)
         return conn
 
-
-    def disconnect(self, conn:sqlite3.Connection) -> None:
+    def disconnect(self, conn: sqlite3.Connection) -> None:
         """Disconnects the connection to the database."""
 
         conn.close()
-
 
     def archive_database(self) -> None:
         """Archive the database by renaming the file."""
 
         logging.info("Starting archivation of database.")
         now = datetime.now()
-        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S") # no colons in filenames
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")  # no colons in filenames
         new_name = self._DB_PATH.parent / f"database_archived_{timestamp}.db"
         try:
             self._DB_PATH.rename(new_name)
         except FileNotFoundError as e:
-            logging.exception("Database not archived, because no databse exists.")
+            logging.exception(
+                "Database not archived, because no databse exists.")
             raise FileNotFoundError from e
         else:
             logging.info(f"Database archived as: {new_name}")
-
 
     def _create_db_file(self) -> None:
         """Create a new database file."""
@@ -70,7 +67,6 @@ class DatabaseConnector():
         conn = sqlite3.connect(self._DB_PATH)
         conn.close()
         logging.info("Created new database file.")
-
 
     def _create_db_schema(self) -> None:
         """Create schema in database."""
@@ -164,13 +160,13 @@ class DatabaseConnector():
                 FOREIGN KEY (contract_id)
                     REFERENCES contracts (contract_id)
                         ON UPDATE CASCADE
-                        ON DELETE CASCADE);""")
+                        ON DELETE CASCADE,
+                UNIQUE (contract_id, universe));""")
 
         conn.commit()
         cur.close()
         self.disconnect(conn)
         logging.info("Finished creating database schema.")
-
 
     def init_database(self) -> None:
         """Initialize database if it doesnt exist. Else skip."""
@@ -183,5 +179,3 @@ class DatabaseConnector():
             logging.info("Database created. Finished initialization.")
         else:
             logging.info("Database already exists. Finished initialization.")
-
-
