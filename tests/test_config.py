@@ -5,7 +5,6 @@ import pytest
 import barbucket.config as config
 
 
-
 class MockConfig(config.Config):
     def __init__(self) -> None:
         # Read default config file
@@ -55,8 +54,8 @@ def test_set_config_file_path(mock_cfg, mock_homepath) -> None:
 def test_create_config_file_if_not_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
     mock_cfg._create_config_file_if_not_present(
-            source_path="default_config.ini",
-            destination_path=(Path.home() / ".barbucket/config.ini")
+        source_path="default_config.ini",
+        destination_path=(Path.home() / ".barbucket/config.ini")
     )
     with open("default_config.ini", 'r') as reader_default:
         default_config = reader_default.readlines()
@@ -71,5 +70,6 @@ def test_get_config_value_single(mock_cfg) -> None:
 
 
 def test_get_config_value_list(mock_cfg) -> None:
-    value = mock_cfg.get_config_value_list('tws_connector', 'non_systemic_codes')
+    value = mock_cfg.get_config_value_list(
+        'tws_connector', 'non_systemic_codes')
     assert value == ["162", "200", "354", "2104", "2106", "2107", "2158"]

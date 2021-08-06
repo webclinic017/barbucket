@@ -6,7 +6,6 @@ import pytest
 import barbucket.database as database
 
 
-
 class MockDatabaseConnector(database.DatabaseConnector):
     pass
 
@@ -29,7 +28,7 @@ def mock_db_connector(mock_homepath) -> MockDatabaseConnector:
     yield mock_db_connector
 
 
-def create_db_file(path:Path) -> None:
+def create_db_file(path: Path) -> None:
     # create database file
     conn = sqlite3.connect(path)
     conn.close()
@@ -38,7 +37,7 @@ def create_db_file(path:Path) -> None:
 def test_connect_existing(mock_db_connector) -> None:
     # create file
     create_db_file(mock_db_connector._DB_PATH)
-    
+
     # connect
     conn = mock_db_connector.connect()
     assert isinstance(conn, sqlite3.dbapi2.Connection)
@@ -53,7 +52,7 @@ def test_connect_nonexisting(mock_db_connector) -> None:
 def test_disconnect(mock_db_connector) -> None:
     # create file
     create_db_file(mock_db_connector._DB_PATH)
-    
+
     # connect
     conn = mock_db_connector.connect()
 
@@ -81,7 +80,7 @@ def test_archive_database_nonexisting(mock_db_connector) -> None:
 def test_init_database_existing(mock_db_connector) -> None:
     # create file
     create_db_file(mock_db_connector._DB_PATH)
-    
+
     # call init method
     mock_db_connector.init_database()
 
@@ -106,4 +105,3 @@ def test_init_database_nonexisting(mock_db_connector) -> None:
     mock_db_connector.disconnect(conn)
 
     assert len(tables) == 6
-
