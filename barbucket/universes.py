@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 
-from barbucket.database import DatabaseConnector
+from .database import DatabaseConnector
 
 
 class UniversesDatabase():

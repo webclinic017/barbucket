@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 import requests
 import enlighten
 
-from barbucket.database import DatabaseConnector
-from barbucket.tools import GracefulExiter
+from .database import DatabaseConnector
+from .tools import GracefulExiter
 
 
 class ContractsDatabase():

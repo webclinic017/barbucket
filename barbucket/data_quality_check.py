@@ -5,9 +5,9 @@
 # from multiprocessing import Pool
 # import configparser
 
-# from barbucket.contracts_db import ContractsDB
-# from barbucket.quotes_db import QuotesDB
-# from barbucket.config import get_config_value
+# from .contracts_db import ContractsDB
+# from .quotes_db import QuotesDB
+# from .config import get_config_value
 
 
 # class DataQualityCheck():
@@ -56,7 +56,7 @@
 
 #         if len(df) == 0:
 #             return False
-        
+
 #         MAX_MISSING_QUOTES_COUNT = int(get_config_value('quality_check',
 #             'max_missing_quotes_at_end'))
 
@@ -73,7 +73,7 @@
 #         """
 #         Get all trading days of an exchange and store into parameter as
 #         pandas series with index and data as datetime objects
-        
+
 #         Parameters:
 #             exchanges: '[FWB', 'LSE']
 
@@ -131,11 +131,10 @@
 #             return -1
 
 
-
 #     def handle_single_contract(self, contract_id):
 #         # Get information for the contract
 #         contract = self.__contracts_db.get_contracts(contract_id=contract_id)[0]
-        
+
 #         # Get all quotes for the contract
 #         df = self.__quotes_db.get_quotes(contract_id)
 
@@ -167,8 +166,6 @@
 #             print(str(contract_id) + ' Deleted, as too few quotes after bars removal. ', end='')
 #             self.__contracts_db.delete_contract_id(contract_id)
 #             return
-
-
 
 
 # # Placeholders

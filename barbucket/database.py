@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import logging
 
-from barbucket.config import Config
+from .config import Config
 
 
 class DbNotInitializedError(Exception):

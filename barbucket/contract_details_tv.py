@@ -1,6 +1,6 @@
 import pandas as pd
 
-from barbucket.database import DatabaseConnector
+from .database import DatabaseConnector
 
 
 class TvDetailsDatabase():

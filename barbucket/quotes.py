@@ -2,7 +2,7 @@ import sqlite3
 
 import pandas as pd
 
-from barbucket.database import DatabaseConnector
+from .database import DatabaseConnector
 
 
 class QuotesDatabase():

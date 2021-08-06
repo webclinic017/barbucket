@@ -3,8 +3,8 @@ import logging
 
 import ib_insync
 
-from barbucket.config import Config
-from barbucket.tools import Tools
+from .config import Config
+from .tools import Tools
 
 
 class Tws():
