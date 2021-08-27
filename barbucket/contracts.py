@@ -123,7 +123,80 @@ class IbExchangeListings():
     def __init__(self):
         pass
 
-    def read_ib_exchange_listing_singlepage(self, ctype, exchange):
+    def sync_contracts_to_listing(self, ctype, exchange):
+        logging.info(
+            f'Syncing {ctype} contracts on {exchange} to master listing.')
+
+        # Get all contracts from websites
+        website_data = []
+        if ctype == "ETF":
+            website_data = self.ib_listings.read_ib_exchange_listing_singlepage(
+                ctype, exchange)
+        elif ctype == "STOCK":
+            website_data = self.ib_listings.read_ib_exchange_listing_paginated(
+                ctype, exchange)
+
+        # Abort, if webscraping was aborted by user
+        if website_data == []:
+            return
+        # Todo: Exception
+
+        # Todo: Call mediator
+        # Get all contracts from database
+        filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
+        columns = ['broker_symbol', 'currency']
+        database_data = self.contracts_db.get_contracts(
+            filters=filters,
+            return_columns=columns)
+
+    def __delete_contracts_from_db():
+        # Delete contracts from database, that are not present in website
+        contracts_removed = 0
+        for db_row in database_data:
+            exists = False
+            for web_row in website_data:
+                if (
+                    (db_row['broker_symbol'] == web_row['broker_symbol'])
+                    and
+                    (db_row['currency'] == web_row['currency'])
+                ):
+                    exists = True
+                    break
+            if not exists:
+                self.contracts_db.delete_contract(
+                    symbol=db_row['broker_symbol'],
+                    exchange=exchange.upper(),
+                    currency=db_row['currency'])
+                contracts_removed += 1
+        logging.info(
+            f'{contracts_removed} contracts removed from master listing.')
+
+    def __add_contracts_to_db():
+
+        # Add contracts from website to database, that are not present in database
+        contracts_added = 0
+        for web_row in website_data:
+            exists = False
+            for db_row in database_data:
+                if (
+                    (web_row['broker_symbol'] == db_row['broker_symbol'])
+                    and
+                    (web_row['currency'] == db_row['currency'])
+                ):
+                    exists = True
+                    break
+            if not exists:
+                self.contracts_db.create_contract(
+                    contract_type_from_listing=ctype,
+                    exchange_symbol=web_row['exchange_symbol'],
+                    broker_symbol=web_row['broker_symbol'],
+                    name=web_row['name'],
+                    currency=web_row['currency'],
+                    exchange=exchange.upper())
+                contracts_added += 1
+        logging.info(f'{contracts_added} contracts added to master listing.')
+
+    def __read_ib_exchange_listing_singlepage(self, ctype, exchange):
         url = f"https://www.interactivebrokers.com/en/index.php?f=567"\
             + f"&exch={exchange}"
         html = requests.get(url).text
@@ -166,7 +239,7 @@ class IbExchangeListings():
 
         return website_data
 
-    def read_ib_exchange_listing_paginated(self, ctype, exchange):
+    def __read_ib_exchange_listing_paginated(self, ctype, exchange):
         """
         Returns list of contracts
         Returns -1 if aborted by user
