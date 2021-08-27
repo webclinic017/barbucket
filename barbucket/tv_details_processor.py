@@ -16,6 +16,8 @@ class MoreThanOneContractFoundError(Exception):
 
 
 class TvDetailsProcessor():
+    """Docstring"""
+
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
         self.__file_row = None
