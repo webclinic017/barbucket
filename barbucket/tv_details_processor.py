@@ -1,28 +1,29 @@
 import logging
 from pathlib import Path
 from os import path, listdir
-
+from typing import Any, List, Dict
 import pandas as pd
 
 from .mediator import Mediator
+from .base_component import BaseComponent
 
 
 class NoContractFoundError(Exception):
-    """"""
+    """NoContractFoundError"""
 
 
 class MoreThanOneContractFoundError(Exception):
-    """"""
+    """MoreThanOneContractFoundError"""
 
 
-class TvDetailsProcessor():
-    """Docstring"""
+class TvDetailsProcessor(BaseComponent):
+    """TvDetailsProcessor"""
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
         self.__file_row = None
 
-    def __get_files_from_dir(self):
+    def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
 
         logging.info("Creating list of paths to all *.csv files in "
@@ -32,7 +33,7 @@ class TvDetailsProcessor():
             dir_path) if f.endswith(".csv")]  # This also excludes directories
         return tv_files
 
-    def __get_contracts_from_file(self, file):
+    def __get_contracts_from_file(self, file: Path) -> List[Dict[str, Any]]:
         """Create formatted list of all contracts of a tv file"""
 
         logging.info(f"Reading data from TV file {file}.")
@@ -70,7 +71,7 @@ class TvDetailsProcessor():
             file_contracts.append(row_formated)
         return file_contracts
 
-    def __get_contract_id_from_db(self):
+    def __get_contract_id_from_db(self) -> int:
         """Get contract id from db matching some contract info"""
 
         logging.info(f"Get contract id from db matching some contract info "
@@ -78,7 +79,6 @@ class TvDetailsProcessor():
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
         exchange = self.mediator.notify(
-            self,
             action="decode_exchange_tv",
             parameters={'exchange': self.__file_row['exchange']})
         filters = {
@@ -87,8 +87,7 @@ class TvDetailsProcessor():
             'exchange_symbol': ticker}
         columns = ['contract_id']
         parameters = {'filters': filters, 'return_columns': columns}
-        query_result = self.mediator.notify(
-            self, "get_contracts", parameters)
+        query_result = self.mediator.notify("get_contracts", parameters)
         if len(query_result) == 0:
             logging.warning(f"{len(query_result)} contracts found in master "
                             f"listing for '{self.__file_row['ticker']}' on '"
@@ -96,13 +95,13 @@ class TvDetailsProcessor():
             raise NoContractFoundError
         elif len(query_result) > 1:
             logging.warning(f"{len(query_result)} contracts found in master "
-                            f"listing for '{self.__file_row['ticker']}' on '"
-                            f"{self.__file_row['exchange']}'.")
+                            f"listing for '{self.__file_row['ticker']}' on "
+                            f"'{self.__file_row['exchange']}'.")
             raise MoreThanOneContractFoundError
         else:
             return query_result[0]
 
-    def __write_contract_details_to_db(self, contract_id):
+    def __write_contract_details_to_db(self, contract_id: int) -> None:
         """Writing tv details to db"""
 
         logging.info("Writing tv details for contract_id {contract_id} to db.")
@@ -113,7 +112,7 @@ class TvDetailsProcessor():
         profit = self.__file_row['profit'],
         revenue = self.__file_row['revenue']
 
-        conn = self.mediator.notify(self, "get_db_connection", {})
+        conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
         cur.execute("""REPLACE INTO contract_details_tv (
             contract_id,
@@ -133,9 +132,9 @@ class TvDetailsProcessor():
             revenue))
         conn.commit()
         cur.close()
-        self.mediator.notify(self, "close_db_connection", {'conn': conn})
+        self.mediator.notify("close_db_connection", {'conn': conn})
 
-    def read_tv_data(self):
+    def read_tv_data(self) -> None:
         """Read contract details from tv files and write to database"""
 
         files = self.__get_files_from_dir()
