@@ -149,15 +149,5 @@ class Tws():
 
         # Check returned data
         logging.info(f"Received details for {len(details)} contracts.")
-        if len(details) > 0:
-            details = details[0]
-        else:
-            return None
-
-        # Decode exchange names
-        details.contract.exchange = \
-            tools.decode_exchange_ib(details.contract.exchange)
-        details.contract.primaryExchange = \
-            tools.decode_exchange_ib(details.contract.primaryExchange)
 
         return details
