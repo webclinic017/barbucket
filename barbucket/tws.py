@@ -3,13 +3,13 @@ import logging
 
 import ib_insync
 
-from .config import Config
-from .tools import Tools
+from .mediator import Mediator
 
 
 class Tws():
 
-    def __init__(self):
+    def __init__(self, mediator: Mediator = None) -> None:
+        self.mediator = mediator
         # Create connection object
         self.__ib = ib_insync.ib.IB()
         # Register own error handler on ib hook
@@ -37,30 +37,34 @@ class Tws():
             No errors
         """
 
-        config = Config()
-
         # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = config.get_config_value_single(
-            'tws_connector',
-            'non_systemic_codes')
+        NON_SYSTEMIC_CODES = self.mediator.notify(
+            "get_config_value_single",
+            {'section': "tws_connector",
+             'option': "non_systemic_codes"})
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
-            logging.error(
-                f"Systemic problem in TWS connection detected. {errorCode}: {errorString}")
+            logging.error(f"Systemic problem in TWS connection detected. "
+                          f"{errorCode}: {errorString}")
             self.__connection_error = True
 
         # Write error info to contract database, if error is related to contract
         if contract is not None:
             self.__contract_error_status = errorString
             self.__contract_error_code = errorCode
-            logging.error(
-                f"Problem for {contract} detected. {errorCode}: {errorString}")
+            logging.error(f"Problem for {contract} detected. {errorCode}: "
+                          f"{errorString}")
 
     def connect(self):
-        config = Config()
+        IP = self.mediator.notify(
+            "get_config_value_single",
+            {'section': "tws_connector",
+             'option': "ip"})
+        PORT = int(self.mediator.notify(
+            "get_config_value_single",
+            {'section': "tws_connector",
+             'option': "port"}))
 
-        IP = config.get_config_value_single('tws_connector', 'ip')
-        PORT = int(config.get_config_value_single('tws_connector', 'port'))
         logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
@@ -103,8 +107,8 @@ class Tws():
             currency=currency)
 
         # Request data
-        logging.info(
-            f"Requesting historical quotes for {exchange}_{symbol}_{currency}_{duration.replace(' ', '')} at TWS.")
+        logging.info(f"Requesting historical quotes for {exchange}_{symbol}_"
+                     f"{currency}_{duration.replace(' ', '')} at TWS.")
         bars = self.__ib.reqHistoricalData(
             ib_contract,
             endDateTime='',
@@ -134,17 +138,18 @@ class Tws():
     def download_contract_details(self, contract_type_from_listing,
                                   broker_symbol, exchange, currency):
 
-        tools = Tools()
-
         # Create contract object
+        ex = self.mediator.notify(
+            "encode_exchange_ib",
+            {'exchange': exchange})
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
-            exchange=tools.encode_exchange_ib(exchange),
+            exchange=ex,
             currency=currency)
 
         # Request data
-        logging.info(
-            f"Requesting contract details for {broker_symbol}_{exchange}_{currency} at TWS")
+        logging.info(f"Requesting contract details for {broker_symbol}_"
+                     f"{exchange}_{currency} at TWS")
         details = self.__ib.reqContractDetails(ib_contract)
 
         # Check returned data
