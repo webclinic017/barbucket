@@ -3,6 +3,8 @@ import sqlite3
 import pandas as pd
 
 from .database import DatabaseConnector
+from .custom_exceptions import QueryReturnedMultipleResultsError
+from .custom_exceptions import QueryReturnedNoResultError
 
 
 class QuotesDatabase():
@@ -63,15 +65,18 @@ class QuotesStatusDatabase():
         cur.close()
         db_connection.disconnect(conn)
 
-        if len(result) > 0:
-            return result[0]
+        if len(result) == 0:
+            raise QueryReturnedNoResultError(f"Message")
+        elif len(result) > 1:
+            raise QueryReturnedMultipleResultsError(f"Message")
         else:
-            return None
+            return result[0]
 
     def insert_quotes_status(self, contract_id, status_code, status_text,
                              daily_quotes_requested_from,
                              daily_quotes_requested_till):
         """ Status code:
+        0: No quotes downloaded yet (proposed)
         1: Successfully downloaded quotes
         >1: TWS error code
         """
