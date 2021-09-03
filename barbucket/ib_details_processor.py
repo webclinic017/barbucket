@@ -4,15 +4,9 @@ from typing import Any
 import enlighten
 
 from .mediator import Mediator
+from .custom_exceptions import QueryReturnedNoResultError
+from .custom_exceptions import QueryReturnedMultipleResultsError
 from .base_component import BaseComponent
-
-
-class NoContractFoundError(Exception):
-    """NoContractFoundError"""
-
-
-class MoreThanOneContractFoundError(Exception):
-    """MoreThanOneContractFoundError"""
 
 
 class IbDetailsProcessor(BaseComponent):
@@ -22,6 +16,13 @@ class IbDetailsProcessor(BaseComponent):
         self.mediator = mediator
         self.__contracts = None
         self.__details = None
+        self.__pbar = None
+
+    def __setup_progress_bar(self) -> None:
+        manager = enlighten.get_manager()
+        self.__pbar = manager.counter(
+            total=len(self.__contracts),
+            desc="Contracts", unit="contracts")
 
     def __get_contracts(self) -> None:
         """Get contracts from db, where IB details are missing"""
@@ -44,6 +45,18 @@ class IbDetailsProcessor(BaseComponent):
         self.mediator.notify("disconnect_from_tws")
         logging.info(f"Disconnnected from TWS.")
 
+    def __check_abort_conditions(self) -> bool:
+        if self.mediator.notify("exit_signal"):
+            logging.info(f"Ctrl-C detected. Abort fetching of IB "
+                         "details.")
+            return True
+        elif self.mediator.notify("tws_has_error"):
+            logging.info(f"TWS error detected. Abort fetching of IB "
+                         "details.")
+            return True
+        else:
+            return False
+
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Docstring"""
 
@@ -55,9 +68,9 @@ class IbDetailsProcessor(BaseComponent):
         details = self.mediator.notify(
             "download_contract_details_from_tws", parameters)
         if len(details) == 0:
-            raise NoContractFoundError
+            raise QueryReturnedNoResultError
         elif len(details) > 1:
-            raise MoreThanOneContractFoundError
+            raise QueryReturnedMultipleResultsError
         else:
             self.__details = details[0]
 
@@ -96,37 +109,20 @@ class IbDetailsProcessor(BaseComponent):
         """Docstring"""
 
         self.__get_contracts()
-
-        # Setup progress bar
-        manager = enlighten.get_manager()
-        pbar = manager.counter(
-            total=len(self.__contracts),
-            desc="Contracts", unit="contracts")
-
+        self.__setup_progress_bar()
         self.__connect_tws()
-
         try:
             for contract in self.__contracts:
-                # Check for abort conditions
-                if self.mediator.notify("exit_signal"):
-                    logging.info(f"Ctrl-C detected. Abort fetching of IB "
-                                 "details.")
+                if self.__check_abort_conditions():
                     break
-                if self.mediator.notify("tws_errror"):
-                    logging.info(f"TWS error detected. Abort fetching of IB "
-                                 "details.")
-                    break
-
                 try:
                     self.__get_contract_details_from_tws(contract)
-                except NoContractFoundError:
-                    pass
-                except MoreThanOneContractFoundError:
+                except (QueryReturnedNoResultError, QueryReturnedMultipleResultsError):
                     pass
                 else:
                     self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
                 finally:
-                    pbar.update()
+                    self.__pbar.update(inc=1)
         finally:
             self.__disconnect_tws()
