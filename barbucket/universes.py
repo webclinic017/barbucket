@@ -1,17 +1,16 @@
 import sqlite3
 import logging
 
-from .database import DatabaseConnector
+from .mediator import Mediator
 
 
 class UniversesDatabase():
 
-    def __init__(self):
-        pass
+    def __init__(self, mediator: Mediator = None) -> None:
+        self.mediator = mediator
 
     def __create_membership(self, contract_id, universe):
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
+        conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
 
         cur.execute("""INSERT INTO universe_memberships (contract_id, universe) 
@@ -19,7 +18,7 @@ class UniversesDatabase():
 
         conn.commit()
         cur.close()
-        db_connector.disconnect(conn)
+        self.mediator.notify("close_db_connection", {'conn': conn})
 
     def create_universe(self, name, contract_ids):
 
@@ -34,8 +33,7 @@ class UniversesDatabase():
         returns a list of strings
         """
 
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
+        conn = self.mediator.notify("get_db_connection", {})
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -44,7 +42,7 @@ class UniversesDatabase():
 
         conn.commit()
         cur.close()
-        db_connector.disconnect(conn)
+        self.mediator.notify("close_db_connection", {'conn': conn})
 
         result = []
         for row in row_list:
@@ -57,8 +55,7 @@ class UniversesDatabase():
         returns a list of contract_ids
         """
 
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
+        conn = self.mediator.notify("get_db_connection", {})
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -69,7 +66,7 @@ class UniversesDatabase():
 
         conn.commit()
         cur.close()
-        db_connector.disconnect(conn)
+        self.mediator.notify("close_db_connection", {'conn': conn})
 
         result = []
         for row in row_list:
@@ -80,8 +77,7 @@ class UniversesDatabase():
     def delete_universe(self, universe):
 
         logging.info(f"Deleting universe '{universe}'.")
-        db_connector = DatabaseConnector()
-        conn = db_connector.connect()
+        conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
 
         cur.execute(
@@ -90,4 +86,4 @@ class UniversesDatabase():
 
         conn.commit()
         cur.close()
-        db_connector.disconnect(conn)
+        self.mediator.notify("close_db_connection", {'conn': conn})
