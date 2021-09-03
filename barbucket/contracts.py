@@ -39,6 +39,8 @@ class ContractsDatabase():
                 currency,
                 exchange))
 
+        # Todo: insert_quotes_status as zero
+
         conn.commit()
         cur.close()
         db_connector.disconnect(conn)
