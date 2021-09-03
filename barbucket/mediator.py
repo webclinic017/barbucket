@@ -84,6 +84,14 @@ class Mediator():
             return self.__contracts_db.get_contracts(
                 filters=parameters['filters'],
                 return_columns=parameters['return_columns'])
+        if action == "create_contract":
+            return self.__contracts_db.create_contract(
+                contract_type_from_listing=parameters['contract_type_from_listing'],
+                exchange_symbol=parameters['exchange_symbol'],
+                broker_symbol=parameters['broker_symbol'],
+                name=parameters['name'],
+                currency=parameters['currency'],
+                exchange=parameters['exchange'])
         # DatabaseInitializer
         elif action == "initialize_database":
             return self.__db_initializer.initialize_database()
