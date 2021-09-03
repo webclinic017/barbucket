@@ -145,7 +145,7 @@ class DatabaseInitializer():
         self.mediator.notify("close_db_connection", {'conn': conn})
         logging.info("Finished creating database schema.")
 
-    def init_database(self) -> None:
+    def initialize_database(self) -> None:
         """Initialize database if it doesnt exist. Else skip."""
 
         logging.info("Starting to initialize database.")
