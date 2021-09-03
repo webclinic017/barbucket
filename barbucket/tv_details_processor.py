@@ -6,14 +6,8 @@ import pandas as pd
 
 from .mediator import Mediator
 from .base_component import BaseComponent
-
-
-class NoContractFoundError(Exception):
-    """NoContractFoundError"""
-
-
-class MoreThanOneContractFoundError(Exception):
-    """MoreThanOneContractFoundError"""
+from .custom_exceptions import QueryReturnedMultipleResultsError
+from .custom_exceptions import QueryReturnedNoResultError
 
 
 class TvDetailsProcessor(BaseComponent):
@@ -22,6 +16,25 @@ class TvDetailsProcessor(BaseComponent):
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
         self.__file_row = None
+
+    def read_tv_data(self) -> None:
+        """Read contract details from tv files and write to database"""
+
+        files = self.__get_files_from_dir()
+
+        for file in files:
+            file_data = self.__get_contracts_from_file(file=file)
+
+            for row in file_data:
+                self.__file_row = row
+                try:
+                    contract_id = self.__get_contract_id_from_db()
+                except QueryReturnedNoResultError:
+                    pass
+                except QueryReturnedMultipleResultsError:
+                    pass
+                else:
+                    self.__write_contract_details_to_db(contract_id)
 
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
@@ -92,12 +105,12 @@ class TvDetailsProcessor(BaseComponent):
             logging.warning(f"{len(query_result)} contracts found in master "
                             f"listing for '{self.__file_row['ticker']}' on '"
                             f"{self.__file_row['exchange']}'.")
-            raise NoContractFoundError
+            raise QueryReturnedNoResultError
         elif len(query_result) > 1:
             logging.warning(f"{len(query_result)} contracts found in master "
                             f"listing for '{self.__file_row['ticker']}' on "
                             f"'{self.__file_row['exchange']}'.")
-            raise MoreThanOneContractFoundError
+            raise QueryReturnedMultipleResultsError
         else:
             return query_result[0]
 
@@ -133,22 +146,3 @@ class TvDetailsProcessor(BaseComponent):
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-
-    def read_tv_data(self) -> None:
-        """Read contract details from tv files and write to database"""
-
-        files = self.__get_files_from_dir()
-
-        for file in files:
-            file_data = self.__get_contracts_from_file(file=file)
-
-            for row in file_data:
-                self.__file_row = row
-                try:
-                    contract_id = self.__get_contract_id_from_db()
-                except NoContractFoundError:
-                    pass
-                except MoreThanOneContractFoundError:
-                    pass
-                else:
-                    self.__write_contract_details_to_db(contract_id)
