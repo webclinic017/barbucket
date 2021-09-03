@@ -56,7 +56,7 @@ class Tws():
             logging.error(
                 f"Problem for {contract} detected. {errorCode}: {errorString}")
 
-    def connect(self,):
+    def connect(self):
         config = Config()
 
         IP = config.get_config_value_single('tws_connector', 'ip')
@@ -64,19 +64,19 @@ class Tws():
         logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
 
-    def disconnect(self,):
+    def disconnect(self):
         logging.info("Disconnecting from TWS.")
         self.__ib.disconnect()
         self.__connection_error = False
 
-    def is_connected(self,):
+    def is_connected(self):
         return self.__ib.isConnected()
 
-    def has_error(self,):
+    def has_error(self):
         return self.__connection_error
 
-    def get_contract_error(self,):
-        return [self.__contract_error_code, self.__contract_error_status]
+    def get_contract_error(self):
+        return (self.__contract_error_code, self.__contract_error_status)
 
     def download_historical_quotes(self, contract_id, symbol, exchange,
                                    currency, duration):
