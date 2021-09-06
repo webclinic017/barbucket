@@ -1,128 +1,24 @@
-import sqlite3
 import time
 import logging
+from typing import Dict, List
+import sqlite3
 
 from bs4 import BeautifulSoup
 import requests
-import enlighten
 
 from .mediator import Mediator
 
 
-class ContractsDatabase():
-
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
-
-    def create_contract(self, contract_type_from_listing, exchange_symbol,
-                        broker_symbol, name, currency, exchange):
-        logging.debug(f"Creating new contract {contract_type_from_listing}_"
-                      f"{exchange}_{broker_symbol}_{currency}.")
-        conn = self.mediator.notify("get_db_connection", {})
-        cur = conn.cursor()
-
-        cur.execute(
-            """INSERT INTO contracts (
-                    contract_type_from_listing,
-                    exchange_symbol,
-                    broker_symbol,
-                    name,
-                    currency,
-                    exchange)
-                    VALUES (?, ?, ?, ?, ?, ?)""",
-            (contract_type_from_listing,
-                exchange_symbol,
-                broker_symbol,
-                name,
-                currency,
-                exchange))
-
-        # Todo: insert_quotes_status as zero
-
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
-
-    def get_contracts(self, filters={}, return_columns=[]):
-        """returns a list of sqlite3.Row objects"""
-
-        # Prepare query to get requested values from db
-        query = "SELECT * FROM all_contract_info"
-
-        if len(return_columns) > 0:
-            cols = ", ".join(return_columns)
-            query = query.replace("*", cols)
-
-        if len(filters) > 0:
-            query += " WHERE "
-
-            for key, value in filters.items():
-                if value == "NULL":
-                    query += (key + " IS " + str(value) + " and ")
-                elif isinstance(value, str):
-                    query += (key + " = '" + str(value) + "' and ")
-                elif isinstance(value, (int, float)):
-                    query += (key + " = " + str(value) + " and ")
-
-            query = query[:-5]  # remove trailing 'and'
-            query += ";"
-
-        # Get requested values from db
-        logging.debug(f"Getting contracts from databse with query: {query}")
-        conn = self.mediator.notify("get_db_connection", {})
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-
-        cur.execute(query)
-        contracts = cur.fetchall()
-
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
-
-        return contracts
-
-    def delete_contract(self, exchange, symbol, currency):
-        conn = self.mediator.notify("get_db_connection", {})
-        cur = conn.cursor()
-
-        cur.execute(
-            """DELETE FROM contracts
-                    WHERE (broker_symbol = ?
-                        AND exchange = ?
-                        AND currency = ?);""",
-            (symbol,
-             exchange,
-             currency))
-
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
-
-    def delete_contract_id(self, contract_id):
-        conn = self.mediator.notify("get_db_connection", {})
-        cur = conn.cursor()
-
-        cur.execute(
-            """DELETE FROM contracts
-                    WHERE contract_id = ?;""",
-            contract_id)
-
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
-
-
-class IbExchangeListings():
+class IbExchangeListingsProcessor():
+    """Provides methods to sync local exchange listings to the IB website."""
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
         self.__ctype = None
         self.__exchange = None
 
-    def sync_contracts_to_listing(self, ctype, exchange):
-        logging.info(f"Syncing {ctype} contracts on {exchange} to master "
-                     f"listing.")
+    def sync_contracts_to_listing(self, ctype: str, exchange: str) -> None:
+        """Sync local exchange listings to the IB website"""
 
         self.__ctype = ctype
         self.__exchange = exchange
@@ -139,13 +35,7 @@ class IbExchangeListings():
             return
         # Todo: Exception
 
-        # Get all contracts from database
-        filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
-        columns = ['broker_symbol', 'currency']
-        database_data = self.mediator.notify(
-            "get_contracts",
-            {'filters': filters,
-             'return_columns': columns})
+        database_data = self.__get_contracts_from_db(ctype, exchange)
 
         self.__remove_deleted_contracts_from_db(website_data, database_data)
         self.__add_new_contracts_to_db(website_data, database_data)
@@ -255,6 +145,18 @@ class IbExchangeListings():
             # Prepare for next page
             page += 1
             time.sleep(3)  # show some mercy to IB webserver
+
+    def __get_contracts_from_db(self, ctype: str, exchange: str
+                                ) -> List[sqlite3.Row]:
+        """Get all contracts from database"""
+
+        filters = {'contract_type_from_listing': ctype, 'exchange': exchange}
+        columns = ['broker_symbol', 'currency']
+        database_data = self.mediator.notify(
+            "get_contracts",
+            {'filters': filters,
+             'return_columns': columns})
+        return database_data
 
     def __remove_deleted_contracts_from_db(self, website_data, database_data):
         """Delete contracts from database, that are not present in website"""
