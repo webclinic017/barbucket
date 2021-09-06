@@ -1,4 +1,4 @@
-# Imports
+from typing import Any, List, Tuple
 import logging
 
 import ib_insync
@@ -6,7 +6,8 @@ import ib_insync
 from .mediator import Mediator
 
 
-class Tws():
+class TwsConnector():
+    """Provides methods to download data from IB TWS"""
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -14,12 +15,12 @@ class Tws():
         self.__ib = ib_insync.ib.IB()
         # Register own error handler on ib hook
         self.__ib.errorEvent += self.__on_tws_error
-
         self.__connection_error = False
         self.__contract_error_status = None
         self.__contract_error_code = None
 
-    def __on_tws_error(self, reqId, errorCode, errorString, contract):
+    def __on_tws_error(self, reqId: int, errorCode_: int, errorString: str,
+                       contract: Any) -> None:
         """
         Is called from 'ib_insync' as callback on errors and writes error
         details to quotes_status in database.
@@ -55,7 +56,7 @@ class Tws():
             logging.error(f"Problem for {contract} detected. {errorCode}: "
                           f"{errorString}")
 
-    def connect(self):
+    def connect(self) -> None:
         IP = self.mediator.notify(
             "get_config_value_single",
             {'section': "tws_connector",
@@ -65,25 +66,26 @@ class Tws():
             {'section': "tws_connector",
              'option': "port"}))
 
-        logging.info(f"Connecting to TWS on {IP}:{PORT}.")
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
+        logging.debug(f"Connected to TWS on {IP}:{PORT}.")
 
-    def disconnect(self):
-        logging.info("Disconnecting from TWS.")
+    def disconnect(self) -> None:
         self.__ib.disconnect()
         self.__connection_error = False
+        logging.debug("Disconnected from TWS.")
 
-    def is_connected(self):
+    def is_connected(self) -> Any:
         return self.__ib.isConnected()
 
-    def has_error(self):
+    def has_error(self) -> Any:
         return self.__connection_error
 
-    def get_contract_error(self):
+    def get_contract_error(self) -> Any:
         return (self.__contract_error_code, self.__contract_error_status)
 
-    def download_historical_quotes(self, contract_id, symbol, exchange,
-                                   currency, duration):
+    def download_historical_quotes(self, contract_id: int, symbol: str,
+                                   exchange: str, currency: str, duration: str
+                                   ) -> List[Tuple[Any]]:
         """
         Description
 
@@ -135,8 +137,10 @@ class Tws():
                 quotes.append(quote)
             return quotes
 
-    def download_contract_details(self, contract_type_from_listing,
-                                  broker_symbol, exchange, currency):
+    def download_contract_details(self, contract_type_from_listing: str,
+                                  broker_symbol: str, exchange: str,
+                                  currency: str) -> Any:
+        """Download details for a contract from IB TWS"""
 
         # Create contract object
         ex = self.mediator.notify(
