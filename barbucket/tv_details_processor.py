@@ -11,7 +11,7 @@ from .custom_exceptions import QueryReturnedNoResultError
 
 
 class TvDetailsProcessor(BaseComponent):
-    """TvDetailsProcessor"""
+    """Processing of contract details provided by Tradingview screener"""
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -21,10 +21,8 @@ class TvDetailsProcessor(BaseComponent):
         """Read contract details from tv files and write to database"""
 
         files = self.__get_files_from_dir()
-
         for file in files:
             file_data = self.__get_contracts_from_file(file=file)
-
             for row in file_data:
                 self.__file_row = row
                 try:
