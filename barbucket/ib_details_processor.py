@@ -10,7 +10,7 @@ from .base_component import BaseComponent
 
 
 class IbDetailsProcessor(BaseComponent):
-    """Docstring"""
+    """Processing of contract details provided by IB TWS"""
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -18,11 +18,17 @@ class IbDetailsProcessor(BaseComponent):
         self.__details = None
         self.__pbar = None
 
-    def update_ib_contract_details(self):
-        """Docstring"""
+        # Setup progress bar
+        manager = enlighten.get_manager()
+        self.__pbar = manager.counter(
+            total=0,
+            desc="Contracts", unit="contracts")
+
+    def update_ib_contract_details(self) -> None:
+        """Download and store all missing contract details entries from IB TWS."""
 
         self.__get_contracts()
-        self.__setup_progress_bar()
+        self.__pbar.total = len(self.__contracts)
         self.__connect_tws()
         try:
             for contract in self.__contracts:
@@ -30,8 +36,12 @@ class IbDetailsProcessor(BaseComponent):
                     break
                 try:
                     self.__get_contract_details_from_tws(contract)
-                except (QueryReturnedNoResultError, QueryReturnedMultipleResultsError):
-                    pass
+                except QueryReturnedNoResultError:
+                    logging.warn(f"Details query for contract {contract} "
+                                 f"returned no results.")
+                except QueryReturnedMultipleResultsError:
+                    logging.warn(f"Details query for contract {contract} "
+                                 f"returned multiple results.")
                 else:
                     self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
@@ -48,39 +58,28 @@ class IbDetailsProcessor(BaseComponent):
         filters = {'primary_exchange': "NULL"}
         parameters = {'filters': filters, 'return_columns': columns}
         self.__contracts = self.mediator.notify("get_contracts", parameters)
-        logging.info(f"Found {len(self.__contracts)} contracts with missing IB "
-                     f"details in master listing.")
-
-    def __setup_progress_bar(self) -> None:
-        manager = enlighten.get_manager()
-        self.__pbar = manager.counter(
-            total=len(self.__contracts),
-            desc="Contracts", unit="contracts")
+        logging.debug(f"Found {len(self.__contracts)} contracts with missing "
+                      f"IB details in master listing.")
 
     def __connect_tws(self) -> None:
-        """Docstring"""
+        """Connect to TWS app"""
         self.mediator.notify("connect_to_tws")
-        logging.info(f"Connnected to TWS.")
 
     def __disconnect_tws(self) -> None:
-        """Docstring"""
+        """Disconnect from TWS app"""
         self.mediator.notify("disconnect_from_tws")
-        logging.info(f"Disconnnected from TWS.")
 
     def __check_abort_conditions(self) -> bool:
-        if self.mediator.notify("exit_signal"):
-            logging.info(f"Ctrl-C detected. Abort fetching of IB "
-                         "details.")
-            return True
-        elif self.mediator.notify("tws_has_error"):
-            logging.info(f"TWS error detected. Abort fetching of IB "
-                         "details.")
+        """Check conditions to abort operation."""
+
+        if (self.mediator.notify("exit_requested_by_user")
+                or self.mediator.notify("tws_has_error")):
             return True
         else:
             return False
 
     def __get_contract_details_from_tws(self, contract: Any) -> None:
-        """Docstring"""
+        """Download contract details over TWS."""
 
         parameters = {
             'contract_type_from_listing': contract['contract_type_from_listing'],
@@ -97,14 +96,14 @@ class IbDetailsProcessor(BaseComponent):
             self.__details = details[0]
 
     def __decode_exchange_names(self) -> None:
-        """Docstring"""
+        """Decode exchange names"""
 
         for ex in [self.__details.contract.exchange,
                    self.__details.contract.primaryExchange]:
             ex = self.mediator.notify("decode_exchange_ib", {'exchange': ex})
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
-        """Docstring"""
+        """Insert contract details into db"""
 
         conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
