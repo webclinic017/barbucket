@@ -16,3 +16,7 @@ class QueryReturnedNoResultError(Exception):
 
 class QueryReturnedMultipleResultsError(Exception):
     """[summary]"""
+
+
+class DbNotInitializedError(Exception):
+    """Custom exception for connecting to a non-present database."""
