@@ -19,7 +19,7 @@ class TwsConnector():
         self.__contract_error_status = None
         self.__contract_error_code = None
 
-    def __on_tws_error(self, reqId: int, errorCode_: int, errorString: str,
+    def __on_tws_error(self, reqId: int, errorCode: int, errorString: str,
                        contract: Any) -> None:
         """
         Is called from 'ib_insync' as callback on errors and writes error
