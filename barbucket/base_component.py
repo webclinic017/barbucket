@@ -1,8 +1,7 @@
 from abc import ABC
-
-from .mediator import Mediator
+from typing import Any
 
 
 class BaseComponent(ABC):
-    def __init__(self, mediator: Mediator = None) -> None:
+    def __init__(self, mediator: Any = None) -> None:
         self.mediator = mediator
