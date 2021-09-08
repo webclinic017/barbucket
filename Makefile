@@ -1,7 +1,7 @@
 # Cli usage examples / shortcuts
 
-database_rest:
-	python barbucket.py database reset
+database_archive:
+	python barbucket.py database archive
 
 contracts_sync-listing:
 	python barbucket.py contracts sync-listing --type STOCK --exchange NYSE

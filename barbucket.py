@@ -1,105 +1,52 @@
-import click
+import logging
 
-from barbucket.app_interface import AppInterface
-
-
-app = AppInterface()
-
-
-# Initial group, not explicitly called
-@click.group()
-def cli():
-    pass
-
-
-# Group database
-@cli.group()
-def database():
-    """Local database commands"""
-
-@database.command()
-@click.confirmation_option(prompt="Are you sure you want to archive the database?")
-def archive():
-    """Archive the local database"""
-    app.archive_database()
-    click.echo("Archived database.")
-
-
-# Group contracts
-@cli.group()
-def contracts():
-    """Contracts commands"""
-
-@contracts.command()
-@click.option("-t", "--type", "contract_type", required=True, type=str)
-@click.option("-e", "--exchange", "exchange", required=True, type=str)
-def sync_listing(contract_type, exchange):
-    """Sync master listing to IB exchange listing"""
-    app.sync_contracts_to_listing(ctype=contract_type.upper(), exchange=exchange.upper())
-    click.echo(f"Master listing synced for {contract_type.upper()} on {exchange.upper()}.")
-
-@contracts.command()
-def fetch_ib_details():
-    """Fetch details for all contracts from IB TWS"""
-    app.fetch_ib_contract_details()
-    click.echo("Updated IB details for master listings.")
-
-@contracts.command()
-def fetch_tv_details():
-    """Fetch details for all contracts from TV files"""
-    app.ingest_tv_files()
-    click.echo(f"Finished ingesting TV files.")
-
-
-# Group quotes
-@cli.group()
-def quotes():
-    """Quotes commands"""
-
-@quotes.command()
-@click.option("-u", "--universe", "universe", required=True, type=str)
-def fetch(universe):
-    """Fetch quotes from IB TWS"""
-    app.fetch_historical_quotes(universe=universe)
-    click.echo(f"Finished collecting historical data for universe: {universe}")
-
-
-# Group universes
-@cli.group()
-def universes():
-    """Universes commands"""
-
-@universes.command()
-@click.option("-n", "--name", "name", required=True, type=str)
-@click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
-def create(name, contract_ids):
-    """Create new universe"""
-    con_list = [int(n) for n in contract_ids.split(",")]
-    app.create_universe(name=name, contract_ids=con_list)
-    click.echo(f"Created universe {name}.")
-
-@universes.command()
-def list():
-    """List all universes"""
-    result = app.get_universes()
-    click.echo(f"Existing universes: {result}.")
-
-@universes.command()
-@click.option("-n", "--name", "name", required=True, type=str)
-def members(name):
-    """List universes members"""
-    members = app.get_universe_members(universe=name)
-    click.echo(f"Members for universe {name} are: {members}.")
-
-@universes.command()
-@click.option("-n", "--name", "name", required=True, type=str)
-@click.confirmation_option(prompt="Are you sure you want to delete this universe?")
-def delete(name):
-    """Delete universe"""
-    app.delete_universe(universe=name)
-    click.echo(f"Deleted universe {name}.")
-
+from barbucket.config_initializer import ConfigInitializer
+from barbucket.config_reader import ConfigReader
+from barbucket.db_initializer import DbInitializer
+from barbucket.db_connector import DbConnector
+from barbucket.contracts_db_connector import ContractsDbConnector
+from barbucket.universes_db_connector import UniversesDbConnector
+from barbucket.quotes_db_connector import QuotesDbConnector
+from barbucket.quotes_status_db_connector import QuotesStatusDbConnector
+from barbucket.tws_connector import TwsConnector
+from barbucket.ib_exchange_listings_processor import IbExchangeListingsProcessor
+from barbucket.ib_details_processor import IbDetailsProcessor
+from barbucket.tv_details_processor import TvDetailsProcessor
+from barbucket.encoder import Encoder
+from barbucket.graceful_exiter import GracefulExiter
+from barbucket import cli as cli
+from barbucket.mediator import Mediator
 
 
 if __name__ == '__main__':
-    cli()
+    """Docstring"""
+
+    # Setup logging
+    FORMAT = "%(message)s"
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+
+    # Create mediator
+    mediator = Mediator(
+        config_initializer=ConfigInitializer(),
+        config_reader=ConfigReader(),
+        db_initializer=DbInitializer(),
+        db_connector=DbConnector(),
+        contracts_db_connector=ContractsDbConnector(),
+        universe_db_connector=UniversesDbConnector(),
+        quotes_db_connector=QuotesDbConnector(),
+        quotes_status_db_connector=QuotesStatusDbConnector(),
+        tws_connector=TwsConnector(),
+        ib_listings_processor=IbExchangeListingsProcessor(),
+        ib_details_processor=IbDetailsProcessor(),
+        tv_details_processor=TvDetailsProcessor(),
+        encoder=Encoder(),
+        exiter=GracefulExiter(),
+        cli=cli
+    )
+
+    # Initialize config and db files and folders
+    mediator.notify("initalize_config")
+    mediator.notify("initialize_database")
+
+    # Run Cli
+    mediator.notify("run_cli")
