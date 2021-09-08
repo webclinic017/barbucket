@@ -9,15 +9,13 @@ from .mediator import Mediator
 class DbInitializer():
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
-        conf_path = self.mediator.notify(
-            "get_config_value_single",
-            {'section': "database", 'option': "db_location"})
-        self._DB_PATH = Path.home() / Path(conf_path)
+        self._DB_PATH = None
 
     def archive_database(self) -> None:
         """Archive the database by renaming the file."""
 
         logging.info("Starting archivation of database.")
+        self.__get_db_path()
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")  # no colons in filenames
         new_name = self._DB_PATH.parent / f"database_archived_{timestamp}.db"
@@ -29,6 +27,12 @@ class DbInitializer():
             raise FileNotFoundError from e
         else:
             logging.info(f"Database archived as: {new_name}")
+
+    def __get_db_path(self) -> None:
+        conf_path = self.mediator.notify(
+            "get_config_value_single",
+            {'section': "database", 'option': "db_location"})
+        self._DB_PATH = Path.home() / Path(conf_path)
 
     def _create_db_file(self) -> None:
         """Create a new database file."""
@@ -141,6 +145,7 @@ class DbInitializer():
         """Initialize database if it doesnt exist. Else skip."""
 
         logging.info("Starting to initialize database.")
+        self.__get_db_path()
         if not self._DB_PATH.is_file():
             logging.info("Database does not exist. Starting to create it.")
             self._create_db_file()
