@@ -14,7 +14,7 @@ from barbucket.ib_details_processor import IbDetailsProcessor
 from barbucket.tv_details_processor import TvDetailsProcessor
 from barbucket.encoder import Encoder
 from barbucket.graceful_exiter import GracefulExiter
-from barbucket.cli import CommandLineInterface
+from barbucket import cli as cli
 from barbucket.mediator import Mediator
 
 
@@ -41,7 +41,8 @@ if __name__ == '__main__':
         tv_details_processor=TvDetailsProcessor(),
         encoder=Encoder(),
         exiter=GracefulExiter(),
-        cli=CommandLineInterface())
+        cli=cli
+    )
 
     # Initialize config and db files and folders
     mediator.notify("initalize_config")
