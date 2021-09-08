@@ -10,14 +10,12 @@ class DbConnector():
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
-        conf_path = mediator.notify(
-            "get_config_value_single",
-            {'section': "database", 'option': "db_location"})
-        self._DB_PATH = Path.home() / Path(conf_path)
+        self._DB_PATH = None
 
     def connect(self) -> sqlite3.Connection:
         """Provides a 'connection'-object for the database."""
 
+        self.__get_db_path()
         if not self._DB_PATH.is_file():
             raise DbNotInitializedError("Database does not exist. Call "
                                         "'init_database()' before connecting.")
@@ -33,3 +31,9 @@ class DbConnector():
     def disconnect(self, conn: sqlite3.Connection) -> None:
         """Disconnects the connection to the database."""
         conn.close()
+
+    def __get_db_path(self) -> None:
+        conf_path = self.mediator.notify(
+            "get_config_value_single",
+            {'section': "database", 'option': "db_location"})
+        self._DB_PATH = Path.home() / Path(conf_path)
