@@ -1,21 +1,6 @@
-from typing import Optional
+from typing import Optional, Any
 
-# from .base_component import BaseComponent
-from .config_initializer import ConfigInitializer
-from .config_reader import ConfigReader
-from .db_initializer import DbInitializer
-from .db_connector import DbConnector
-from .contracts_db_connector import ContractsDbConnector
-from .universes_db_connector import UniversesDbConnector
-from .quotes_db_connector import QuotesDbConnector
-from .quotes_status_db_connector import QuotesStatusDbConnector
-from .tws_connector import TwsConnector
-from .ib_exchange_listings_processor import IbExchangeListingsProcessor
-from .ib_details_processor import IbDetailsProcessor
-from .tv_details_processor import TvDetailsProcessor
-from .encoder import Encoder
-from .graceful_exiter import GracefulExiter
-from .cli import CommandLineInterface
+from . import cli as cli
 
 
 class Mediator():
@@ -23,21 +8,21 @@ class Mediator():
 
     def __init__(
             self,
-            config_initializer: ConfigInitializer,
-            config_reader: ConfigReader,
-            db_initializer: DbInitializer,
-            db_connector: DbConnector,
-            contracts_db_connector: ContractsDbConnector,
-            universe_db_connector: UniversesDbConnector,
-            quotes_db_connector: QuotesDbConnector,
-            quotes_status_db_connector: QuotesStatusDbConnector,
-            tws_connector: TwsConnector,
-            ib_listings_processor: IbExchangeListingsProcessor,
-            ib_details_processor: IbDetailsProcessor,
-            tv_details_processor: TvDetailsProcessor,
-            encoder: Encoder,
-            exiter: GracefulExiter,
-            cli: CommandLineInterface) -> None:
+            config_initializer: Any,
+            config_reader: Any,
+            db_initializer: Any,
+            db_connector: Any,
+            contracts_db_connector: Any,
+            universe_db_connector: Any,
+            quotes_db_connector: Any,
+            quotes_status_db_connector: Any,
+            tws_connector: Any,
+            ib_listings_processor: Any,
+            ib_details_processor: Any,
+            tv_details_processor: Any,
+            encoder: Any,
+            exiter: Any,
+            cli: Any) -> None:
 
         # Instanciate components
         self.__config_initializer = config_initializer
@@ -83,7 +68,7 @@ class Mediator():
         self.__exiter.mediator = self
 
         self.__cli = cli
-        self.__cli.mediator = self
+        self.__cli.cli_connector.mediator = self
 
     def notify(self, action: str, parameters: dict = {}) -> Optional[object]:
         # ConfigInitializer
