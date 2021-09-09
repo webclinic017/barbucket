@@ -107,24 +107,10 @@ class IbDetailsProcessor(BaseComponent):
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
         """Insert contract details into db"""
-
-        conn = self.mediator.notify("get_db_connection", {})
-        cur = conn.cursor()
-        cur.execute("""
-            REPLACE INTO contract_details_ib (
-                contract_id,
-                contract_type_from_details,
-                primary_exchange,
-                industry,
-                category,
-                subcategory)
-                VALUES (?, ?, ?, ?, ?, ?)""", (
-            contract['contract_id'],
-            self.__details['contract_type_from_details'],
-            self.__details['primary_exchange'],
-            self.__details['industry'],
-            self.__details['category'],
-            self.__details['subcategory)']))
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.mediator.notify("insert_ib_details", {
+            'contract_id': contract['contract_id'],
+            'contract_type_from_details': self.__details['contract_type_from_details'],
+            'primary_exchange': self.__details['primary_exchange'],
+            'industry': self.__details['industry'],
+            'category': self.__details['category'],
+            'subcategory': self.__details['subcategory)']})
