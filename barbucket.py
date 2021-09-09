@@ -13,12 +13,13 @@ from barbucket.universes_db_connector import UniversesDbConnector
 from barbucket.quotes_db_connector import QuotesDbConnector
 from barbucket.quotes_status_db_connector import QuotesStatusDbConnector
 from barbucket.ib_details_connector import IbDetailsConnector
+from barbucket.tv_details_connector import TvDetailsConnector
 from barbucket.tws_connector import TwsConnector
 from barbucket.ib_exchange_listings_processor import IbExchangeListingsProcessor
 from barbucket.ib_details_processor import IbDetailsProcessor
 from barbucket.tv_details_processor import TvDetailsProcessor
 from barbucket.graceful_exiter import GracefulExiter
-from barbucket import cli as cli, ib_details_connector
+from barbucket import cli as cli
 
 
 if __name__ == '__main__':
@@ -57,6 +58,7 @@ if __name__ == '__main__':
         quotes_db_connector=QuotesDbConnector(),
         quotes_status_db_connector=QuotesStatusDbConnector(),
         ib_details_connector=IbDetailsConnector(),
+        tv_details_connector=TvDetailsConnector(),
         tws_connector=TwsConnector(),
         ib_listings_processor=IbExchangeListingsProcessor(),
         ib_details_processor=IbDetailsProcessor(),

@@ -117,7 +117,6 @@ class TvDetailsProcessor(BaseComponent):
     def __write_contract_details_to_db(self, contract_id: int) -> None:
         """Writing tv details to db"""
 
-        logger.info("Writing tv details for contract_id {contract_id} to db.")
         market_cap = self.__file_row['market_cap'],
         avg_vol_30_in_curr = self.__file_row['avg_vol_30_in_curr'],
         country = self.__file_row['country'],
@@ -125,24 +124,12 @@ class TvDetailsProcessor(BaseComponent):
         profit = self.__file_row['profit'],
         revenue = self.__file_row['revenue']
 
-        conn = self.mediator.notify("get_db_connection", {})
-        cur = conn.cursor()
-        cur.execute("""REPLACE INTO contract_details_tv (
-            contract_id,
-            market_cap,
-            avg_vol_30_in_curr,
-            country,
-            employees,
-            profit,
-            revenue)
-            VALUES (?, ?, ?, ?, ?, ?, ?)""", (
-            contract_id,
-            market_cap,
-            avg_vol_30_in_curr,
-            country,
-            employees,
-            profit,
-            revenue))
-        conn.commit()
-        cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.mediator.notify(
+            "insert_tv_details", {
+                'contract_id': contract_id,
+                'market_cap': market_cap,
+                'avg_vol_30_in_curr': avg_vol_30_in_curr,
+                'country': country,
+                'employees': employees,
+                'profit': profit,
+                'revenue': revenue})

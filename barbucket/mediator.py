@@ -17,6 +17,7 @@ class Mediator():
             quotes_db_connector: Any,
             quotes_status_db_connector: Any,
             ib_details_connector: Any,
+            tv_details_connector: Any,
             tws_connector: Any,
             ib_listings_processor: Any,
             ib_details_processor: Any,
@@ -51,6 +52,9 @@ class Mediator():
 
         self.__ib_details_connector = ib_details_connector
         self.__ib_details_connector.mediator = self
+
+        self.__tv_details_connector = tv_details_connector
+        self.__tv_details_connector.mediator = self
 
         self.__tws_connector = tws_connector
         self.__tws_connector.mediator = self
@@ -135,6 +139,16 @@ class Mediator():
                 industry=parameters['industry'],
                 category=parameters['category'],
                 subcategory=parameters['subcategory'])
+        # TvDetailsConnector
+        elif action == "insert_tv_details":
+            return self.__tv_details_connector.insert_tv_details(
+                contract_id=parameters['contract_id'],
+                market_cap=parameters['market_cap'],
+                avg_vol_30_in_curr=parameters['avg_vol_30_in_curr'],
+                country=parameters['country'],
+                employees=parameters['employees'],
+                profit=parameters['profit'],
+                revenue=parameters['revenue'])
         # TwsConnector
         elif action == "download_contract_details_from_tws":
             return self.__tws_connector.download_contract_details(
