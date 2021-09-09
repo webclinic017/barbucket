@@ -15,7 +15,10 @@ class GracefulExiter():
     def change_state(self, signum: Any, frame: Any) -> None:
         """Interrupt method, called by system, when Ctrl-C is detected."""
 
-        self.mediator.notify("exiter_send_user_message")
+        self.mediator.notify(
+            "show_cli_message",
+            {'message': "Ctrl-C detected, gracefully stopping operation. "
+                        "Press again to stop immediately."})
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.state = True
         logging.info(f"Exit signal detected.")

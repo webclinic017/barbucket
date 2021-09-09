@@ -155,6 +155,5 @@ def delete(name: str) -> None:
 
 
 # Callbacks
-def exiter_message() -> None:
-    click.echo("Ctrl-C detected, gracefully stopping operation. Press "
-               f"again to stop immediately.")
+def show_messeage(message: str) -> None:
+    click.echo(message)

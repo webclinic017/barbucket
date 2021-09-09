@@ -173,5 +173,6 @@ class Mediator():
         # Cli
         elif action == "run_cli":
             return self.__cli.cli()
-        elif action == "exiter_send_user_message":
-            return self.__cli.exiter_message()
+        elif action == "show_cli_message":
+            return self.__cli.show_messeage(
+                message=parameters['message'])
