@@ -8,6 +8,8 @@ import requests
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class IbExchangeListingsProcessor():
     """Provides methods to sync local exchange listings to the IB website."""
@@ -60,8 +62,8 @@ class IbExchangeListingsProcessor():
             new_lines.append(line)
         html = "".join(new_lines)
         if corrections == 0:
-            logging.info(
-                f"IB error for singlepage listings no longer present.")
+            logger.info(f"IB error for singlepage listings no longer present"
+                        f".")
 
         soup = BeautifulSoup(html, 'html.parser')
         tables = soup.find_all(
@@ -98,8 +100,8 @@ class IbExchangeListingsProcessor():
 
         while True:
             # Get website
-            logging.info(
-                f"Scraping IB exchange listing for {self.__exchange}, page {page}.")
+            logger.info(f"Scraping IB exchange listing for {self.__exchange}"
+                        f", page {page}.")
             url = (f"https://www.interactivebrokers.com/en/index.php?f=2222"
                    f"&exch={self.__exchange}&showcategories=STK&p=&cc=&limit="
                    f"100&page={page}")
@@ -111,7 +113,7 @@ class IbExchangeListingsProcessor():
                     "(click link for more details)</span></th>\n                       </th>\n",
                     "(click link for more details)</span></th>\n")
             else:
-                logging.info(
+                logger.info(
                     f"IB error for paginated listings no longer present.")
 
             # Parse HTML
@@ -139,7 +141,7 @@ class IbExchangeListingsProcessor():
 
             # Check for Ctrl-C signal
             if self.mediator.notify("exit_signal"):
-                logging.info(f"Exiting on user request.")
+                logger.info(f"Exiting on user request.")
                 return []
 
             # Prepare for next page
@@ -179,11 +181,14 @@ class IbExchangeListingsProcessor():
                      'exchange': self.__exchange.upper(),
                      'currency': db_row['currency']})
                 contracts_removed += 1
-        logging.info(
+        logger.info(
             f"{contracts_removed} contracts removed from master listing.")
 
     def __add_new_contracts_to_db(self, website_data, database_data):
-        """Add contracts from website to database, that are not present in database"""
+        """
+        Add contracts from website to database, that are not present in 
+        database
+        """
 
         contracts_added = 0
         for web_row in website_data:
@@ -206,4 +211,4 @@ class IbExchangeListingsProcessor():
                      'currency': web_row['currency'],
                      'exchange': self.__exchange.upper()})
                 contracts_added += 1
-        logging.info(f'{contracts_added} contracts added to master listing.')
+        logger.info(f'{contracts_added} contracts added to master listing.')

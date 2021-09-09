@@ -5,6 +5,8 @@ import logging
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class DbInitializer():
     def __init__(self, mediator: Mediator = None) -> None:
@@ -14,7 +16,6 @@ class DbInitializer():
     def archive_database(self) -> None:
         """Archive the database by renaming the file."""
 
-        logging.info("Starting archivation of database.")
         self.__get_db_path()
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")  # no colons in filenames
@@ -22,11 +23,11 @@ class DbInitializer():
         try:
             self._DB_PATH.rename(new_name)
         except FileNotFoundError as e:
-            logging.exception("Database not archived, because no databse "
-                              "exists.")
+            logger.warn("Database not archived, because no databse "
+                        "exists.")
             raise FileNotFoundError from e
         else:
-            logging.info(f"Database archived as: {new_name}")
+            logger.info(f"Database archived as: {new_name}")
 
     def __get_db_path(self) -> None:
         conf_path = self.mediator.notify(
@@ -39,12 +40,12 @@ class DbInitializer():
 
         conn = sqlite3.connect(self._DB_PATH)
         conn.close()
-        logging.info("Created new database file.")
+        logger.info("Created new database file.")
 
     def _create_db_schema(self) -> None:
         """Create schema in database."""
 
-        logging.info("Started creating database schema.")
+        logger.info("Started creating database schema.")
         conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
 
@@ -139,17 +140,15 @@ class DbInitializer():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logging.info("Finished creating database schema.")
+        logger.info("Finished creating database schema.")
 
     def initialize_database(self) -> None:
         """Initialize database if it doesnt exist. Else skip."""
 
-        logging.info("Starting to initialize database.")
         self.__get_db_path()
         if not self._DB_PATH.is_file():
-            logging.info("Database does not exist. Starting to create it.")
             self._create_db_file()
             self._create_db_schema()
-            logging.info("Database created. Finished initialization.")
+            logger.info("Database created. Finished initialization.")
         else:
-            logging.info("Database already exists. Finished initialization.")
+            logger.info("Database already exists. Finished initialization.")

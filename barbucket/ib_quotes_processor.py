@@ -16,6 +16,8 @@ from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 from .base_component import BaseComponent
 
+logger = logging.getLogger(__name__)
+
 
 class IbQuotesProcessor(BaseComponent):
     """Provides methods to download historical quotes from TWS."""
@@ -81,11 +83,11 @@ class IbQuotesProcessor(BaseComponent):
 
     def __connect_tws(self) -> None:
         self.mediator.notify("connect_to_tws")
-        logging.info(f"Connnected to TWS.")
+        logger.info(f"Connnected to TWS.")
 
     def __disconnect_tws(self) -> None:
         self.mediator.notify("disconnect_from_tws")
-        logging.info(f"Disconnnected from TWS.")
+        logger.info(f"Disconnnected from TWS.")
 
     def __check_abort_conditions(self) -> bool:
         if (self.mediator.notify("exit_signal")
@@ -108,7 +110,7 @@ class IbQuotesProcessor(BaseComponent):
             self.__contract_data = contract_data[0]
 
     def __get_contract_status(self) -> None:
-        logging.info(f"Message")
+        logger.info(f"Message")
         self.__quotes_status = self.mediator.notify(
             "get_quotes_status",
             {'contract_id': self.__contract_id})
@@ -122,7 +124,7 @@ class IbQuotesProcessor(BaseComponent):
             self.__contract_has_error_status()
 
     def __calculate_dates_for_new_contract(self) -> None:
-        logging.info(f"Message")
+        logger.info(f"Message")
         self.__duration = "15 Y"
         from_date = date.today() - timedelta(days=5479)  # 15 years
         self.__quotes_from = from_date.strftime('%Y-%m-%d')
@@ -143,10 +145,10 @@ class IbQuotesProcessor(BaseComponent):
         end_date = date.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
         if ndays <= REDOWNLOAD_DAYS:
-            logging.info(f"Existing data is only {ndays} days old.")
+            logger.info(f"Existing data is only {ndays} days old.")
             raise ExistingDataIsSufficientError
         if ndays > 360:
-            logging.info(f"Existing data is already {ndays} days old.")
+            logger.info(f"Existing data is already {ndays} days old.")
             raise ExistingDataIsTooOldError
         ndays += OVERLAP_DAYS
         self.__duration = str(ndays) + " D"
@@ -154,7 +156,7 @@ class IbQuotesProcessor(BaseComponent):
         self.__quotes_till = end_date
 
     def __contract_has_error_status(self) -> None:
-        logging.info("Contract already has error status. Skipped.")
+        logger.info("Contract already has error status. Skipped.")
         raise ContractHasErrorStatusError
 
     def __get_quotes_from_tws(self) -> List[Any]:

@@ -9,6 +9,8 @@ from .base_component import BaseComponent
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 
+logger = logging.getLogger(__name__)
+
 
 class TvDetailsProcessor(BaseComponent):
     """Processing of contract details provided by Tradingview screener"""
@@ -37,8 +39,8 @@ class TvDetailsProcessor(BaseComponent):
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
 
-        logging.info("Creating list of paths to all *.csv files in "
-                     "tv-directory.")
+        logger.info("Creating list of paths to all *.csv files in "
+                    "tv-directory.")
         dir_path = Path.home() / ".barbucket/tv_screener"  # Todo: Config
         tv_files = [path.join(dir_path, f) for f in listdir(
             dir_path) if f.endswith(".csv")]  # This also excludes directories
@@ -47,7 +49,7 @@ class TvDetailsProcessor(BaseComponent):
     def __get_contracts_from_file(self, file: Path) -> List[Dict[str, Any]]:
         """Create formatted list of all contracts of a tv file"""
 
-        logging.info(f"Reading data from TV file {file}.")
+        logger.info(f"Reading data from TV file {file}.")
         # Read file
         df = pd.read_csv(file, sep=",")
         file_contracts = []
@@ -85,8 +87,8 @@ class TvDetailsProcessor(BaseComponent):
     def __get_contract_id_from_db(self) -> int:
         """Get contract id from db matching some contract info"""
 
-        logging.info(f"Get contract id from db matching some contract info "
-                     "from a tv file row.")
+        logger.info(f"Get contract id from db matching some contract info "
+                    "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
         exchange = self.mediator.notify(
@@ -100,14 +102,14 @@ class TvDetailsProcessor(BaseComponent):
         parameters = {'filters': filters, 'return_columns': columns}
         query_result = self.mediator.notify("get_contracts", parameters)
         if len(query_result) == 0:
-            logging.warning(f"{len(query_result)} contracts found in master "
-                            f"listing for '{self.__file_row['ticker']}' on '"
-                            f"{self.__file_row['exchange']}'.")
+            logger.warning(f"{len(query_result)} contracts found in master "
+                           f"listing for '{self.__file_row['ticker']}' on '"
+                           f"{self.__file_row['exchange']}'.")
             raise QueryReturnedNoResultError
         elif len(query_result) > 1:
-            logging.warning(f"{len(query_result)} contracts found in master "
-                            f"listing for '{self.__file_row['ticker']}' on "
-                            f"'{self.__file_row['exchange']}'.")
+            logger.warning(f"{len(query_result)} contracts found in master "
+                           f"listing for '{self.__file_row['ticker']}' on "
+                           f"'{self.__file_row['exchange']}'.")
             raise QueryReturnedMultipleResultsError
         else:
             return query_result[0]
@@ -115,7 +117,7 @@ class TvDetailsProcessor(BaseComponent):
     def __write_contract_details_to_db(self, contract_id: int) -> None:
         """Writing tv details to db"""
 
-        logging.info("Writing tv details for contract_id {contract_id} to db.")
+        logger.info("Writing tv details for contract_id {contract_id} to db.")
         market_cap = self.__file_row['market_cap'],
         avg_vol_30_in_curr = self.__file_row['avg_vol_30_in_curr'],
         country = self.__file_row['country'],

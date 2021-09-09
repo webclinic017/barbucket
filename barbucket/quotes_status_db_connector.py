@@ -1,9 +1,12 @@
 import sqlite3
 from typing import Any
+import logging
 
 from .mediator import Mediator
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
+
+logger = logging.getLogger(__name__)
 
 
 class QuotesStatusDbConnector():

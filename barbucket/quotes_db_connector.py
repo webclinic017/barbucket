@@ -5,6 +5,8 @@ import pandas as pd
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class QuotesDbConnector():
     """Provides methods to access the 'quotes' table of the database."""
@@ -25,8 +27,8 @@ class QuotesDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logging.debug(f"Inserted {len(quotes)} for contract_id {quotes[0][0]} "
-                      f"into db.")
+        logger.info(f"Inserted {len(quotes)} for contract_id {quotes[0][0]} "
+                    f"into db.")
 
     def get_quotes(self, contract_id: int) -> pd.DataFrame:
         """Get quotes from the db"""
@@ -40,6 +42,6 @@ class QuotesDbConnector():
         self.mediator.notify("close_db_connection", {'conn': conn})
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
         df = df.set_index('date')
-        logging.debug(f"Read {len(df)} quotes for contract id {contract_id} "
-                      f"from db.")
+        logger.info(f"Read {len(df)} quotes for contract id {contract_id} "
+                    f"from db.")
         return df

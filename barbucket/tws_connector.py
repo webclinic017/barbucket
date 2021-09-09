@@ -5,6 +5,8 @@ import ib_insync
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class TwsConnector():
     """Provides methods to download data from IB TWS"""
@@ -45,16 +47,16 @@ class TwsConnector():
              'option': "non_systemic_codes"})
         NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
         if errorCode not in NON_SYSTEMIC_CODES:
-            logging.error(f"Systemic problem in TWS connection detected. "
-                          f"{errorCode}: {errorString}")
+            logger.error(f"Systemic problem in TWS connection detected. "
+                         f"{errorCode}: {errorString}")
             self.__connection_error = True
 
         # Write error info to contract database, if error is related to contract
         if contract is not None:
             self.__contract_error_status = errorString
             self.__contract_error_code = errorCode
-            logging.error(f"Problem for {contract} detected. {errorCode}: "
-                          f"{errorString}")
+            logger.error(f"Problem for {contract} detected. {errorCode}: "
+                         f"{errorString}")
 
     def connect(self) -> None:
         IP = self.mediator.notify(
@@ -67,12 +69,12 @@ class TwsConnector():
              'option': "port"}))
 
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-        logging.debug(f"Connected to TWS on {IP}:{PORT}.")
+        logger.info(f"Connected to TWS on {IP}:{PORT}.")
 
     def disconnect(self) -> None:
         self.__ib.disconnect()
         self.__connection_error = False
-        logging.debug("Disconnected from TWS.")
+        logger.info("Disconnected from TWS.")
 
     def is_connected(self) -> Any:
         return self.__ib.isConnected()
@@ -109,8 +111,8 @@ class TwsConnector():
             currency=currency)
 
         # Request data
-        logging.info(f"Requesting historical quotes for {exchange}_{symbol}_"
-                     f"{currency}_{duration.replace(' ', '')} at TWS.")
+        logger.info(f"Requesting historical quotes for {exchange}_{symbol}_"
+                    f"{currency}_{duration.replace(' ', '')} at TWS.")
         bars = self.__ib.reqHistoricalData(
             ib_contract,
             endDateTime='',
@@ -118,7 +120,7 @@ class TwsConnector():
             barSizeSetting='1 day',
             whatToShow='ADJUSTED_LAST',
             useRTH=True)
-        logging.info(f"Received {len(bars)} quotes.")
+        logger.info(f"Received {len(bars)} quotes.")
 
         if len(bars) == 0:
             return None
@@ -152,11 +154,11 @@ class TwsConnector():
             currency=currency)
 
         # Request data
-        logging.info(f"Requesting contract details for {broker_symbol}_"
-                     f"{exchange}_{currency} at TWS")
+        logger.info(f"Requesting contract details for {broker_symbol}_"
+                    f"{exchange}_{currency} at TWS")
         details = self.__ib.reqContractDetails(ib_contract)
 
         # Check returned data
-        logging.info(f"Received details for {len(details)} contracts.")
+        logger.info(f"Received details for {len(details)} contracts.")
 
         return details

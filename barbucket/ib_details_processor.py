@@ -8,6 +8,8 @@ from .custom_exceptions import QueryReturnedNoResultError
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .base_component import BaseComponent
 
+logger = logging.getLogger(__name__)
+
 
 class IbDetailsProcessor(BaseComponent):
     """Processing of contract details provided by IB TWS"""
@@ -37,11 +39,11 @@ class IbDetailsProcessor(BaseComponent):
                 try:
                     self.__get_contract_details_from_tws(contract)
                 except QueryReturnedNoResultError:
-                    logging.warn(f"Details query for contract {contract} "
-                                 f"returned no results.")
+                    logger.warn(f"Details query for contract {contract} "
+                                f"returned no results.")
                 except QueryReturnedMultipleResultsError:
-                    logging.warn(f"Details query for contract {contract} "
-                                 f"returned multiple results.")
+                    logger.warn(f"Details query for contract {contract} "
+                                f"returned multiple results.")
                 else:
                     self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
@@ -58,8 +60,8 @@ class IbDetailsProcessor(BaseComponent):
         filters = {'primary_exchange': "NULL"}
         parameters = {'filters': filters, 'return_columns': columns}
         self.__contracts = self.mediator.notify("get_contracts", parameters)
-        logging.debug(f"Found {len(self.__contracts)} contracts with missing "
-                      f"IB details in master listing.")
+        logger.info(f"Found {len(self.__contracts)} contracts with missing "
+                    f"IB details in master listing.")
 
     def __connect_tws(self) -> None:
         """Connect to TWS app"""

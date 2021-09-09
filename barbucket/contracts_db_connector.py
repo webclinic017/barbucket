@@ -4,6 +4,8 @@ from typing import Dict, List
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class ContractsDbConnector():
     """Provides methods to access the 'contracts' table of the database."""
@@ -24,8 +26,8 @@ class ContractsDbConnector():
             currency,
             exchange)
         self.__create_contracts_status_db_entry(contract_id)
-        logging.debug(f"Created new contract {contract_type_from_listing}_"
-                      f"{exchange}_{broker_symbol}_{currency}.")
+        logger.info(f"Created new contract {contract_type_from_listing}_"
+                    f"{exchange}_{broker_symbol}_{currency}.")
 
     def __create_contracts_db_entry(self, contract_type_from_listing: str,
                                     exchange_symbol: str, broker_symbol: str,
@@ -97,7 +99,7 @@ class ContractsDbConnector():
             query += ";"
 
         # Get requested values from db
-        logging.debug(f"Getting contracts from databse with query: {query}")
+        logger.info(f"Getting contracts from databse with query: {query}")
         conn = self.mediator.notify("get_db_connection")
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -106,7 +108,7 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logging.debug(f"Qurey '{query}' returned {len(contracts)} results.")
+        logger.info(f"Qurey '{query}' returned {len(contracts)} results.")
         return contracts
 
     def delete_contract(self, exchange: str, symbol: str, currency: str) -> None:
@@ -123,7 +125,7 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logging.debug(f"Deleted contract: {exchange}_{symbol}_{currency}")
+        logger.info(f"Deleted contract: {exchange}_{symbol}_{currency}")
 
     def delete_contract_id(self, contract_id: int) -> None:
         """Deletets a contract from the db."""
@@ -137,4 +139,4 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logging.debug(f"Deleted contract with id {contract_id}")
+        logger.info(f"Deleted contract with id {contract_id}")

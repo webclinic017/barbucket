@@ -4,6 +4,8 @@ from typing import List
 
 from .mediator import Mediator
 
+logger = logging.getLogger(__name__)
+
 
 class UniversesDbConnector():
 
@@ -24,6 +26,8 @@ class UniversesDbConnector():
 
         for contract_id in contract_ids:
             self.__create_membership(contract_id, name)
+        logger.info(f"Created universe '{name}' with {len(contract_ids)}"
+                    f" contracts.")
 
     def get_universes(self) -> List[str]:
         """Get all existing universes"""
@@ -64,7 +68,6 @@ class UniversesDbConnector():
     def delete_universe(self, universe: str) -> None:
         """Delete an existing universe"""
 
-        logging.info(f"Deleting universe '{universe}'.")
         conn = self.mediator.notify("get_db_connection")
         cur = conn.cursor()
         cur.execute(
@@ -73,3 +76,4 @@ class UniversesDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
+        logger.info(f"Deleted universe '{universe}'.")
