@@ -1,5 +1,9 @@
 import logging
+import logging.handlers
 
+from pathlib import Path
+
+from barbucket.mediator import Mediator
 from barbucket.config_initializer import ConfigInitializer
 from barbucket.config_reader import ConfigReader
 from barbucket.db_initializer import DbInitializer
@@ -15,15 +19,32 @@ from barbucket.tv_details_processor import TvDetailsProcessor
 from barbucket.encoder import Encoder
 from barbucket.graceful_exiter import GracefulExiter
 from barbucket import cli as cli
-from barbucket.mediator import Mediator
 
 
 if __name__ == '__main__':
     """Docstring"""
 
     # Setup logging
-    FORMAT = "%(message)s"
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.WARN)
+    console_formatter = logging.Formatter("%(message)s")
+    console_handler.setFormatter(console_formatter)
+    root_logger.addHandler(console_handler)
+
+    file_handler = logging.handlers.TimedRotatingFileHandler(
+        filename=Path.home() / ".barbucket/logfile.log",
+        when='midnight')
+    file_handler.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(file_formatter)
+    root_logger.addHandler(file_handler)
+
+    logger = logging.getLogger(__name__)
+    logger.info("Application started.")
 
     # Create mediator
     mediator = Mediator(
