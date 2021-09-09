@@ -20,7 +20,6 @@ class Mediator():
             ib_listings_processor: Any,
             ib_details_processor: Any,
             tv_details_processor: Any,
-            encoder: Any,
             exiter: Any,
             cli: Any) -> None:
 
@@ -60,9 +59,6 @@ class Mediator():
 
         self.__tv_details_processor = tv_details_processor
         self.__tv_details_processor.mediator = self
-
-        self.__encoder = encoder
-        self.__encoder.mediator = self
 
         self.__exiter = exiter
         self.__exiter.mediator = self
@@ -159,10 +155,6 @@ class Mediator():
         # TvDetailsProcessor
         elif action == "read_tv_data":
             return self.__tv_details_processor.read_tv_data()
-        # Tools
-        elif action == "decode_exchange_tv":
-            return self.__encoder.decode_exchange_tv(
-                exchange=parameters['exchange'])
         # GracefulExiter
         elif action == "exit_requested_by_user":
             return self.__exiter.exit_requested()

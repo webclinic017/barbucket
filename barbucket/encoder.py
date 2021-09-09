@@ -1,81 +1,80 @@
-class Encoder():
-    """Encode and decode exchange names between different formats."""
+"""Encode and decode exchange names between different formats."""
 
-    def __init__(self):
-        pass
 
-    # @staticmethod
-    # def remove_special_chars(input_string):
-    #     special_chars = ["'"]
-    #     result = input_string
-    #     for char in special_chars:
-    #         result = result.replace(char, '')
-    #     return result
+# def remove_special_chars(input_string):
+#     special_chars = ["'"]
+#     result = input_string
+#     for char in special_chars:
+#         result = result.replace(char, '')
+#     return result
 
-    # Known exchanges:
-    # 'ISLAND'          # NASDAQ / Island
-    # 'NASDAQ'          # NASDAQ / Island
-    # 'NYSE'            # NYSE
-    # 'NYSE ARCA'       # Archipelago
-    # 'AMEX'            # American Stock Exchange
-    # 'BATS'            # Better Alternative Trading System
+# Known exchanges:
+# 'ISLAND'          # NASDAQ / Island
+# 'NASDAQ'          # NASDAQ / Island
+# 'NYSE'            # NYSE
+# 'NYSE ARCA'       # Archipelago
+# 'AMEX'            # American Stock Exchange
+# 'BATS'            # Better Alternative Trading System
 
-    # 'VSE'             # Vancouver Stock Exchange
+# 'VSE'             # Vancouver Stock Exchange
 
-    # 'FWB'             # Frankfurter Wertpapierbörse
-    # 'IBIS'            # XETRA
-    # 'SWB'             # Stuttgarter Wertpapierbörse
+# 'FWB'             # Frankfurter Wertpapierbörse
+# 'IBIS'            # XETRA
+# 'SWB'             # Stuttgarter Wertpapierbörse
 
-    # 'LSE'             # London Stock Exchange
-    # 'LSEETF'          # London Stock Exchange: ETF
+# 'LSE'             # London Stock Exchange
+# 'LSEETF'          # London Stock Exchange: ETF
 
-    # 'SBF'             # Euronext France
+# 'SBF'             # Euronext France
 
-    # 'ENEXT.BE'        #
-    # 'AEB'             #
+# 'ENEXT.BE'        #
+# 'AEB'             #
 
-    def encode_exchange_tv(self, exchange: str) -> str:
-        """Encode from Barbucket-notation to TV-notation"""
+def encode_exchange_tv(exchange: str) -> str:
+    """Encode from Barbucket-notation to TV-notation"""
 
-        exchange_codes = {
-            'NASDAQ': "NASDAQ",     # NASDAQ / Island
-            'ARCA': "NYSE ARCA",    # Archipelago
-            'IBIS': "XETR"}         # XETRA
-        if exchange in exchange_codes.keys():
-            return exchange_codes[exchange]
-        else:
-            return exchange
+    exchange_codes = {
+        'NASDAQ': "NASDAQ",     # NASDAQ / Island
+        'ARCA': "NYSE ARCA",    # Archipelago
+        'IBIS': "XETR"}         # XETRA
+    if exchange in exchange_codes.keys():
+        return exchange_codes[exchange]
+    else:
+        return exchange
 
-    def decode_exchange_tv(self, exchange: str) -> str:
-        """Decode from IB-notation to Barbucket-notation"""
 
-        exchange_codes = {
-            'ISLAND': "NASDAQ",     # NASDAQ / Island
-            'NYSE ARCA': "ARCA",    # Archipelago
-            'XETR': "IBIS"}         # XETRA
-        if exchange in exchange_codes.keys():
-            return exchange_codes[exchange]
-        else:
-            return exchange
+def decode_exchange_tv(exchange: str) -> str:
+    """Decode from IB-notation to Barbucket-notation"""
 
-    def encode_exchange_ib(self, exchange: str) -> str:
-        """Encode from Barbucket-notation to IB-notation"""
+    exchange_codes = {
+        'ISLAND': "NASDAQ",     # NASDAQ / Island
+        'NYSE ARCA': "ARCA",    # Archipelago
+        'XETR': "IBIS"}         # XETRA
+    if exchange in exchange_codes.keys():
+        return exchange_codes[exchange]
+    else:
+        return exchange
 
-        exchange_codes = {
-            'NASDAQ': "ISLAND",     # NASDAQ / Island
-            'ARCA': "NYSE ARCA"}    # Archipelago
-        if exchange in exchange_codes.keys():
-            return exchange_codes[exchange]
-        else:
-            return exchange
 
-    def decode_exchange_ib(self, exchange: str) -> str:
-        """Decode from IB-notation to Barbucket-notation"""
+def encode_exchange_ib(exchange: str) -> str:
+    """Encode from Barbucket-notation to IB-notation"""
 
-        exchange_codes = {
-            'ISLAND': "NASDAQ",     # NASDAQ / Island
-            'NYSE ARCA': "ARCA"}    # Archipelago
-        if exchange in exchange_codes.keys():
-            return exchange_codes[exchange]
-        else:
-            return exchange
+    exchange_codes = {
+        'NASDAQ': "ISLAND",     # NASDAQ / Island
+        'ARCA': "NYSE ARCA"}    # Archipelago
+    if exchange in exchange_codes.keys():
+        return exchange_codes[exchange]
+    else:
+        return exchange
+
+
+def decode_exchange_ib(exchange: str) -> str:
+    """Decode from IB-notation to Barbucket-notation"""
+
+    exchange_codes = {
+        'ISLAND': "NASDAQ",     # NASDAQ / Island
+        'NYSE ARCA': "ARCA"}    # Archipelago
+    if exchange in exchange_codes.keys():
+        return exchange_codes[exchange]
+    else:
+        return exchange

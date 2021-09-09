@@ -16,7 +16,6 @@ from barbucket.tws_connector import TwsConnector
 from barbucket.ib_exchange_listings_processor import IbExchangeListingsProcessor
 from barbucket.ib_details_processor import IbDetailsProcessor
 from barbucket.tv_details_processor import TvDetailsProcessor
-from barbucket.encoder import Encoder
 from barbucket.graceful_exiter import GracefulExiter
 from barbucket import cli as cli
 
@@ -60,7 +59,6 @@ if __name__ == '__main__':
         ib_listings_processor=IbExchangeListingsProcessor(),
         ib_details_processor=IbDetailsProcessor(),
         tv_details_processor=TvDetailsProcessor(),
-        encoder=Encoder(),
         exiter=GracefulExiter(),
         cli=cli
     )

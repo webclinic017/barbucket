@@ -4,6 +4,7 @@ import logging
 import ib_insync
 
 from .mediator import Mediator
+from .encoder import encode_exchange_ib
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +146,7 @@ class TwsConnector():
         """Download details for a contract from IB TWS"""
 
         # Create contract object
-        ex = self.mediator.notify(
-            "encode_exchange_ib",
-            {'exchange': exchange})
+        ex = encode_exchange_ib(exchange)
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
             exchange=ex,
