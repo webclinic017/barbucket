@@ -31,19 +31,19 @@ def mock_homepath(tmp_path, monkeypatch):
 
 def test_create_directories_if_not_present(mock_cfg, mock_homepath) -> None:
     mock_cfg._create_directories()
-    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+    assert Path.is_dir(Path.home() / ".barbucket/tv_screener")
 
 
 def test_create_directories_if_one_present(mock_cfg, mock_homepath) -> None:
     Path.mkdir(Path.home() / ".barbucket")
     mock_cfg._create_directories()
-    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+    assert Path.is_dir(Path.home() / ".barbucket/tv_screener")
 
 
 def test_create_directories_if_both_present(mock_cfg, mock_homepath) -> None:
-    Path.mkdir((Path.home() / ".barbucket/tw_screener"), parents=True)
+    Path.mkdir((Path.home() / ".barbucket/tv_screener"), parents=True)
     mock_cfg._create_directories()
-    assert Path.is_dir(Path.home() / ".barbucket/tw_screener")
+    assert Path.is_dir(Path.home() / ".barbucket/tv_screener")
 
 
 def test_set_config_file_path(mock_cfg, mock_homepath) -> None:
