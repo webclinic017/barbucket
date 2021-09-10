@@ -15,7 +15,7 @@ from .custom_exceptions import ContractHasErrorStatusError
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 from .base_component import BaseComponent
-from .encoder import encode_exchange_ib
+from .encoder import Encoder
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ class IbQuotesProcessor(BaseComponent):
 
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
-        exchange = encode_exchange_ib(self.__contract_data['exchange'])
+        exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
         parameters = {
             'contract_id': self.__contract_id,
             'symbol': self.__contract_data['broker_symbol'],

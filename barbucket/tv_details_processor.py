@@ -8,7 +8,7 @@ from .mediator import Mediator
 from .base_component import BaseComponent
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
-from .encoder import decode_exchange_tv
+from .encoder import Encoder
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class TvDetailsProcessor(BaseComponent):
                     "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
-        exchange = decode_exchange_tv(self.__file_row['exchange'])
+        exchange = Encoder.decode_exchange_tv(self.__file_row['exchange'])
         filters = {
             'exchange': exchange,
             'contract_type_from_listing': "STOCK",

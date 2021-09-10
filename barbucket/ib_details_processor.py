@@ -7,7 +7,7 @@ from .mediator import Mediator
 from .custom_exceptions import QueryReturnedNoResultError
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .base_component import BaseComponent
-from .encoder import decode_exchange_ib
+from .encoder import Encoder
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +100,9 @@ class IbDetailsProcessor(BaseComponent):
 
     def __decode_exchange_names(self) -> None:
         """Decode exchange names"""
-        self.__details.contract.exchange = decode_exchange_ib(
+        self.__details.contract.exchange = Encoder.decode_exchange_ib(
             self.__details.contract.exchange)
-        self.__details.contract.primaryExchange = decode_exchange_ib(
+        self.__details.contract.primaryExchange = Encoder.decode_exchange_ib(
             self.__details.contract.primaryExchange)
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
