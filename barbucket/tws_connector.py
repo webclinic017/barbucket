@@ -5,6 +5,10 @@ import ib_insync
 
 from .mediator import Mediator
 from .encoder import Encoder
+from .custom_exceptions import (
+    QueryReturnedNoResultError,
+    TwsSystemicError,
+    TwsContractRelatedError)
 
 logger = logging.getLogger(__name__)
 
@@ -14,50 +18,36 @@ class TwsConnector():
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
-        # Create connection object
-        self.__ib = ib_insync.ib.IB()
+        self.__ib = ib_insync.ib.IB()  # Create connection objec
         # Register own error handler on ib hook
-        self.__ib.errorEvent += self.__on_tws_error
-        self.__connection_error = False
-        self.__contract_error_status = None
-        self.__contract_error_code = None
+        self.__ib.errorEvent += self.on_tws_error
 
-    def __on_tws_error(self, reqId: int, errorCode: int, errorString: str,
-                       contract: Any) -> None:
+    def on_tws_error(
+            self, reqId: int, errorCode: int, errorString: str,
+            contract: Any) -> None:
         """
         Is called from 'ib_insync' as callback on errors and writes error
         details to quotes_status in database.
-
-        Args:
-            reqId: Description.
-            errorCode: Description.
-            errorString: Description.
-            contract: Description.
-
-        Returns:
-            Nothing
-
-        Raises:
-            No errors
         """
 
-        # Abort receiving if systematical problem is detected
-        NON_SYSTEMIC_CODES = self.mediator.notify(
+        codes = self.mediator.notify(
             "get_config_value_single",
             {'section': "tws_connector",
              'option': "non_systemic_codes"})
-        NON_SYSTEMIC_CODES = list(map(int, NON_SYSTEMIC_CODES))
+        NON_SYSTEMIC_CODES = list(map(int, codes))
         if errorCode not in NON_SYSTEMIC_CODES:
-            logger.error(f"Systemic problem in TWS connection detected. "
-                         f"{errorCode}: {errorString}")
-            self.__connection_error = True
-
-        # Write error info to contract database, if error is related to contract
-        if contract is not None:
-            self.__contract_error_status = errorString
-            self.__contract_error_code = errorCode
-            logger.error(f"Problem for {contract} detected. {errorCode}: "
-                         f"{errorString}")
+            raise TwsSystemicError(
+                req_id=reqId,
+                error_code=errorCode,
+                error_string=errorString,
+                contract=contract)
+        # if contract is not None:
+        else:
+            raise TwsContractRelatedError(
+                req_id=reqId,
+                error_code=errorCode,
+                error_string=errorString,
+                contract=contract)
 
     def connect(self) -> None:
         IP = self.mediator.notify(
@@ -70,94 +60,62 @@ class TwsConnector():
              'option': "port"}))
 
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-        logger.info(f"Connected to TWS on {IP}:{PORT}.")
+        logger.debug(f"Connected to TWS on {IP}:{PORT}.")
 
     def disconnect(self) -> None:
         self.__ib.disconnect()
-        self.__connection_error = False
-        logger.info("Disconnected from TWS.")
+        logger.debug("Disconnected from TWS.")
 
-    def is_connected(self) -> Any:
-        return self.__ib.isConnected()
+    def download_historical_quotes(
+            self, contract_id: int, symbol: str,
+            exchange: str, currency: str, duration: str) -> List[Tuple[Any]]:
+        """Download historical quotes from IB TWS"""
 
-    def has_error(self) -> Any:
-        return self.__connection_error
-
-    def get_contract_error(self) -> Any:
-        return (self.__contract_error_code, self.__contract_error_status)
-
-    def download_historical_quotes(self, contract_id: int, symbol: str,
-                                   exchange: str, currency: str, duration: str
-                                   ) -> List[Tuple[Any]]:
-        """
-        Description
-
-        Args:
-            None
-
-        Returns:
-            Nothing
-
-        Raises:
-            No errors
-        """
-
-        self.__contract_error_status = None
-        self.__contract_error_code = None
-
-        # Create contract
         ib_contract = ib_insync.contract.Stock(
             symbol=symbol,
             exchange=exchange,
             currency=currency)
-
-        # Request data
-        logger.info(f"Requesting historical quotes for {exchange}_{symbol}_"
-                    f"{currency}_{duration.replace(' ', '')} at TWS.")
         bars = self.__ib.reqHistoricalData(
-            ib_contract,
+            contract=ib_contract,
             endDateTime='',
             durationStr=duration,
             barSizeSetting='1 day',
             whatToShow='ADJUSTED_LAST',
             useRTH=True)
-        logger.info(f"Received {len(bars)} quotes.")
+        logger.debug(
+            f"Received {len(bars)} quotes for {exchange}_{symbol}_"
+            f"{currency}_{duration.replace(' ', '')} from TWS.")
 
         if len(bars) == 0:
-            return None
-        else:
-            # Reformatting of received bars
-            quotes = []
-            for bar in bars:
-                quote = (
-                    contract_id,
-                    bar.date.strftime('%Y-%m-%d'),
-                    bar.open,
-                    bar.high,
-                    bar.low,
-                    bar.close,
-                    bar.volume)
-                quotes.append(quote)
-            return quotes
+            raise QueryReturnedNoResultError
+        return self.__reformat_bars(contract_id, bars)
 
-    def download_contract_details(self, contract_type_from_listing: str,
-                                  broker_symbol: str, exchange: str,
-                                  currency: str) -> Any:
+    def __reformat_bars(self, contract_id, bars):
+        quotes = []
+        for bar in bars:
+            quote = (
+                contract_id,
+                bar.date.strftime('%Y-%m-%d'),
+                bar.open,
+                bar.high,
+                bar.low,
+                bar.close,
+                bar.volume)
+            quotes.append(quote)
+        return quotes
+
+    def download_contract_details(
+            self, contract_type_from_listing: str, broker_symbol: str,
+            exchange: str, currency: str) -> Any:
         """Download details for a contract from IB TWS"""
 
-        # Create contract object
         ex = Encoder.encode_exchange_ib(exchange)
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
             exchange=ex,
             currency=currency)
-
-        # Request data
-        logger.info(f"Requesting contract details for {broker_symbol}_"
-                    f"{exchange}_{currency} at TWS")
         details = self.__ib.reqContractDetails(ib_contract)
-
-        # Check returned data
-        logger.info(f"Received details for {len(details)} contracts.")
-
+        logger.debug(
+            f"Received contract details for {broker_symbol}_{exchange}_"
+            f"{currency} from TWS")
         return details
