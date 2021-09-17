@@ -7,7 +7,7 @@ from barbucket.mediator import Mediator
 logger = logging.getLogger(__name__)
 
 
-class GracefulExiter():
+class SignalHandler():
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.state = False
@@ -23,7 +23,7 @@ class GracefulExiter():
                         "Press again to stop immediately."})
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.state = True
-        logger.info(f"Exit signal detected.")
+        logger.debug(f"Exit signal detected.")
 
     def exit_requested(self) -> bool:
         """Check if the user pressed Ctrl-C."""
