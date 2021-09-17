@@ -11,7 +11,8 @@ from .custom_exceptions import (
     QueryReturnedNoResultError,
     QueryReturnedMultipleResultsError,
     TwsSystemicError,
-    TwsContractRelatedError)
+    TwsContractRelatedError,
+    ExitSignalDetectedError)
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +41,7 @@ class IbDetailsProcessor(BaseComponent):
         self.__connect_tws()
         try:
             for contract in self.__contracts:
-                if self.__check_abort_conditions():
-                    break  # todo: should be an exception to handle it better
+                self.__check_abort_signal()
                 try:
                     self.__get_contract_details_from_tws(contract)
                     self.__validate_details()
@@ -81,14 +81,10 @@ class IbDetailsProcessor(BaseComponent):
         """Disconnect from TWS app"""
         self.mediator.notify("disconnect_from_tws")
 
-    def __check_abort_conditions(self) -> bool:
+    def __check_abort_signal(self) -> bool:
         """Check conditions to abort operation."""
-
-        if (self.__signal_handler.exit_requested()
-                or self.mediator.notify("tws_has_error")):
-            return True
-        else:
-            return False
+        if self.__signal_handler.exit_requested():
+            raise ExitSignalDetectedError
 
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""

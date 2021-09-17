@@ -71,7 +71,11 @@ def download_ib_details() -> None:
     """Fetch details for all contracts from IB TWS"""
     logger.info(f"User requested to download details from TWS via the cli"
                 f".")
+    try:
     cli_connector.mediator.notify("update_ib_contract_details")
+    except ExitSignalDetectedError:
+        click.echo("Stopped.")
+        return
     click.echo("Updated IB details for master listings.")
 
 
