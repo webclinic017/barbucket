@@ -6,8 +6,8 @@ import click
 from .base_component import BaseComponent
 
 """
-The click cli is not designed to be declared within a class. So it's functions
-are declared in the module without a class. Then a MediatorConnector class is 
+The click cli is not designed to be declared within a class. So its functions
+are declared in the module without a class. Then a CliConnector class is 
 instanciated as a module-wide object and referenced for the mediator 
 communication.
 """
