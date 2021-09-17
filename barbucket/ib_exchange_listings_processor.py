@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import sqlite3
 from abc import ABC
 
@@ -25,23 +25,22 @@ class IbExchangeListingsProcessor():
         self.__website_contracts: List[Any] = []
         self.__database_contracts: List[Any] = []
 
-    def sync_contracts_to_listing(self, ctype: str, exchange: str) -> None:
+    def sync_contracts_to_listing(self, ctype: str, exchange: str) -> Tuple[int]:
         """Sync local exchange listings to the IB website"""
 
         self.__ctype = ctype
         self.__exchange = exchange
-
-        # Get all contracts from website
         if ctype == "ETF":
             scraper = IbExchangeListingSinglepageReader()
         elif ctype == "STOCK":
             scraper = IbExchangeListingMultipageReader()
-            self.__website_contracts = scraper.read_ib_exchange_listing(
-                self.__ctype,
-                self.__exchange)
+        self.__website_contracts = scraper.read_ib_exchange_listing(
+            self.__ctype,
+            self.__exchange)
         self.__get_contracts_from_db()
-        self.__remove_deleted_contracts_from_db()
-        self.__add_new_contracts_to_db()
+        removed = self.__remove_deleted_contracts_from_db()
+        added = self.__add_new_contracts_to_db()
+        return (removed, added)
 
     def __get_contracts_from_db(self) -> None:
         filters = {
@@ -53,8 +52,9 @@ class IbExchangeListingsProcessor():
             {'filters': filters,
              'return_columns': columns})
 
-    def __remove_deleted_contracts_from_db(self) -> None:
-        contracts_removed = 0
+    def __remove_deleted_contracts_from_db(self) -> int:
+        contracts_removed = []
+        removed_count = 0
         for db_row in self.__database_contracts:
             exists = False
             for web_row in self.__website_contracts:
@@ -68,13 +68,18 @@ class IbExchangeListingsProcessor():
                     {'symbol': db_row['broker_symbol'],
                      'exchange': self.__exchange.upper(),
                      'currency': db_row['currency']})
-                contracts_removed += 1
+                contracts_removed.append(
+                    f"{self.__exchange.upper()}_{db_row['broker_symbol']}_"
+                    f"{db_row['currency']}")
+                removed_count += 1
         logger.debug(
-            f"{contracts_removed} contracts removed from master listing.")
-        # Todo: List Tickers and post to cli
+            f"{removed_count} contracts removed from master listing: "
+            f"{contracts_removed}")
+        return removed_count
 
-    def __add_new_contracts_to_db(self) -> None:
-        contracts_added = 0
+    def __add_new_contracts_to_db(self) -> int:
+        contracts_added = []
+        added_count = 0
         for web_row in self.__website_contracts:
             exists = False
             for db_row in self.__database_contracts:
@@ -91,9 +96,14 @@ class IbExchangeListingsProcessor():
                      'name': web_row['name'],
                      'currency': web_row['currency'],
                      'exchange': self.__exchange.upper()})
-                contracts_added += 1
-        logger.debug(f"{contracts_added} contracts added to master listing.")
-        # Todo: List Tickers and post to cli
+                contracts_added.append(
+                    f"{self.__exchange.upper()}_{web_row['broker_symbol']}_"
+                    f"{web_row['currency']}")
+                added_count += 1
+        logger.debug(
+            f"{added_count} contracts added to master listing: "
+            f"{contracts_added}")
+        return added_count
 
 
 class IbExchangeListingReader(ABC):
@@ -169,8 +179,8 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         self.__website_data = []
         self.__ctype: str = None
         self.__exchange: str = None
-        self.__manager = enlighten.get_manager()
-        self.__pbar = self.__manager.counter(
+        manager = enlighten.get_manager()
+        self.__pbar = manager.counter(
             total=0,
             desc="Pages", unit="pages")
 

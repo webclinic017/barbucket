@@ -60,14 +60,15 @@ def sync_listing(contract_type: str, exchange: str) -> None:
                 f"'{exchange}' to master listing via the cli.")
     try:
         (added, removed) = cli_connector.mediator.notify(
-        "sync_contracts_to_listing",
-        {'ctype': contract_type.upper(),
-            'exchange': exchange.upper()})
+            "sync_contracts_to_listing",
+            {'ctype': contract_type.upper(),
+                'exchange': exchange.upper()})
     except ExitSignalDetectedError:
         click.echo("Stopped.")
         return
     click.echo(f"Master listing synced for {contract_type.upper()} on "
-               f"{exchange.upper()}.")
+               f"{exchange.upper()}. {added} contracts were added, {removed} "
+               f"were removed.")
 
 
 @contracts.command()
@@ -76,7 +77,7 @@ def download_ib_details() -> None:
     logger.info(f"User requested to download details from TWS via the cli"
                 f".")
     try:
-    cli_connector.mediator.notify("update_ib_contract_details")
+        cli_connector.mediator.notify("update_ib_contract_details")
     except ExitSignalDetectedError:
         click.echo("Stopped.")
         return
@@ -105,9 +106,9 @@ def fetch(universe: str) -> None:
     logger.info(f"User requested to download quotes from TWS for "
                 f"universe '{universe}' via the cli.")
     try:
-    cli_connector.mediator.notify(
-        "download_historical_quotes",
-        {'universe': universe})
+        cli_connector.mediator.notify(
+            "download_historical_quotes",
+            {'universe': universe})
     except ExitSignalDetectedError:
         click.echo("Stopped.")
         return
