@@ -25,9 +25,7 @@ class ContractsDbConnector():
             name,
             currency,
             exchange)
-        self.__create_contracts_status_db_entry(contract_id)
-        logger.info(f"Created new contract {contract_type_from_listing}_"
-                    f"{exchange}_{broker_symbol}_{currency}.")
+        self.__create_quotes_status_db_entry(contract_id)
 
     def __create_contracts_db_entry(self, contract_type_from_listing: str,
                                     exchange_symbol: str, broker_symbol: str,
@@ -56,10 +54,13 @@ class ContractsDbConnector():
         contract_id = cur.lastrowid()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
+        logger.debug(f"Created new contract_db entry: "
+                     f"{contract_type_from_listing}_{exchange}_"
+                     f"{broker_symbol}_{currency}.")
         return contract_id
 
-    def __create_contracts_status_db_entry(self, contract_id: int) -> None:
-        """Creates a new entry in the contracts_status table."""
+    def __create_quotes_status_db_entry(self, contract_id: int) -> None:
+        """Creates a new entry in the quotes_status table."""
 
         conn = self.mediator.notify("get_db_connection")
         cur = conn.cursor()
@@ -67,12 +68,13 @@ class ContractsDbConnector():
             "insert_quotes_status",
             {'contract_id': contract_id,
              'status_code': 0,
-             'status_text': "NULL",
+             'status_text': "No quotes downloaded yet.",
              'daily_quotes_requested_from': "NULL",
              'daily_quotes_requested_till': "NULL"})
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
+        logger.debug(f"Created new quotes_status_db entry: {contract_id}.")
 
     def get_contracts(self, filters: Dict = {}, return_columns: List = []
                       ) -> List[sqlite3.Row]:
@@ -99,7 +101,6 @@ class ContractsDbConnector():
             query += ";"
 
         # Get requested values from db
-        logger.info(f"Getting contracts from databse with query: {query}")
         conn = self.mediator.notify("get_db_connection")
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
