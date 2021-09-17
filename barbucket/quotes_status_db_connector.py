@@ -40,9 +40,7 @@ class QuotesStatusDbConnector():
                              status_text: str,
                              daily_quotes_requested_from: str,
                              daily_quotes_requested_till: str) -> None:
-        """ 
-        Update a contract's quote status in the db.
-        """
+        """ Update a contract's quote status in the db."""
 
         # Status code:
         # 0: No quotes downloaded yet
@@ -51,10 +49,6 @@ class QuotesStatusDbConnector():
 
         existing_status = self.get_quotes_status(contract_id=contract_id)
 
-        if (status_code is None) and (existing_status is not None):
-            status_code = existing_status['status_code']
-        if (status_text is None) and (existing_status is not None):
-            status_text = existing_status['status_text']
         if (daily_quotes_requested_from is None) and (existing_status is not None):
             daily_quotes_requested_from = existing_status['daily_quotes_requested_from']
         if (daily_quotes_requested_till is None) and (existing_status is not None):
@@ -77,3 +71,7 @@ class QuotesStatusDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
+        logger.debug(f"Inserted quotes status into db: {contract_id} "
+                     f"{status_code} {status_text} "
+                     f"{daily_quotes_requested_from} "
+                     f"{daily_quotes_requested_till}")
