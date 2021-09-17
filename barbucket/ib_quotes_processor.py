@@ -18,9 +18,9 @@ from .custom_exceptions import (
     ContractHasErrorStatusError,
     QueryReturnedMultipleResultsError,
     QueryReturnedNoResultError,
-    QueryReturnedNoResultError,
     TwsSystemicError,
-    TwsContractRelatedError)
+    TwsContractRelatedError,
+    ExitSignalDetectedError)
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +51,7 @@ class IbQuotesProcessor(BaseComponent):
         self.__connect_tws()
         try:
             for self.__contract_id in contract_ids:
-                if self.__check_abort_conditions():
-                    break  # todo: should be an exception to handle it better
+                self.__check_abort_signal()
                 try:
                     self.__get_contract_data()
                 except (QueryReturnedNoResultError,
@@ -100,12 +99,9 @@ class IbQuotesProcessor(BaseComponent):
     def __disconnect_tws(self) -> None:
         self.mediator.notify("disconnect_from_tws")
 
-    def __check_abort_conditions(self) -> bool:
-        if (self.__signal_handler.exit_requested()
-                or self.mediator.notify("tws_has_error")):
-            return True
-        else:
-            return False
+    def __check_abort_signal(self) -> bool:
+        if self.__signal_handler.exit_requested():
+            raise ExitSignalDetectedError
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}

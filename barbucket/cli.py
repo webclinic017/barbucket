@@ -4,7 +4,7 @@ from typing import Any
 import click
 
 from .base_component import BaseComponent
-
+from .custom_exceptions import ExitSignalDetectedError
 """
 The click cli is not designed to be declared within a class. So its functions
 are declared in the module without a class. Then a CliConnector class is 
@@ -96,9 +96,13 @@ def fetch(universe: str) -> None:
     """Fetch quotes from IB TWS"""
     logger.info(f"User requested to download quotes from TWS for "
                 f"universe '{universe}' via the cli.")
+    try:
     cli_connector.mediator.notify(
         "download_historical_quotes",
         {'universe': universe})
+    except ExitSignalDetectedError:
+        click.echo("Stopped.")
+        return
     click.echo(f"Finished downloading historical data for universe "
                f"'{universe}'")
 
