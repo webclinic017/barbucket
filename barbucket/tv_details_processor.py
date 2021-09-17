@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from os import path, listdir
 from typing import Any, List, Dict
+
 import pandas as pd
 
 from .mediator import Mediator
@@ -89,7 +90,7 @@ class TvDetailsProcessor(BaseComponent):
         """Get contract id from db matching some contract info"""
 
         logger.debug(f"Get contract id from db matching some contract info "
-                    "from a tv file row.")
+                     "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
         exchange = Encoder.decode_exchange_tv(self.__file_row['exchange'])
@@ -104,7 +105,7 @@ class TvDetailsProcessor(BaseComponent):
             logger.warning(
                 f"{len(query_result)} contracts found in master listing for "
                 f"'{self.__file_row['ticker']}' on '"
-                           f"{self.__file_row['exchange']}'.")
+                f"{self.__file_row['exchange']}'.")
             raise QueryReturnedNoResultError
         elif len(query_result) > 1:
             logger.warning(
