@@ -79,6 +79,10 @@ class Mediator():
             return self.__config_reader.get_config_value_single(
                 section=parameters['section'],
                 option=parameters['option'])
+        elif action == "get_config_value_list":
+            return self.__config_reader.get_config_value_list(
+                section=parameters['section'],
+                option=parameters['option'])
         # DbInitializer
         elif action == "initialize_database":
             return self.__db_initializer.initialize_database()
@@ -178,13 +182,6 @@ class Mediator():
         # TvDetailsProcessor
         elif action == "read_tv_data":
             return self.__tv_details_processor.read_tv_data()
-        # GracefulExiter
-        elif action == "exit_requested_by_user":
-            return self.__exiter.exit_requested()
-        elif action == "get_config_value_list":
-            return self.__config_reader.get_config_value_list(
-                section=parameters['section'],
-                option=parameters['option'])
         # Cli
         elif action == "run_cli":
             return self.__cli.cli()
