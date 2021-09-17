@@ -22,7 +22,6 @@ class Mediator():
             ib_listings_processor: Any,
             ib_details_processor: Any,
             tv_details_processor: Any,
-            exiter: Any,
             cli: Any) -> None:
 
         # Instanciate components
@@ -67,9 +66,6 @@ class Mediator():
 
         self.__tv_details_processor = tv_details_processor
         self.__tv_details_processor.mediator = self
-
-        self.__exiter = exiter
-        self.__exiter.mediator = self
 
         self.__cli = cli
         self.__cli.cli_connector.mediator = self
