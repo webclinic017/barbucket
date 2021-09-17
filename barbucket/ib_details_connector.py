@@ -39,3 +39,6 @@ class IbDetailsConnector(BaseComponent):
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
+        logger.debug(f"Inserted IB details into db: {contract_id} "
+                     f"{contract_type_from_details} {primary_exchange} "
+                     f"{industry} {category} {subcategory}")
