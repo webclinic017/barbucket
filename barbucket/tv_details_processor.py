@@ -41,8 +41,8 @@ class TvDetailsProcessor(BaseComponent):
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
 
-        logger.info("Creating list of paths to all *.csv files in "
-                    "tv-directory.")
+        logger.debug(
+            "Creating list of paths to all *.csv files in tv-directory.")
         dir_path = Path.home() / ".barbucket/tv_screener"  # Todo: Config
         tv_files = [path.join(dir_path, f) for f in listdir(
             dir_path) if f.endswith(".csv")]  # This also excludes directories
@@ -51,8 +51,7 @@ class TvDetailsProcessor(BaseComponent):
     def __get_contracts_from_file(self, file: Path) -> List[Dict[str, Any]]:
         """Create formatted list of all contracts of a tv file"""
 
-        logger.info(f"Reading data from TV file {file}.")
-        # Read file
+        logger.debug(f"Reading data from TV file {file}.")
         df = pd.read_csv(file, sep=",")
         file_contracts = []
 
@@ -89,7 +88,7 @@ class TvDetailsProcessor(BaseComponent):
     def __get_contract_id_from_db(self) -> int:
         """Get contract id from db matching some contract info"""
 
-        logger.info(f"Get contract id from db matching some contract info "
+        logger.debug(f"Get contract id from db matching some contract info "
                     "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
@@ -102,14 +101,16 @@ class TvDetailsProcessor(BaseComponent):
         parameters = {'filters': filters, 'return_columns': columns}
         query_result = self.mediator.notify("get_contracts", parameters)
         if len(query_result) == 0:
-            logger.warning(f"{len(query_result)} contracts found in master "
-                           f"listing for '{self.__file_row['ticker']}' on '"
+            logger.warning(
+                f"{len(query_result)} contracts found in master listing for "
+                f"'{self.__file_row['ticker']}' on '"
                            f"{self.__file_row['exchange']}'.")
             raise QueryReturnedNoResultError
         elif len(query_result) > 1:
-            logger.warning(f"{len(query_result)} contracts found in master "
-                           f"listing for '{self.__file_row['ticker']}' on "
-                           f"'{self.__file_row['exchange']}'.")
+            logger.warning(
+                f"{len(query_result)} contracts found in master listing for '"
+                f"{self.__file_row['ticker']}' on '"
+                f"{self.__file_row['exchange']}'.")
             raise QueryReturnedMultipleResultsError
         else:
             return query_result[0]

@@ -45,7 +45,7 @@ if __name__ == '__main__':
     root_logger.addHandler(file_handler)
 
     logger = logging.getLogger(__name__)
-    logger.info("Application started.")
+    logger.debug("Application started.")
 
     # Create mediator
     mediator = Mediator(

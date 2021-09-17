@@ -25,16 +25,16 @@ class ConfigInitializer():
         try:
             Path.mkdir((Path.home() / ".barbucket/tv_screener"), parents=True)
         except FileExistsError:
-            logger.info(f"Necessary directories already exist.")
+            logger.debug(f"Necessary directories already exist.")
         else:
-            logger.info(f"Created directories `~/.barbucket/tv_screener`")
+            logger.debug(f"Created directories `~/.barbucket/tv_screener`")
 
     def _create_config_file(
             self, source_path: Path,
             destination_path: Path) -> None:
         """Creates file with default config if none exists"""
         if Path.is_file(destination_path):
-            logger.info(f"Config file already exists.")
+            logger.debug(f"Config file already exists.")
         else:
             copyfile(source_path, destination_path)
-            logger.info(f"Created config file from default file.")
+            logger.debug(f"Created config file from default file.")

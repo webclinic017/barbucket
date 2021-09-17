@@ -108,7 +108,7 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info(f"Qurey '{query}' returned {len(contracts)} results.")
+        logger.debug(f"Qurey '{query}' returned {len(contracts)} results.")
         return contracts
 
     def delete_contract(self, exchange: str, symbol: str, currency: str) -> None:
@@ -125,7 +125,7 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info(f"Deleted contract: {exchange}_{symbol}_{currency}")
+        logger.debug(f"Deleted contract: {exchange}_{symbol}_{currency}")
 
     def delete_contract_id(self, contract_id: int) -> None:
         """Deletets a contract from the db."""
@@ -139,4 +139,4 @@ class ContractsDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info(f"Deleted contract with id {contract_id}")
+        logger.debug(f"Deleted contract with id {contract_id}")

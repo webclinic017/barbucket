@@ -27,7 +27,7 @@ class DbInitializer():
                         "exists.")
             raise FileNotFoundError from e
         else:
-            logger.info(f"Database archived as: {new_name}")
+            logger.debug("Database already exists. Finished initialization.")
 
     def __get_db_path(self) -> None:
         conf_path = self.mediator.notify(
@@ -40,12 +40,12 @@ class DbInitializer():
 
         conn = sqlite3.connect(self._DB_PATH)
         conn.close()
-        logger.info("Created new database file.")
+        logger.debug("Created new database file.")
 
     def _create_db_schema(self) -> None:
         """Create schema in database."""
 
-        logger.info("Started creating database schema.")
+        logger.debug("Started creating database schema.")
         conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
 
@@ -140,7 +140,7 @@ class DbInitializer():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info("Finished creating database schema.")
+        logger.debug("Finished creating database schema.")
 
     def initialize_database(self) -> None:
         """Initialize database if it doesnt exist. Else skip."""
