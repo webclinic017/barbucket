@@ -36,16 +36,9 @@ class IbExchangeListingsProcessor():
             scraper = IbExchangeListingSinglepageReader()
         elif ctype == "STOCK":
             scraper = IbExchangeListingMultipageReader()
-        try:
             self.__website_contracts = scraper.read_ib_exchange_listing(
                 self.__ctype,
                 self.__exchange)
-        except ExitSignalDetectedError as e:
-            self.mediator.notify(
-                "show_cli_message",
-                {'message': "Exiting on user request."})
-            raise e
-
         self.__get_contracts_from_db()
         self.__remove_deleted_contracts_from_db()
         self.__add_new_contracts_to_db()

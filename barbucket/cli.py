@@ -58,10 +58,14 @@ def sync_listing(contract_type: str, exchange: str) -> None:
     """Sync master listing to IB exchange listing"""
     logger.info(f"User requested to sync '{contract_type}' contracts on "
                 f"'{exchange}' to master listing via the cli.")
-    cli_connector.mediator.notify(
+    try:
+        (added, removed) = cli_connector.mediator.notify(
         "sync_contracts_to_listing",
         {'ctype': contract_type.upper(),
             'exchange': exchange.upper()})
+    except ExitSignalDetectedError:
+        click.echo("Stopped.")
+        return
     click.echo(f"Master listing synced for {contract_type.upper()} on "
                f"{exchange.upper()}.")
 
