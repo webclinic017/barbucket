@@ -44,9 +44,10 @@ class IbDetailsProcessor(BaseComponent):
                 self.__check_abort_signal()
                 try:
                     self.__get_contract_details_from_tws(contract)
-                    self.__validate_details()
                 except TwsContractRelatedError as e:
                     self.__handle_tws_contract_related_error(e)
+                try:
+                    self.__validate_details()
                 except QueryReturnedNoResultError as e:
                     self.__handle_no_result_error(e)
                 except QueryReturnedMultipleResultsError as e:
@@ -58,6 +59,12 @@ class IbDetailsProcessor(BaseComponent):
                     self.__pbar.update(inc=1)
         except TwsSystemicError as e:
             self.__handle_tws_systemic_error(e)
+        except ExitSignalDetectedError as e:
+            self.__handle_exit_signal_detected_error(e)
+        else:
+            self.mediator.notify(
+                "show_cli_message", {
+                    'message': "Updated IB details for master listings."})
         finally:
             self.__disconnect_tws()
 
@@ -81,10 +88,15 @@ class IbDetailsProcessor(BaseComponent):
         """Disconnect from TWS app"""
         self.mediator.notify("disconnect_from_tws")
 
-    def __check_abort_signal(self) -> bool:
-        """Check conditions to abort operation."""
+    def __check_abort_signal(self) -> None:
+        """Check for abort signal."""
         if self.__signal_handler.exit_requested():
             raise ExitSignalDetectedError
+
+    def __handle_exit_signal_detected_error(self, e) -> None:
+        logger.info(f"Operation stopped.")
+        self.mediator.notify(
+            "show_cli_message", {'message': "Stopped."})
 
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""
