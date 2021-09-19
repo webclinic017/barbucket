@@ -22,7 +22,7 @@ class TvDetailsProcessor(BaseComponent):
         self.mediator = mediator
         self.__file_row = None
 
-    def read_tv_data(self) -> None:
+    def read_tv_data(self) -> int:
         """Read contract details from tv files and write to database"""
 
         files = self.__get_files_from_dir()
@@ -33,11 +33,12 @@ class TvDetailsProcessor(BaseComponent):
                 try:
                     contract_id = self.__get_contract_id_from_db()
                 except QueryReturnedNoResultError:
-                    pass
+                    print("QueryReturnedNoResultError")  # Todo
                 except QueryReturnedMultipleResultsError:
-                    pass
+                    print("QueryReturnedMultipleResultsError")  # Todo
                 else:
                     self.__write_contract_details_to_db(contract_id)
+        return len(files)
 
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
