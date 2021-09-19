@@ -29,11 +29,7 @@ class QuotesStatusDbConnector():
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
 
-        if len(result) == 0:
-            raise QueryReturnedNoResultError(f"Message")  # PROBLEM
-        elif len(result) > 1:
-            raise QueryReturnedMultipleResultsError(f"Message")
-        else:
+        # todo: Check for result length != 1
             return result[0]
 
     def insert_quotes_status(self, contract_id: int, status_code: int,
