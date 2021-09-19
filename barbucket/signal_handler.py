@@ -23,7 +23,7 @@ class SignalHandler():
                         "Press again to stop immediately."})
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.state = True
-        logger.debug(f"Exit signal detected.")
+        logger.info(f"Exit signal detected.")
 
     def exit_requested(self) -> bool:
         """Check if the user pressed Ctrl-C."""
