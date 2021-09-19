@@ -4,10 +4,11 @@ from typing import List
 
 
 class ConfigReader():
-    """Read config values from exiting configuration file."""
+    """Read config values from existing configuration file."""
 
     _PARSER = configparser.ConfigParser(allow_no_value=True)
     _CONFIG_FILE_PATH = Path.home() / ".barbucket/config.ini"
+    # Todo: Reads empty file when not initialized. initialization happens afterwards.
 
     def __init__(self) -> None:
         self._PARSER.read(self._CONFIG_FILE_PATH)

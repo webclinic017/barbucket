@@ -13,21 +13,16 @@ class DbInitializer():
         self.mediator = mediator
         self._DB_PATH = None
 
-    def archive_database(self) -> None:
-        """Archive the database by renaming the file."""
+    def initialize_database(self) -> None:
+        """Initialize database if it doesnt exist. Else skip."""
 
         self.__get_db_path()
-        now = datetime.now()
-        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")  # no colons in filenames
-        new_name = self._DB_PATH.parent / f"database_archived_{timestamp}.db"
-        try:
-            self._DB_PATH.rename(new_name)
-        except FileNotFoundError as e:
-            logger.warn("Database not archived, because no databse "
-                        "exists.")
-            raise FileNotFoundError from e
+        if not self._DB_PATH.is_file():
+            self._create_db_file()
+            self._create_db_schema()
+            logger.debug("Database created. Finished initialization.")
         else:
-            logger.info(f"Database archived as: {new_name}")
+            logger.debug("Database already exists. Finished initialization.")
 
     def __get_db_path(self) -> None:
         conf_path = self.mediator.notify(
@@ -40,12 +35,12 @@ class DbInitializer():
 
         conn = sqlite3.connect(self._DB_PATH)
         conn.close()
-        logger.info("Created new database file.")
+        logger.debug("Created new database file.")
 
     def _create_db_schema(self) -> None:
         """Create schema in database."""
 
-        logger.info("Started creating database schema.")
+        logger.debug("Started creating database schema.")
         conn = self.mediator.notify("get_db_connection", {})
         cur = conn.cursor()
 
@@ -140,15 +135,20 @@ class DbInitializer():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info("Finished creating database schema.")
+        logger.debug("Finished creating database schema.")
 
-    def initialize_database(self) -> None:
-        """Initialize database if it doesnt exist. Else skip."""
+    def archive_database(self) -> None:
+        """Archive the database by renaming the file."""
 
         self.__get_db_path()
-        if not self._DB_PATH.is_file():
-            self._create_db_file()
-            self._create_db_schema()
-            logger.info("Database created. Finished initialization.")
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")  # no colons in filenames
+        new_name = self._DB_PATH.parent / f"database_archived_{timestamp}.db"
+        try:
+            self._DB_PATH.rename(new_name)
+        except FileNotFoundError as e:
+            logger.warn("Database not archived, because no databse "
+                        "exists.")
+            raise FileNotFoundError from e
         else:
-            logger.info("Database already exists. Finished initialization.")
+            logger.debug(f"Database archived as: {new_name}")

@@ -7,10 +7,10 @@ verify_ssl = true
 pytest = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
-ipykernel = "*"
 tqdm = "*"
 autopep8 = "*"
 pylint = "*"
+rope = "*"
 
 [packages]
 pandas = "*"

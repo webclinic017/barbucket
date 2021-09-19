@@ -16,12 +16,12 @@ class Mediator():
             universe_db_connector: Any,
             quotes_db_connector: Any,
             quotes_status_db_connector: Any,
+            ib_details_connector: Any,
+            tv_details_connector: Any,
             tws_connector: Any,
             ib_listings_processor: Any,
             ib_details_processor: Any,
             tv_details_processor: Any,
-            encoder: Any,
-            exiter: Any,
             cli: Any) -> None:
 
         # Instanciate components
@@ -49,6 +49,12 @@ class Mediator():
         self.__quotes_status_db_connector = quotes_status_db_connector
         self.__quotes_status_db_connector.mediator = self
 
+        self.__ib_details_connector = ib_details_connector
+        self.__ib_details_connector.mediator = self
+
+        self.__tv_details_connector = tv_details_connector
+        self.__tv_details_connector.mediator = self
+
         self.__tws_connector = tws_connector
         self.__tws_connector.mediator = self
 
@@ -61,12 +67,6 @@ class Mediator():
         self.__tv_details_processor = tv_details_processor
         self.__tv_details_processor.mediator = self
 
-        self.__encoder = encoder
-        self.__encoder.mediator = self
-
-        self.__exiter = exiter
-        self.__exiter.mediator = self
-
         self.__cli = cli
         self.__cli.cli_connector.mediator = self
 
@@ -77,6 +77,10 @@ class Mediator():
         # ConfigReader
         elif action == "get_config_value_single":
             return self.__config_reader.get_config_value_single(
+                section=parameters['section'],
+                option=parameters['option'])
+        elif action == "get_config_value_list":
+            return self.__config_reader.get_config_value_list(
                 section=parameters['section'],
                 option=parameters['option'])
         # DbInitializer
@@ -126,6 +130,25 @@ class Mediator():
                 status_text=parameters['status_text'],
                 daily_quotes_requested_from=parameters['daily_quotes_requested_from'],
                 daily_quotes_requested_till=parameters['daily_quotes_requested_till'])
+        # IbDetailsConnector
+        elif action == "insert_ib_details":
+            return self.__ib_details_connector.insert_ib_details(
+                contract_id=parameters['contract_id'],
+                contract_type_from_details=parameters['contract_type_from_details'],
+                primary_exchange=parameters['primary_exchange'],
+                industry=parameters['industry'],
+                category=parameters['category'],
+                subcategory=parameters['subcategory'])
+        # TvDetailsConnector
+        elif action == "insert_tv_details":
+            return self.__tv_details_connector.insert_tv_details(
+                contract_id=parameters['contract_id'],
+                market_cap=parameters['market_cap'],
+                avg_vol_30_in_curr=parameters['avg_vol_30_in_curr'],
+                country=parameters['country'],
+                employees=parameters['employees'],
+                profit=parameters['profit'],
+                revenue=parameters['revenue'])
         # TwsConnector
         elif action == "download_contract_details_from_tws":
             return self.__tws_connector.download_contract_details(
@@ -159,17 +182,6 @@ class Mediator():
         # TvDetailsProcessor
         elif action == "read_tv_data":
             return self.__tv_details_processor.read_tv_data()
-        # Tools
-        elif action == "decode_exchange_tv":
-            return self.__encoder.decode_exchange_tv(
-                exchange=parameters['exchange'])
-        # GracefulExiter
-        elif action == "exit_requested_by_user":
-            return self.__exiter.exit_requested()
-        elif action == "get_config_value_list":
-            return self.__config_reader.get_config_value_list(
-                section=parameters['section'],
-                option=parameters['option'])
         # Cli
         elif action == "run_cli":
             return self.__cli.cli()

@@ -7,7 +7,7 @@ from barbucket.mediator import Mediator
 logger = logging.getLogger(__name__)
 
 
-class GracefulExiter():
+class SignalHandler():
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.state = False

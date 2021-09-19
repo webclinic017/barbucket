@@ -26,8 +26,8 @@ class UniversesDbConnector():
 
         for contract_id in contract_ids:
             self.__create_membership(contract_id, name)
-        logger.info(f"Created universe '{name}' with {len(contract_ids)}"
-                    f" contracts.")
+        logger.debug(f"Created universe '{name}' with {len(contract_ids)}"
+                     f" contracts.")
 
     def get_universes(self) -> List[str]:
         """Get all existing universes"""
@@ -76,4 +76,4 @@ class UniversesDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info(f"Deleted universe '{universe}'.")
+        logger.debug(f"Deleted universe '{universe}'.")

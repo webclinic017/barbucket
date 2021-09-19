@@ -9,12 +9,18 @@ import numpy as np
 import enlighten
 
 from .mediator import Mediator
-from .custom_exceptions import ExistingDataIsSufficientError
-from .custom_exceptions import ExistingDataIsTooOldError
-from .custom_exceptions import ContractHasErrorStatusError
-from .custom_exceptions import QueryReturnedMultipleResultsError
-from .custom_exceptions import QueryReturnedNoResultError
+from .signal_handler import SignalHandler
 from .base_component import BaseComponent
+from .encoder import Encoder
+from .custom_exceptions import (
+    ExistingDataIsSufficientError,
+    ExistingDataIsTooOldError,
+    ContractHasErrorStatusError,
+    QueryReturnedMultipleResultsError,
+    QueryReturnedNoResultError,
+    TwsSystemicError,
+    TwsContractRelatedError,
+    ExitSignalDetectedError)
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +30,7 @@ class IbQuotesProcessor(BaseComponent):
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
+        self.__signal_handler = SignalHandler()
         self.__contract_id = None
         self.__contract_data = None
         self.__quotes_status = None
@@ -44,8 +51,7 @@ class IbQuotesProcessor(BaseComponent):
         self.__connect_tws()
         try:
             for self.__contract_id in contract_ids:
-                if self.__check_abort_conditions():
-                    break
+                self.__check_abort_signal()
                 try:
                     self.__get_contract_data()
                 except (QueryReturnedNoResultError,
@@ -56,7 +62,9 @@ class IbQuotesProcessor(BaseComponent):
                 try:
                     self.__get_contract_status()
                 except QueryReturnedNoResultError:
-                    pass
+                    print("QueryReturnedNoResultError")  # Todo
+                except QueryReturnedMultipleResultsError:
+                    print("QueryReturnedMultipleResultsError")  # Todo
                 try:
                     self.__calculate_dates()
                 except (ExistingDataIsSufficientError,
@@ -67,12 +75,24 @@ class IbQuotesProcessor(BaseComponent):
                     continue
                 try:
                     quotes = self.__get_quotes_from_tws()
-                except QueryReturnedNoResultError:
-                    self.__write_error_status_to_db()
+                except TwsContractRelatedError as e:
+                    self.__handle_tws_contract_related_error(e)
+                except QueryReturnedNoResultError as e:
+                    print("This needs to be done.")  # Todo
+                    raise e
                 else:
                     self.__write_quotes_to_db(quotes)
                     self.__write_success_status_to_db()
-                self.__pbar.update()
+                self.__pbar.update(incr=1)
+        except TwsSystemicError as e:
+            self.__handle_tws_systemic_error(e)
+        except ExitSignalDetectedError as e:
+            self.__handle_exit_signal_detected_error(e)
+        else:
+            self.mediator.notify(
+                "show_cli_message", {
+                    'message': f"Finished downloading historical data for "
+                    f"universe '{universe}'"})
         finally:
             self.__disconnect_tws()
 
@@ -83,18 +103,17 @@ class IbQuotesProcessor(BaseComponent):
 
     def __connect_tws(self) -> None:
         self.mediator.notify("connect_to_tws")
-        logger.info(f"Connnected to TWS.")
 
     def __disconnect_tws(self) -> None:
         self.mediator.notify("disconnect_from_tws")
-        logger.info(f"Disconnnected from TWS.")
 
-    def __check_abort_conditions(self) -> bool:
-        if (self.mediator.notify("exit_signal")
-                or self.mediator.notify("tws_has_error")):
-            return True
-        else:
-            return False
+    def __check_abort_signal(self) -> None:
+        """Check for abort signal."""
+        if self.__signal_handler.exit_requested():
+            raise ExitSignalDetectedError
+
+    def __handle_exit_signal_detected_error(self, e) -> None:
+        self.mediator.notify("show_cli_message", {'message': "Stopped."})
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
@@ -110,7 +129,6 @@ class IbQuotesProcessor(BaseComponent):
             self.__contract_data = contract_data[0]
 
     def __get_contract_status(self) -> None:
-        logger.info(f"Message")
         self.__quotes_status = self.mediator.notify(
             "get_quotes_status",
             {'contract_id': self.__contract_id})
@@ -122,9 +140,11 @@ class IbQuotesProcessor(BaseComponent):
             self.__calculate_dates_for_existing_contract()
         else:
             self.__contract_has_error_status()
+        logger.debug(f"Calculated 'duration' as: {self.__duration}"
+                     f"'from' as: {self.__quotes_from}, "
+                     f"'till' as: {self.__quotes_till}")
 
     def __calculate_dates_for_new_contract(self) -> None:
-        logger.info(f"Message")
         self.__duration = "15 Y"
         from_date = date.today() - timedelta(days=5479)  # 15 years
         self.__quotes_from = from_date.strftime('%Y-%m-%d')
@@ -145,10 +165,10 @@ class IbQuotesProcessor(BaseComponent):
         end_date = date.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
         if ndays <= REDOWNLOAD_DAYS:
-            logger.info(f"Existing data is only {ndays} days old.")
+            logger.debug(f"Existing data is only {ndays} days old.")
             raise ExistingDataIsSufficientError
         if ndays > 360:
-            logger.info(f"Existing data is already {ndays} days old.")
+            logger.debug(f"Existing data is already {ndays} days old.")
             raise ExistingDataIsTooOldError
         ndays += OVERLAP_DAYS
         self.__duration = str(ndays) + " D"
@@ -156,14 +176,12 @@ class IbQuotesProcessor(BaseComponent):
         self.__quotes_till = end_date
 
     def __contract_has_error_status(self) -> None:
-        logger.info("Contract already has error status. Skipped.")
+        logger.debug("Contract already has error status. Skipped.")
         raise ContractHasErrorStatusError
 
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
-        exchange = self.mediator.notify(
-            "encode_exchange_ib",
-            {'exchange': self.__contract_data['exchange']})
+        exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
         parameters = {
             'contract_id': self.__contract_id,
             'symbol': self.__contract_data['broker_symbol'],
@@ -184,13 +202,27 @@ class IbQuotesProcessor(BaseComponent):
             'daily_quotes_requested_till': self.__quotes_till}
         self.mediator.notify("insert_quotes_status", parameters)
 
-    def __write_error_status_to_db(self) -> None:
-        (error_code, error_text) = self.mediator.notify(
-            "get_tws_contract_error", {})
+    def __handle_tws_contract_related_error(self, e):
+        logger.warning(f"Contract-related problem in TWS detected: "
+                       f"{e.req_id}, {e.contract}, "
+                       f"{e.error_code}, {e.error_string}")
+        self.mediator.notify(
+            "show_cli_message",
+            {'message': (f"Request {e.req_id} for contract {e.contract} "
+                         f"returned error {e.error_code}: {e.error_string}")})
         parameters = {
             'contract_id': self.__contract_id,
-            'status_code': error_code,
-            'status_text': error_text,
+            'status_code': e.error_code,
+            'status_text': e.error_string,
             'daily_quotes_requested_from': None,
             'daily_quotes_requested_till': None}
         self.mediator.notify("insert_quotes_status", parameters)
+
+    def __handle_tws_systemic_error(self, e):
+        logger.error(f"Systemic problem in TWS connection detected: "
+                     f"{e.req_id}, {e.contract}, "
+                     f"{e.error_code}, {e.error_string}")
+        self.mediator.notify(
+            "show_cli_message",
+            {'message': (f"Request {e.req_id} for contract {e.contract} "
+                         f"returned error {e.error_code}: {e.error_string}")})

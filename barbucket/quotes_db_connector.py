@@ -27,8 +27,8 @@ class QuotesDbConnector():
         conn.commit()
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
-        logger.info(f"Inserted {len(quotes)} for contract_id {quotes[0][0]} "
-                    f"into db.")
+        logger.debug(f"Inserted {len(quotes)} for contract_id {quotes[0][0]} "
+                     f"into db.")
 
     def get_quotes(self, contract_id: int) -> pd.DataFrame:
         """Get quotes from the db"""
@@ -42,6 +42,6 @@ class QuotesDbConnector():
         self.mediator.notify("close_db_connection", {'conn': conn})
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
         df = df.set_index('date')
-        logger.info(f"Read {len(df)} quotes for contract id {contract_id} "
-                    f"from db.")
+        logger.debug(f"Read {len(df)} quotes for contract id {contract_id} "
+                     f"from db.")
         return df

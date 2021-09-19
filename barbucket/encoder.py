@@ -1,10 +1,9 @@
 class Encoder():
     """Encode and decode exchange names between different formats."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    # @staticmethod
     # def remove_special_chars(input_string):
     #     special_chars = ["'"]
     #     result = input_string
@@ -34,7 +33,8 @@ class Encoder():
     # 'ENEXT.BE'        #
     # 'AEB'             #
 
-    def encode_exchange_tv(self, exchange: str) -> str:
+    @staticmethod
+    def encode_exchange_tv(exchange: str) -> str:
         """Encode from Barbucket-notation to TV-notation"""
 
         exchange_codes = {
@@ -46,7 +46,8 @@ class Encoder():
         else:
             return exchange
 
-    def decode_exchange_tv(self, exchange: str) -> str:
+    @staticmethod
+    def decode_exchange_tv(exchange: str) -> str:
         """Decode from IB-notation to Barbucket-notation"""
 
         exchange_codes = {
@@ -58,7 +59,8 @@ class Encoder():
         else:
             return exchange
 
-    def encode_exchange_ib(self, exchange: str) -> str:
+    @staticmethod
+    def encode_exchange_ib(exchange: str) -> str:
         """Encode from Barbucket-notation to IB-notation"""
 
         exchange_codes = {
@@ -69,7 +71,8 @@ class Encoder():
         else:
             return exchange
 
-    def decode_exchange_ib(self, exchange: str) -> str:
+    @staticmethod
+    def decode_exchange_ib(exchange: str) -> str:
         """Decode from IB-notation to Barbucket-notation"""
 
         exchange_codes = {
