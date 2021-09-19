@@ -241,9 +241,9 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
 
     def __set_page_count(self) -> None:
         soup = BeautifulSoup(self.__html, 'html.parser')
-        pagination_table = soup.find_all('ul', class_='pagination')
-        page_buttons = pagination_table.find_all('li')
-        self.__page_count = page_buttons[-2]
+        pagination_tables = soup.find_all('ul', class_='pagination')
+        page_buttons = pagination_tables[0].find_all('li')
+        self.__page_count = int(page_buttons[-2].text)
         self.__pbar.total = self.__page_count
 
     def __get_html(self) -> None:
