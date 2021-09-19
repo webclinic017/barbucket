@@ -45,7 +45,7 @@ def test_connect_existing(mock_db_connector) -> None:
 
 
 def test_connect_nonexisting(mock_db_connector) -> None:
-    with pytest.raises(database.DbNotInitializedError):
+    with pytest.raises(database.NotInitializedError):
         assert mock_db_connector.connect()
 
 
