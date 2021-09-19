@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 from .mediator import Mediator
-from .custom_exceptions import DbNotInitializedError
+from .custom_exceptions import NotInitializedError
 
 
 class DbConnector():
@@ -17,7 +17,7 @@ class DbConnector():
 
         self.__get_db_path()
         if not self._DB_PATH.is_file():
-            raise DbNotInitializedError("Database file does not exist.")
+            raise NotInitializedError("Database file does not exist.")
             # otherwise sqlite3.connect() would create an empty file and we dont want that
         conn = sqlite3.connect(self._DB_PATH)
         conn.execute("""
