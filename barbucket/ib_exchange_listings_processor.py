@@ -10,7 +10,7 @@ import enlighten
 
 from .mediator import Mediator
 from .signal_handler import SignalHandler
-from .custom_exceptions import ExitSignalDetectedError
+from .custom_exceptions import ExitSignalDetectedError, QueryReturnedNoResultError
 
 logger = logging.getLogger(__name__)
 
@@ -25,22 +25,45 @@ class IbExchangeListingsProcessor():
         self.__website_contracts: List[Any] = []
         self.__database_contracts: List[Any] = []
 
-    def sync_contracts_to_listing(self, ctype: str, exchange: str) -> Tuple[int]:
+    def sync_contracts_to_listing(self, ctype: str, exchange: str) -> None:
         """Sync local exchange listings to the IB website"""
 
         self.__ctype = ctype
         self.__exchange = exchange
+
         if ctype == "ETF":
             scraper = IbExchangeListingSinglepageReader()
         elif ctype == "STOCK":
             scraper = IbExchangeListingMultipageReader()
+        try:
         self.__website_contracts = scraper.read_ib_exchange_listing(
             self.__ctype,
             self.__exchange)
         self.__get_contracts_from_db()
-        removed = self.__remove_deleted_contracts_from_db()
-        added = self.__add_new_contracts_to_db()
-        return (removed, added)
+            removed_count = self.__remove_deleted_contracts_from_db()
+            added_count = self.__add_new_contracts_to_db()
+        except ExitSignalDetectedError as e:
+            self.__handle_exit_signal_detected_error(e)
+        except QueryReturnedNoResultError as e:
+            self.__handle_query_returned_no_result_error(e)
+        else:
+            self.mediator.notify(
+                "show_cli_message", {
+                    'message': f"Master listing synced for {ctype} on "
+                    f"{exchange}. {added_count} contracts were added, "
+                    f"{removed_count} were removed."})
+
+    def __handle_exit_signal_detected_error(self, e):
+        self.mediator.notify("show_cli_message", {'message': "Stopped."})
+
+    def __handle_query_returned_no_result_error(self, e):
+        logger.error(
+            f"Webscraping for {self.__ctype} on {self.__exchange} returned "
+            f"no results.")
+        self.mediator.notify(
+            "show_cli_message", {
+                'message': f"Webscraping for {self.__ctype} on "
+                f"{self.__exchange} returned no results."})
 
     def __get_contracts_from_db(self) -> None:
         filters = {
