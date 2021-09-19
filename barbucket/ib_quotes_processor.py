@@ -62,7 +62,9 @@ class IbQuotesProcessor(BaseComponent):
                 try:
                     self.__get_contract_status()
                 except QueryReturnedNoResultError:
-                    pass
+                    print("QueryReturnedNoResultError")  # Todo
+                except QueryReturnedMultipleResultsError:
+                    print("QueryReturnedMultipleResultsError")  # Todo
                 try:
                     self.__calculate_dates()
                 except (ExistingDataIsSufficientError,
@@ -75,16 +77,22 @@ class IbQuotesProcessor(BaseComponent):
                     quotes = self.__get_quotes_from_tws()
                 except TwsContractRelatedError as e:
                     self.__handle_tws_contract_related_error(e)
-                except QueryReturnedNoResultError:
-                    # Todo
-                    print("This needs to be addressed.")
-                    raise QueryReturnedNoResultError
+                except QueryReturnedNoResultError as e:
+                    print("This needs to be done.")  # Todo
+                    raise e
                 else:
                     self.__write_quotes_to_db(quotes)
                     self.__write_success_status_to_db()
                 self.__pbar.update(incr=1)
         except TwsSystemicError as e:
             self.__handle_tws_systemic_error(e)
+        except ExitSignalDetectedError as e:
+            self.__handle_exit_signal_detected_error(e)
+        else:
+            self.mediator.notify(
+                "show_cli_message", {
+                    'message': f"Finished downloading historical data for "
+                    f"universe '{universe}'"})
         finally:
             self.__disconnect_tws()
 
@@ -99,9 +107,13 @@ class IbQuotesProcessor(BaseComponent):
     def __disconnect_tws(self) -> None:
         self.mediator.notify("disconnect_from_tws")
 
-    def __check_abort_signal(self) -> bool:
+    def __check_abort_signal(self) -> None:
+        """Check for abort signal."""
         if self.__signal_handler.exit_requested():
             raise ExitSignalDetectedError
+
+    def __handle_exit_signal_detected_error(self, e) -> None:
+        self.mediator.notify("show_cli_message", {'message': "Stopped."})
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
