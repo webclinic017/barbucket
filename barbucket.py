@@ -39,7 +39,7 @@ if __name__ == '__main__':
         when='midnight')
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        "%(asctime)s;%(name)s;%(levelname)s;%(message)s")
     file_handler.setFormatter(file_formatter)
     root_logger.addHandler(file_handler)
 
