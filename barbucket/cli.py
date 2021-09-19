@@ -36,8 +36,8 @@ def database() -> None:
 
 
 @database.command()
-@click.confirmation_option(prompt=("Are you sure you want to archive the "
-                                   "current database?"))
+@click.confirmation_option(
+    prompt=("Are you sure you want to archive the current database?"))
 def archive() -> None:
     """Archive the local database"""
     logger.info(f"User requested to archive the datebase via the cli.")
@@ -56,41 +56,30 @@ def contracts() -> None:
 @click.option("-e", "--exchange", "exchange", required=True, type=str)
 def sync_listing(contract_type: str, exchange: str) -> None:
     """Sync master listing to IB exchange listing"""
-    logger.info(f"User requested to sync '{contract_type}' contracts on "
-                f"'{exchange}' to master listing via the cli.")
-    try:
-        (added, removed) = cli_connector.mediator.notify(
-            "sync_contracts_to_listing",
-            {'ctype': contract_type.upper(),
-                'exchange': exchange.upper()})
-    except ExitSignalDetectedError:
-        click.echo("Stopped.")
-        return
-    click.echo(f"Master listing synced for {contract_type.upper()} on "
-               f"{exchange.upper()}. {added} contracts were added, {removed} "
-               f"were removed.")
+    logger.info(
+        f"User requested to sync '{contract_type}' contracts on '{exchange}' "
+        f"to master listing via the cli.")
+    cli_connector.mediator.notify(
+        "sync_contracts_to_listing",
+        {'ctype': contract_type.upper(),
+            'exchange': exchange.upper()})
 
 
 @contracts.command()
 def download_ib_details() -> None:
     """Fetch details for all contracts from IB TWS"""
-    logger.info(f"User requested to download details from TWS via the cli"
-                f".")
-    try:
-        cli_connector.mediator.notify("update_ib_contract_details")
-    except ExitSignalDetectedError:
-        click.echo("Stopped.")
-        return
-    click.echo("Updated IB details for master listings.")
+    logger.info(
+        f"User requested to download details from TWS via the cli.")
+    cli_connector.mediator.notify("update_ib_contract_details")
 
 
 @contracts.command()
 def read_tv_details() -> None:
     """Read details for all contracts from TV files"""
-    logger.info(f"User requested to read and store details from tv files "
-                f"via the cli.")
-    cli_connector.mediator.notify("read_tv_data")
-    click.echo(f"Finished reading TV files.")
+    logger.info(
+        f"User requested to read and store details from tv files via the cli.")
+    file_count = cli_connector.mediator.notify("read_tv_data")
+    click.echo(f"Finished reading {file_count} TV files.")
 
 
 # Group quotes
@@ -103,17 +92,12 @@ def quotes() -> None:
 @click.option("-u", "--universe", "universe", required=True, type=str)
 def fetch(universe: str) -> None:
     """Fetch quotes from IB TWS"""
-    logger.info(f"User requested to download quotes from TWS for "
-                f"universe '{universe}' via the cli.")
-    try:
-        cli_connector.mediator.notify(
-            "download_historical_quotes",
-            {'universe': universe})
-    except ExitSignalDetectedError:
-        click.echo("Stopped.")
-        return
-    click.echo(f"Finished downloading historical data for universe "
-               f"'{universe}'")
+    logger.info(
+        f"User requested to download quotes from TWS for universe "
+        f"'{universe}' via the cli.")
+    cli_connector.mediator.notify(
+        "download_historical_quotes",
+        {'universe': universe})
 
 
 # Group universes
@@ -127,14 +111,15 @@ def universes() -> None:
 @click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
 def create(name: str, contract_ids: str) -> None:
     """Create new universe"""
-    logger.info(f"User requested to create universe '{name}' with "
-                f"{len(contract_ids)} members via the cli.")
+    logger.info(
+        f"User requested to create universe '{name}' with {len(contract_ids)} "
+        f"members via the cli.")
     con_list = [int(n) for n in contract_ids.split(",")]
     cli_connector.mediator.notify(
         "create_universe",
         {'name': name, 'contract_ids': con_list})
-    click.echo(f"Created universe '{name}' with {len(contract_ids)} "
-               f"members.")
+    click.echo(
+        f"Created universe '{name}' with {len(contract_ids)} members.")
 
 
 @universes.command()
@@ -149,8 +134,9 @@ def list() -> None:
 @click.option("-n", "--name", "name", required=True, type=str)
 def members(name: str) -> None:
     """List universes members"""
-    logger.info(f"User requestet to list the members for universe "
-                f"'{name}' via the cli.")
+    logger.info(
+        f"User requestet to list the members for universe '{name}' via the "
+        f"cli.")
     members = cli_connector.mediator.notify(
         "get_universe_members",
         {'universe': name})
@@ -159,12 +145,12 @@ def members(name: str) -> None:
 
 @universes.command()
 @click.option("-n", "--name", "name", required=True, type=str)
-@click.confirmation_option(prompt=("Are you sure you want to delete this "
-                                   "universe?"))
+@click.confirmation_option(
+    prompt=("Are you sure you want to delete this universe?"))
 def delete(name: str) -> None:
     """Delete universe"""
-    logger.info(f"User requestet to delete universe '{name}' via the "
-                f"cli.")
+    logger.info(
+        f"User requestet to delete universe '{name}' via the cli.")
     cli_connector.mediator.notify(
         "delete_universe",
         {'universe': name})
