@@ -30,7 +30,7 @@ class QuotesStatusDbConnector():
         self.mediator.notify("close_db_connection", {'conn': conn})
 
         if len(result) == 0:
-            raise QueryReturnedNoResultError(f"Message")
+            raise QueryReturnedNoResultError(f"Message")  # PROBLEM
         elif len(result) > 1:
             raise QueryReturnedMultipleResultsError(f"Message")
         else:
