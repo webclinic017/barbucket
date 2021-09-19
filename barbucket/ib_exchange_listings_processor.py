@@ -139,19 +139,25 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
 
     def __init__(self) -> None:
         self.__html: str = None
+        self.__ctype: str = None
+        self.__exchange: str = None
 
     def read_ib_exchange_listing(self, ctype: str, exchange: str):
         """Docstring"""
 
-        self.__get_html(exchange)
+        self.__ctype = ctype
+        self.__exchange = exchange
+
+        self.__get_html()
         self.__correct_ib_error()
-        contracts = self.__extract_data(ctype, exchange)
+        contracts = self.__extract_data()
+        self.__validate_result(contracts)
         return contracts
 
-    def __get_html(self, exchange: str) -> None:
+    def __get_html(self) -> None:
         url = (
             f"https://www.interactivebrokers.com/en/index.php?f=567&exch="
-            f"{exchange}")
+            f"{self.__exchange}")
         self.__html = requests.get(url).text
 
     def __correct_ib_error(self) -> None:
@@ -170,7 +176,7 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
                 f"IB error for singlepage listings no longer present. Checked "
                 f"{len(old_lines)} lines.")
 
-    def __extract_data(self, ctype: str, exchange: str) -> List[Dict[Any]]:
+    def __extract_data(self) -> List[Dict[Any, Any]]:
         soup = BeautifulSoup(self.__html, 'html.parser')
         tables = soup.find_all(
             'table',
@@ -181,14 +187,18 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
         for row in rows:
             columns = row.find_all('td')
             row_dict = {
-                'type': ctype,
+                'type': self.__ctype,
                 'broker_symbol': columns[0].text.strip(),
                 'name': columns[1].text.strip(),
                 'exchange_symbol': columns[2].text.strip(),
                 'currency': columns[3].text.strip(),
-                'exchange': exchange.upper()}
+                'exchange': self.__exchange.upper()}
             website_contracts.append(row_dict)
         return website_contracts
+
+    def __validate_result(self, contracts):
+        if len(contracts) == 0:
+            raise QueryReturnedNoResultError
 
 
 class IbExchangeListingMultipageReader(IbExchangeListingReader):
