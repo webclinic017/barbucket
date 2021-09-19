@@ -76,7 +76,7 @@ class IbExchangeListingsProcessor():
              'return_columns': columns})
 
     def __remove_deleted_contracts_from_db(self) -> int:
-        contracts_removed = []
+        contracts_removed = []  # todo remove
         removed_count = 0
         for db_row in self.__database_contracts:
             exists = False
@@ -101,7 +101,7 @@ class IbExchangeListingsProcessor():
         return removed_count
 
     def __add_new_contracts_to_db(self) -> int:
-        contracts_added = []
+        contracts_added = []  # todo remove
         added_count = 0
         for web_row in self.__website_contracts:
             exists = False

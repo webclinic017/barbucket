@@ -31,7 +31,8 @@ class ContractsDbConnector():
                                     exchange_symbol: str, broker_symbol: str,
                                     name: str, currency: str, exchange: str
                                     ) -> int:
-        """Creates a new entry in the contracts table."""
+        """Creates a new entry in the contracts table.
+        todo: what if already exits?"""
 
         conn = self.mediator.notify("get_db_connection")
         cur = conn.cursor()
@@ -60,7 +61,8 @@ class ContractsDbConnector():
         return contract_id
 
     def __create_quotes_status_db_entry(self, contract_id: int) -> None:
-        """Creates a new entry in the quotes_status table."""
+        """Creates a new entry in the quotes_status table.
+        todo: what if already exits?"""
 
         conn = self.mediator.notify("get_db_connection")
         cur = conn.cursor()
