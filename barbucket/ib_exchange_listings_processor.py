@@ -36,10 +36,10 @@ class IbExchangeListingsProcessor():
         elif ctype == "STOCK":
             scraper = IbExchangeListingMultipageReader()
         try:
-        self.__website_contracts = scraper.read_ib_exchange_listing(
-            self.__ctype,
-            self.__exchange)
-        self.__get_contracts_from_db()
+            self.__website_contracts = scraper.read_ib_exchange_listing(
+                self.__ctype,
+                self.__exchange)
+            self.__get_contracts_from_db()
             removed_count = self.__remove_deleted_contracts_from_db()
             added_count = self.__add_new_contracts_to_db()
         except ExitSignalDetectedError as e:
@@ -220,8 +220,8 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
     def read_ib_exchange_listing(self, ctype: str, exchange: str):
         """Docstring"""
 
-        self.__ctype: str = ctype
-        self.__exchange: str = exchange
+        self.__ctype = ctype
+        self.__exchange = exchange
 
         while self.__current_page <= self.__page_count:
             self.__get_html()
@@ -232,7 +232,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             logger.debug(
                 f"Scraped IB exchange listing for {self.__exchange}, page "
                 f"{self.__current_page}.")
-            self.__check_abort_conditions()
+            self.__check_abort_signal()
             self.__pbar.update(incr=1)
             self.__current_page += 1
             if self.__current_page != self.__page_count:
@@ -263,7 +263,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 f"IB error for paginated listings no longer present. Checked "
                 f"{len(self.__html.splitlines())} lines.")
 
-    def __extract_data(self) -> List[Dict[Any]]:
+    def __extract_data(self) -> List[Dict[Any, Any]]:
         soup = BeautifulSoup(self.__html, 'html.parser')
         tables = soup.find_all(
             'table',
@@ -281,7 +281,6 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 'exchange': self.__exchange.upper()}
             self.__website_data.append(row_dict)
 
-    def __check_abort_conditions(self) -> bool:
-        """Check conditions to abort operation."""
+    def __check_abort_signal(self) -> None:
         if self.__signal_handler.exit_requested():
             raise ExitSignalDetectedError
