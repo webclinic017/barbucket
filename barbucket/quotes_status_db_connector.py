@@ -30,7 +30,7 @@ class QuotesStatusDbConnector():
         self.mediator.notify("close_db_connection", {'conn': conn})
 
         # todo: Check for result length != 1
-            return result[0]
+        return result[0]
 
     def insert_quotes_status(self, contract_id: int, status_code: int,
                              status_text: str,
@@ -43,12 +43,17 @@ class QuotesStatusDbConnector():
         # 1: Successfully downloaded quotes
         # >1: TWS error code
 
-        existing_status = self.get_quotes_status(contract_id=contract_id)
-
-        if (daily_quotes_requested_from is None) and (existing_status is not None):
-            daily_quotes_requested_from = existing_status['daily_quotes_requested_from']
-        if (daily_quotes_requested_till is None) and (existing_status is not None):
-            daily_quotes_requested_till = existing_status['daily_quotes_requested_till']
+        if ((daily_quotes_requested_from == None)
+                or (daily_quotes_requested_till == None)):  # Db entry might not exist yet.
+            existing_status = self.get_quotes_status(contract_id=contract_id)
+            if ((daily_quotes_requested_from is None)
+                    and (existing_status is not None)):
+                daily_quotes_requested_from = existing_status[
+                    'daily_quotes_requested_from']
+            if ((daily_quotes_requested_till is None)
+                    and (existing_status is not None)):
+                daily_quotes_requested_till = existing_status[
+                    'daily_quotes_requested_till']
 
         conn = self.mediator.notify("get_db_connection")
         cur = conn.cursor()
