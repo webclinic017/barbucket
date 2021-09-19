@@ -51,7 +51,7 @@ class ContractsDbConnector():
                 currency,
                 exchange))
         conn.commit()
-        contract_id = cur.lastrowid()
+        contract_id = cur.lastrowid
         cur.close()
         self.mediator.notify("close_db_connection", {'conn': conn})
         logger.debug(f"Created new contract_db entry: "
