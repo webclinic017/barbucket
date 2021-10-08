@@ -1,25 +1,36 @@
 import sqlite3
 from pathlib import Path
+import logging
 
 from .mediator import Mediator
 from .custom_exceptions import NotInitializedError
 
+logger = logging.getLogger(__name__)
+
 
 class DbConnector():
     """Handles all non-specific database operations."""
+    __db_path: Path = None
+    __is_initialized: bool = False
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
-        self._DB_PATH = None
 
     def connect(self) -> sqlite3.Connection:
         """Provides a 'connection'-object for the database."""
 
-        self.__get_db_path()
-        if not self._DB_PATH.is_file():
-            raise NotInitializedError("Database file does not exist.")
-            # otherwise sqlite3.connect() would create an empty file and we dont want that
-        conn = sqlite3.connect(self._DB_PATH)
+        # Initialization can be moved to 'init', when db_connector is no longer
+        # part of the mediator, as mediator cannot be called from 'init'.
+        if not DbConnector.__is_initialized:
+            self.__initialize_database()
+            DbConnector.__is_initialized = True
+
+        if not DbConnector.__is_initialized:
+            raise NotInitializedError(
+                f"Database file {DbConnector.__db_path} does not exist.")
+            # otherwise sqlite3.connect() would create an empty file and
+            # we dont want that
+        conn = sqlite3.connect(DbConnector.__db_path)
         conn.execute("""
             PRAGMA foreign_keys = 1;
         """)
@@ -27,12 +38,129 @@ class DbConnector():
         # so this needs to be part of every db connection.
         return conn
 
-    def __get_db_path(self) -> None:
-        conf_path = self.mediator.notify(
-            "get_config_value_single",
-            {'section': "database", 'option': "db_location"})
-        self._DB_PATH = Path.home() / Path(conf_path)
-
     def disconnect(self, conn: sqlite3.Connection) -> None:
         """Disconnects the connection to the database."""
         conn.close()
+
+    def __initialize_database(self,) -> None:
+        """Initialize database if it doesnt exist. Else skip."""
+
+        self.__get_db_path()
+        if not DbConnector.__db_path.is_file():
+            self.__create_db_file()
+            self.__create_db_schema()
+            logger.debug("Database created. Finished initialization.")
+        else:
+            logger.debug("Database already exists. Finished initialization.")
+
+    def __get_db_path(self) -> None:
+        db_path = self.mediator.notify(
+            "get_config_value_single",
+            {'section': "database", 'option': "db_location"})
+        DbConnector.__db_path = Path.home() / Path(db_path)
+
+    def __create_db_file(self) -> None:
+        """Create a new database file."""
+
+        conn = sqlite3.connect(DbConnector.__db_path)
+        conn.close()
+        logger.debug("Created new database file.")
+
+    def __create_db_schema(self) -> None:
+        """Create schema in database."""
+
+        conn = self.connect()
+        cur = conn.cursor()
+
+        cur.execute(
+            """CREATE TABLE contracts (
+                    contract_id INTEGER NOT NULL PRIMARY KEY,
+                    contract_type_from_listing TEXT,
+                    exchange_symbol TEXT, 
+                    broker_symbol TEXT, 
+                    name TEXT,
+                    currency TEXT, 
+                    exchange TEXT);""")
+
+        cur.execute(
+            """CREATE TABLE contract_details_ib (
+                    contract_id INTEGER UNIQUE,
+                    contract_type_from_details TEXT,
+                    primary_exchange TEXT,
+                    industry TEXT,
+                    category TEXT,
+                    subcategory TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
+
+        cur.execute(
+            """CREATE TABLE contract_details_tv (
+                    contract_id INTEGER UNIQUE,
+                    market_cap INTEGER,
+                    avg_vol_30_in_curr INTEGER,
+                    country TEXT,
+                    employees INTEGER,
+                    profit INTEGER,
+                    revenue INTEGER,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
+
+        cur.execute(
+            """CREATE VIEW all_contract_info AS
+                    SELECT * FROM contracts
+                        LEFT JOIN contract_details_ib ON
+                            contracts.contract_id = contract_details_ib.contract_id
+                        LEFT JOIN contract_details_tv ON
+                            contracts.contract_id = contract_details_tv.contract_id
+                        LEFT JOIN quotes_status ON
+                            contracts.contract_id = quotes_status.contract_id;""")
+
+        cur.execute(
+            """CREATE TABLE quotes (
+                    contract_id INTEGER,
+                    date TEXT,
+                    open REAL,
+                    high REAL, 
+                    low REAL, 
+                    close REAL,
+                    volume REAL,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id, date));""")
+
+        cur.execute(
+            """CREATE TABLE quotes_status (
+                    contract_id INTEGER UNIQUE,
+                    status_code INTEGER,
+                    status_text TEXT,
+                    daily_quotes_requested_from TEXT,
+                    daily_quotes_requested_till TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id));""")
+
+        cur.execute(
+            """CREATE TABLE universe_memberships (
+                    membership_id INTEGER NOT NULL PRIMARY KEY,
+                    contract_id INTEGER,
+                    universe TEXT,
+                    FOREIGN KEY (contract_id)
+                        REFERENCES contracts (contract_id)
+                            ON UPDATE CASCADE
+                            ON DELETE CASCADE,
+                    UNIQUE (contract_id, universe));""")
+
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
+        logger.debug("Created database schema.")

@@ -29,22 +29,6 @@ def cli() -> None:
     pass
 
 
-# Group database
-@cli.group()
-def database() -> None:
-    """Local database commands"""
-
-
-@database.command()
-@click.confirmation_option(
-    prompt=("Are you sure you want to archive the current database?"))
-def archive() -> None:
-    """Archive the local database"""
-    logger.info(f"User requested to archive the datebase via the cli.")
-    # cli_connector.mediator.notify("archive_database")
-    click.echo("Successfully archived database.")
-
-
 # Group contracts
 @cli.group()
 def contracts() -> None:
