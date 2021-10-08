@@ -5,6 +5,7 @@ import ib_insync
 
 from .mediator import Mediator
 from .encoder import Encoder
+from .config_reader import ConfigReader
 from .custom_exceptions import (
     QueryReturnedNoResultError,
     TwsSystemicError,
@@ -18,6 +19,7 @@ class TwsConnector():
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
+        self.__config_reader = ConfigReader()
         self.__ib = ib_insync.ib.IB()  # Create connection objec
         # Register own error handler on ib hook
         self.__ib.errorEvent += self.on_tws_error
@@ -30,10 +32,9 @@ class TwsConnector():
         details to quotes_status in database.
         """
 
-        codes = self.mediator.notify(
-            "get_config_value_single",
-            {'section': "tws_connector",
-             'option': "non_systemic_codes"})
+        codes = self.__config_reader.get_config_value_single(
+            section="tws_connector",
+            option="non_systemic_codes")
         NON_SYSTEMIC_CODES = list(map(int, codes))
         if errorCode not in NON_SYSTEMIC_CODES:
             raise TwsSystemicError(
@@ -50,14 +51,12 @@ class TwsConnector():
                 contract=contract)
 
     def connect(self) -> None:
-        IP = self.mediator.notify(
-            "get_config_value_single",
-            {'section': "tws_connector",
-             'option': "ip"})
-        PORT = int(self.mediator.notify(
-            "get_config_value_single",
-            {'section': "tws_connector",
-             'option': "port"}))
+        IP = self.__config_reader.get_config_value_single(
+            section="tws_connector",
+            option="ip")
+        PORT = int(self.__config_reader.get_config_value_single(
+            section="tws_connector",
+            option="port"))
 
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
         logger.debug(f"Connected to TWS on {IP}:{PORT}.")

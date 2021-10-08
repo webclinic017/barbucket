@@ -4,7 +4,6 @@ import logging.handlers
 from pathlib import Path
 
 from barbucket.mediator import Mediator
-from barbucket.config_reader import ConfigReader
 from barbucket.contracts_db_connector import ContractsDbConnector
 from barbucket.universes_db_connector import UniversesDbConnector
 from barbucket.quotes_db_connector import QuotesDbConnector
@@ -45,7 +44,6 @@ if __name__ == '__main__':
 
     # Create mediator
     mediator = Mediator(
-        config_reader=ConfigReader(),
         contracts_db_connector=ContractsDbConnector(),
         universe_db_connector=UniversesDbConnector(),
         quotes_db_connector=QuotesDbConnector(),
