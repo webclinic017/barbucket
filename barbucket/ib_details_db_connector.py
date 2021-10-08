@@ -3,11 +3,12 @@ from typing import Any
 
 from .mediator import Mediator
 from .base_component import BaseComponent
+from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
 
-class IbDetailsConnector(BaseComponent):
+class IbDetailsDbConnector(DbConnector, BaseComponent):
     """Provides methods to access the 'ib_details' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:
@@ -19,7 +20,7 @@ class IbDetailsConnector(BaseComponent):
                           subcategory: str) -> None:
         """Insert contract details into db"""
 
-        conn = self.mediator.notify("get_db_connection", {})
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute("""
             REPLACE INTO contract_details_ib (
@@ -38,7 +39,7 @@ class IbDetailsConnector(BaseComponent):
                     subcategory))
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Inserted IB details into db: {contract_id} "
                      f"{contract_type_from_details} {primary_exchange} "
                      f"{industry} {category} {subcategory}")
