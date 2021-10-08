@@ -3,13 +3,14 @@ from typing import Any
 import logging
 
 from .mediator import Mediator
+from .db_connector import DbConnector
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 
 logger = logging.getLogger(__name__)
 
 
-class QuotesStatusDbConnector():
+class QuotesStatusDbConnector(DbConnector):
     """Provides methods to access the 'quotes_status' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:
@@ -18,7 +19,7 @@ class QuotesStatusDbConnector():
     def get_quotes_status(self, contract_id: int) -> Any:
         """Get a contract's quote status from the db"""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute("""SELECT *
@@ -27,7 +28,7 @@ class QuotesStatusDbConnector():
         result = cur.fetchall()
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
 
         # todo: Check for result length != 1
         return result[0]
@@ -55,7 +56,7 @@ class QuotesStatusDbConnector():
                 daily_quotes_requested_till = existing_status[
                     'daily_quotes_requested_till']
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute(
             """REPLACE into quotes_status(
@@ -71,7 +72,7 @@ class QuotesStatusDbConnector():
              daily_quotes_requested_till))
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Inserted quotes status into db: {contract_id} "
                      f"{status_code} {status_text} "
                      f"{daily_quotes_requested_from} "
