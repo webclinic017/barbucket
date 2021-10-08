@@ -1,11 +1,12 @@
 import logging
 
 from .mediator import Mediator
+from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
 
-class TvDetailsDbConnector():
+class TvDetailsDbConnector(DbConnector):
     """Provides methods to access the 'quotes' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:
@@ -16,7 +17,7 @@ class TvDetailsDbConnector():
             country: str, employees: int, profit: int, revenue: int) -> None:
         """Writing tv details to db"""
 
-        conn = self.mediator.notify("get_db_connection", {})
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute("""
             REPLACE INTO contract_details_tv (
@@ -38,5 +39,5 @@ class TvDetailsDbConnector():
             revenue))
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug("Wrote tv details for contract_id {contract_id} to db.")
