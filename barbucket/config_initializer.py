@@ -8,17 +8,15 @@ logger = logging.getLogger(__name__)
 class ConfigInitializer():
     """Initialize the configuration file, if not present"""
 
-    _CONFIG_FILE_PATH = Path.home() / ".barbucket/config.ini"
-
     def __init__(self) -> None:
         pass
 
-    def initalize_config(self) -> None:
+    def initalize_config(self, filepath: Path) -> None:
         """Initializes the configuration file, if not present"""
         self._create_directories()
         self._create_config_file(
             source_path="default_config.ini",
-            destination_path=self._CONFIG_FILE_PATH)
+            destination_path=filepath)
 
     def _create_directories(self) -> None:
         """Creates barbucket directories, if not present"""
