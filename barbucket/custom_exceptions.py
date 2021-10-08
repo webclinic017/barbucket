@@ -4,25 +4,49 @@ from typing import Any
 class ExistingDataIsSufficientError(Exception):
     """Docstring"""
 
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
 
 class ExistingDataIsTooOldError(Exception):
     """Docstring"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
 
 
 class ContractHasErrorStatusError(Exception):
     """Docstring"""
 
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
 
 class QueryReturnedNoResultError(Exception):
     """[summary]"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
 
 
 class QueryReturnedMultipleResultsError(Exception):
     """[summary]"""
 
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
 
 class NotInitializedError(Exception):
     """Custom exception for connecting to a non-present database."""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
 
 
 class TwsSystemicError(Exception):
@@ -49,3 +73,7 @@ class TwsContractRelatedError(Exception):
 
 class ExitSignalDetectedError(Exception):
     """"Doc"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
