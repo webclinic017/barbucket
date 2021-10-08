@@ -8,9 +8,7 @@ class Mediator():
 
     def __init__(
             self,
-            config_initializer: Any,
             config_reader: Any,
-            db_initializer: Any,
             db_connector: Any,
             contracts_db_connector: Any,
             universe_db_connector: Any,
@@ -25,14 +23,8 @@ class Mediator():
             cli: Any) -> None:
 
         # Instanciate components
-        self.__config_initializer = config_initializer
-        self.__config_initializer.mediator = self
-
         self.__config_reader = config_reader
         self.__config_reader.mediator = self
-
-        self.__db_initializer = db_initializer
-        self.__db_initializer.mediator = self
 
         self.__db_connector = db_connector
         self.__db_connector.mediator = self
@@ -71,11 +63,8 @@ class Mediator():
         self.__cli.cli_connector.mediator = self
 
     def notify(self, action: str, parameters: dict = {}) -> Optional[object]:
-        # ConfigInitializer
-        if action == "initalize_config":
-            return self.__config_initializer.initalize_config()
         # ConfigReader
-        elif action == "get_config_value_single":
+        if action == "get_config_value_single":
             return self.__config_reader.get_config_value_single(
                 section=parameters['section'],
                 option=parameters['option'])
@@ -83,9 +72,6 @@ class Mediator():
             return self.__config_reader.get_config_value_list(
                 section=parameters['section'],
                 option=parameters['option'])
-        # DbInitializer
-        elif action == "initialize_database":
-            return self.__db_initializer.initialize_database()
         # DbConnector
         elif action == "get_db_connection":
             return self.__db_connector.connect()
