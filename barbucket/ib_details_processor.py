@@ -4,7 +4,6 @@ from typing import Any, List
 import enlighten
 
 from .mediator import Mediator
-from .base_component import BaseComponent
 from .encoder import Encoder
 from .signal_handler import SignalHandler
 from .custom_exceptions import (
@@ -17,7 +16,7 @@ from .custom_exceptions import (
 logger = logging.getLogger(__name__)
 
 
-class IbDetailsProcessor(BaseComponent):
+class IbDetailsProcessor():
     """Downloading of contract details from IB TWS and storing to db"""
 
     def __init__(self, mediator: Mediator = None) -> None:

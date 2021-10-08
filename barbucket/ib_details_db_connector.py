@@ -2,13 +2,12 @@ import logging
 from typing import Any
 
 from .mediator import Mediator
-from .base_component import BaseComponent
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
 
-class IbDetailsDbConnector(DbConnector, BaseComponent):
+class IbDetailsDbConnector(DbConnector):
     """Provides methods to access the 'ib_details' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:

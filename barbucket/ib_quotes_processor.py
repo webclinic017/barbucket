@@ -10,7 +10,6 @@ import enlighten
 
 from .mediator import Mediator
 from .signal_handler import SignalHandler
-from .base_component import BaseComponent
 from .encoder import Encoder
 from .config_reader import ConfigReader
 from .custom_exceptions import (
@@ -26,7 +25,7 @@ from .custom_exceptions import (
 logger = logging.getLogger(__name__)
 
 
-class IbQuotesProcessor(BaseComponent):
+class IbQuotesProcessor():
     """Provides methods to download historical quotes from TWS."""
 
     def __init__(self, mediator: Mediator = None) -> None:

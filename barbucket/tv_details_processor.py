@@ -6,7 +6,6 @@ from typing import Any, List, Dict
 import pandas as pd
 
 from .mediator import Mediator
-from .base_component import BaseComponent
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 from .encoder import Encoder
@@ -15,7 +14,7 @@ from .encoder import Encoder
 logger = logging.getLogger(__name__)
 
 
-class TvDetailsProcessor(BaseComponent):
+class TvDetailsProcessor():
     """Processing of contract details provided by Tradingview screener"""
 
     def __init__(self, mediator: Mediator = None) -> None:
