@@ -3,11 +3,12 @@ import logging
 from typing import Dict, List
 
 from .mediator import Mediator
+from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
 
-class ContractsDbConnector():
+class ContractsDbConnector(DbConnector):
     """Provides methods to access the 'contracts' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:
@@ -34,7 +35,7 @@ class ContractsDbConnector():
         """Creates a new entry in the contracts table.
         todo: what if already exits?"""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute(
             """INSERT INTO contracts (
@@ -54,7 +55,7 @@ class ContractsDbConnector():
         conn.commit()
         contract_id = cur.lastrowid
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Created new contract_db entry: "
                      f"{contract_type_from_listing}_{exchange}_"
                      f"{broker_symbol}_{currency}.")
@@ -64,7 +65,7 @@ class ContractsDbConnector():
         """Creates a new entry in the quotes_status table.
         todo: what if already exits?"""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         self.mediator.notify(
             "insert_quotes_status",
@@ -75,7 +76,7 @@ class ContractsDbConnector():
              'daily_quotes_requested_till': "NULL"})
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Created new quotes_status_db entry: {contract_id}.")
 
     def get_contracts(self, filters: Dict = {}, return_columns: List = []
@@ -103,21 +104,21 @@ class ContractsDbConnector():
             query += ";"
 
         # Get requested values from db
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(query)
         contracts = cur.fetchall()
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Qurey '{query}' returned {len(contracts)} results.")
         return contracts
 
     def delete_contract(self, exchange: str, symbol: str, currency: str) -> None:
         """Deletets a contract from the db."""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute(
             """DELETE FROM contracts
@@ -127,13 +128,13 @@ class ContractsDbConnector():
             (symbol, exchange, currency))
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Deleted contract: {exchange}_{symbol}_{currency}")
 
     def delete_contract_id(self, contract_id: int) -> None:
         """Deletets a contract from the db."""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         cur.execute(
             """DELETE FROM contracts
@@ -141,5 +142,5 @@ class ContractsDbConnector():
             contract_id)
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Deleted contract with id {contract_id}")
