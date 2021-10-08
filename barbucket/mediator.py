@@ -8,7 +8,6 @@ class Mediator():
 
     def __init__(
             self,
-            config_reader: Any,
             contracts_db_connector: Any,
             universe_db_connector: Any,
             quotes_db_connector: Any,
@@ -22,9 +21,6 @@ class Mediator():
             cli: Any) -> None:
 
         # Instanciate components
-        self.__config_reader = config_reader
-        self.__config_reader.mediator = self
-
         self.__contracts_db_connector = contracts_db_connector
         self.__contracts_db_connector.mediator = self
 
@@ -59,17 +55,8 @@ class Mediator():
         self.__cli.cli_connector.mediator = self
 
     def notify(self, action: str, parameters: dict = {}) -> Optional[object]:
-        # ConfigReader
-        if action == "get_config_value_single":
-            return self.__config_reader.get_config_value_single(
-                section=parameters['section'],
-                option=parameters['option'])
-        elif action == "get_config_value_list":
-            return self.__config_reader.get_config_value_list(
-                section=parameters['section'],
-                option=parameters['option'])
         # ContractsDbConnector
-        elif action == "get_contracts":
+        if action == "get_contracts":
             return self.__contracts_db_connector.get_contracts(
                 filters=parameters['filters'],
                 return_columns=parameters['return_columns'])

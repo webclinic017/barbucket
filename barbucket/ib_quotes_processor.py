@@ -12,6 +12,7 @@ from .mediator import Mediator
 from .signal_handler import SignalHandler
 from .base_component import BaseComponent
 from .encoder import Encoder
+from .config_reader import ConfigReader
 from .custom_exceptions import (
     ExistingDataIsSufficientError,
     ExistingDataIsTooOldError,
@@ -31,6 +32,7 @@ class IbQuotesProcessor(BaseComponent):
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
         self.__signal_handler = SignalHandler()
+        self.__config_reader = ConfigReader()
         self.__contract_id = None
         self.__contract_data = None
         self.__quotes_status = None
@@ -154,12 +156,12 @@ class IbQuotesProcessor(BaseComponent):
         """Calculate, how many days need to be downloaded"""
 
         # Get config constants
-        REDOWNLOAD_DAYS = int(self.mediator.notify(
-            "get_config_value_single",
-            {'section': "quotes", 'option': "redownload_days"}))
-        OVERLAP_DAYS = int(self.mediator.notify(
-            "get_config_value_single",
-            {'section': "quotes", 'option': "overlap_days"}))
+        REDOWNLOAD_DAYS = int(self.__config_reader.get_config_value_single(
+            section="quotes",
+            option="redownload_days"))
+        OVERLAP_DAYS = int(self.__config_reader.get_config_value_single(
+            section="quotes",
+            option="overlap_days"))
 
         start_date = (self.__quotes_status['daily_quotes_requested_till'])
         end_date = date.today().strftime('%Y-%m-%d')

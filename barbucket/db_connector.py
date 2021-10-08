@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 import logging
 
-from .mediator import Mediator
+from .config_reader import ConfigReader
 from .custom_exceptions import NotInitializedError
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,8 @@ class DbConnector():
     __db_path: Path = None
     __is_initialized: bool = False
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        self.__config_reader = ConfigReader()
 
     def connect(self) -> sqlite3.Connection:
         """Provides a 'connection'-object for the database."""
@@ -54,9 +54,9 @@ class DbConnector():
             logger.debug("Database already exists. Finished initialization.")
 
     def __get_db_path(self) -> None:
-        db_path = self.mediator.notify(
-            "get_config_value_single",
-            {'section': "database", 'option': "db_location"})
+        db_path = self.__config_reader.get_config_value_single(
+            section="database",
+            option="db_location")
         DbConnector.__db_path = Path.home() / Path(db_path)
 
     def __create_db_file(self) -> None:
