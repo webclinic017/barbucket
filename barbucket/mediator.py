@@ -9,13 +9,12 @@ class Mediator():
     def __init__(
             self,
             config_reader: Any,
-            db_connector: Any,
             contracts_db_connector: Any,
             universe_db_connector: Any,
             quotes_db_connector: Any,
             quotes_status_db_connector: Any,
-            ib_details_connector: Any,
-            tv_details_connector: Any,
+            ib_details_db_connector: Any,
+            tv_details_db_connector: Any,
             tws_connector: Any,
             ib_listings_processor: Any,
             ib_details_processor: Any,
@@ -25,9 +24,6 @@ class Mediator():
         # Instanciate components
         self.__config_reader = config_reader
         self.__config_reader.mediator = self
-
-        self.__db_connector = db_connector
-        self.__db_connector.mediator = self
 
         self.__contracts_db_connector = contracts_db_connector
         self.__contracts_db_connector.mediator = self
@@ -41,10 +37,10 @@ class Mediator():
         self.__quotes_status_db_connector = quotes_status_db_connector
         self.__quotes_status_db_connector.mediator = self
 
-        self.__ib_details_connector = ib_details_connector
+        self.__ib_details_connector = ib_details_db_connector
         self.__ib_details_connector.mediator = self
 
-        self.__tv_details_connector = tv_details_connector
+        self.__tv_details_connector = tv_details_db_connector
         self.__tv_details_connector.mediator = self
 
         self.__tws_connector = tws_connector
@@ -72,12 +68,6 @@ class Mediator():
             return self.__config_reader.get_config_value_list(
                 section=parameters['section'],
                 option=parameters['option'])
-        # DbConnector
-        elif action == "get_db_connection":
-            return self.__db_connector.connect()
-        elif action == "close_db_connection":
-            return self.__db_connector.disconnect(
-                conn=parameters['conn'])
         # ContractsDbConnector
         elif action == "get_contracts":
             return self.__contracts_db_connector.get_contracts(
@@ -116,18 +106,18 @@ class Mediator():
                 status_text=parameters['status_text'],
                 daily_quotes_requested_from=parameters['daily_quotes_requested_from'],
                 daily_quotes_requested_till=parameters['daily_quotes_requested_till'])
-        # IbDetailsConnector
+        # IbDetailsDbConnector
         elif action == "insert_ib_details":
-            return self.__ib_details_connector.insert_ib_details(
+            return self.__ib_details_db_connector.insert_ib_details(
                 contract_id=parameters['contract_id'],
                 contract_type_from_details=parameters['contract_type_from_details'],
                 primary_exchange=parameters['primary_exchange'],
                 industry=parameters['industry'],
                 category=parameters['category'],
                 subcategory=parameters['subcategory'])
-        # TvDetailsConnector
+        # TvDetailsDbConnector
         elif action == "insert_tv_details":
-            return self.__tv_details_connector.insert_tv_details(
+            return self.__tv_details_db_connector.insert_tv_details(
                 contract_id=parameters['contract_id'],
                 market_cap=parameters['market_cap'],
                 avg_vol_30_in_curr=parameters['avg_vol_30_in_curr'],
