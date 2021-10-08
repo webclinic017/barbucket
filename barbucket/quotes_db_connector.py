@@ -4,11 +4,12 @@ import logging
 import pandas as pd
 
 from .mediator import Mediator
+from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
 
-class QuotesDbConnector():
+class QuotesDbConnector(DbConnector):
     """Provides methods to access the 'quotes' table of the database."""
 
     def __init__(self, mediator: Mediator = None) -> None:
@@ -17,7 +18,7 @@ class QuotesDbConnector():
     def insert_quotes(self, quotes: List[Any]) -> None:
         """Insert quotes into the db"""
 
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         cur = conn.cursor()
         cur.executemany("""REPLACE INTO quotes (contract_id, date, open, high, 
             low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?)""", quotes)
@@ -26,7 +27,7 @@ class QuotesDbConnector():
         # quote with overlapping subsequent quotes download
         conn.commit()
         cur.close()
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         logger.debug(f"Inserted {len(quotes)} for contract_id {quotes[0][0]} "
                      f"into db.")
 
@@ -37,9 +38,9 @@ class QuotesDbConnector():
                     FROM quotes
                     WHERE contract_id = {contract_id}
                     ORDER BY date ASC;"""
-        conn = self.mediator.notify("get_db_connection")
+        conn = self.connect()
         df = pd.read_sql_query(query, conn)
-        self.mediator.notify("close_db_connection", {'conn': conn})
+        self.disconnect(conn)
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
         df = df.set_index('date')
         logger.debug(f"Read {len(df)} quotes for contract id {contract_id} "
