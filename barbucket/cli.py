@@ -3,7 +3,6 @@ from typing import Any
 
 import click
 
-from .base_component import BaseComponent
 from .custom_exceptions import ExitSignalDetectedError
 """
 The click cli is not designed to be declared within a class. So its functions
@@ -15,7 +14,7 @@ communication.
 logger = logging.getLogger(__name__)
 
 
-class CliConnector(BaseComponent):
+class CliConnector():
     def __init__(self, mediator: Any = None) -> None:
         self.mediator = mediator
 
