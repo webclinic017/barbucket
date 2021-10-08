@@ -4,9 +4,7 @@ import logging.handlers
 from pathlib import Path
 
 from barbucket.mediator import Mediator
-from barbucket.config_initializer import ConfigInitializer
 from barbucket.config_reader import ConfigReader
-from barbucket.db_initializer import DbInitializer
 from barbucket.db_connector import DbConnector
 from barbucket.contracts_db_connector import ContractsDbConnector
 from barbucket.universes_db_connector import UniversesDbConnector
@@ -48,9 +46,7 @@ if __name__ == '__main__':
 
     # Create mediator
     mediator = Mediator(
-        config_initializer=ConfigInitializer(),
         config_reader=ConfigReader(),
-        db_initializer=DbInitializer(),
         db_connector=DbConnector(),
         contracts_db_connector=ContractsDbConnector(),
         universe_db_connector=UniversesDbConnector(),
@@ -64,10 +60,6 @@ if __name__ == '__main__':
         tv_details_processor=TvDetailsProcessor(),
         cli=cli
     )
-
-    # Initialize config and db files and folders
-    mediator.notify("initalize_config")
-    mediator.notify("initialize_database")
 
     # Run Cli
     mediator.notify("run_cli")
