@@ -10,6 +10,7 @@ import enlighten
 
 from .mediator import Mediator
 from .signal_handler import SignalHandler
+from .contracts_db_connector import ContractsDbConnector
 from .custom_exceptions import ExitSignalDetectedError, QueryReturnedNoResultError
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class IbExchangeListingsProcessor():
     """Provides methods to sync local exchange listings to the IB website."""
+    __contracts_db_connector = ContractsDbConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -69,11 +71,10 @@ class IbExchangeListingsProcessor():
         filters = {
             'contract_type_from_listing': self.__ctype,
             'exchange': self.__exchange}
-        columns = ['broker_symbol', 'currency']
-        self.__database_contracts = self.mediator.notify(
-            "get_contracts",
-            {'filters': filters,
-             'return_columns': columns})
+        return_columns = ['broker_symbol', 'currency']
+        self.__database_contracts = IbExchangeListingsProcessor.__contracts_db_connector.get_contracts(
+            filters=filters,
+            return_columns=return_columns)
 
     def __remove_deleted_contracts_from_db(self) -> int:
         contracts_removed = []  # todo remove
@@ -111,14 +112,13 @@ class IbExchangeListingsProcessor():
                     exists = True
                     break
             if not exists:
-                self.mediator.notify(
-                    "create_contract",
-                    {'contract_type_from_listing': self.__ctype,
-                     'exchange_symbol': web_row['exchange_symbol'],
-                     'broker_symbol': web_row['broker_symbol'],
-                     'name': web_row['name'],
-                     'currency': web_row['currency'],
-                     'exchange': self.__exchange.upper()})
+                IbExchangeListingsProcessor.__contracts_db_connector.create_contract(
+                    contract_type_from_listing=self.__ctype,
+                    exchange_symbol=web_row['exchange_symbol'],
+                    broker_symbol=web_row['broker_symbol'],
+                    name=web_row['name'],
+                    currency=web_row['currency'],
+                    exchange=self.__exchange.upper())
                 contracts_added.append(
                     f"{self.__exchange.upper()}_{web_row['broker_symbol']}_"
                     f"{web_row['currency']}")

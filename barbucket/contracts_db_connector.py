@@ -2,7 +2,6 @@ import sqlite3
 import logging
 from typing import Dict, List
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -11,29 +10,14 @@ logger = logging.getLogger(__name__)
 class ContractsDbConnector(DbConnector):
     """Provides methods to access the 'contracts' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def create_contract(self, contract_type_from_listing: str,
                         exchange_symbol: str, broker_symbol: str, name: str,
                         currency: str, exchange: str) -> None:
         """Creates a new contract in the database."""
-
-        contract_id = self.__create_contracts_db_entry(
-            contract_type_from_listing,
-            exchange_symbol,
-            broker_symbol,
-            name,
-            currency,
-            exchange)
-        self.__create_quotes_status_db_entry(contract_id)
-
-    def __create_contracts_db_entry(self, contract_type_from_listing: str,
-                                    exchange_symbol: str, broker_symbol: str,
-                                    name: str, currency: str, exchange: str
-                                    ) -> int:
-        """Creates a new entry in the contracts table.
-        todo: what if already exits?"""
+        # Todo: what if already exits?
 
         conn = self.connect()
         cur = conn.cursor()
@@ -53,31 +37,11 @@ class ContractsDbConnector(DbConnector):
                 currency,
                 exchange))
         conn.commit()
-        contract_id = cur.lastrowid
         cur.close()
         self.disconnect(conn)
         logger.debug(f"Created new contract_db entry: "
                      f"{contract_type_from_listing}_{exchange}_"
                      f"{broker_symbol}_{currency}.")
-        return contract_id
-
-    def __create_quotes_status_db_entry(self, contract_id: int) -> None:
-        """Creates a new entry in the quotes_status table.
-        todo: what if already exits?"""
-
-        conn = self.connect()
-        cur = conn.cursor()
-        self.mediator.notify(
-            "insert_quotes_status",
-            {'contract_id': contract_id,
-             'status_code': 0,
-             'status_text': "No quotes downloaded yet.",
-             'daily_quotes_requested_from': "NULL",
-             'daily_quotes_requested_till': "NULL"})  # This should be called from the overlying processor object
-        conn.commit()
-        cur.close()
-        self.disconnect(conn)
-        logger.debug(f"Created new quotes_status_db entry: {contract_id}.")
 
     def get_contracts(self, filters: Dict = {}, return_columns: List = []
                       ) -> List[sqlite3.Row]:

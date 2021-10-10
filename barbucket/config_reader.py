@@ -18,14 +18,14 @@ class ConfigReader():
             self.__initializer.initalize_config(
                 ConfigReader.__CONFIG_FILE_PATH)
             ConfigReader.__is_initialized = True
-        self.__parser.read(self.__CONFIG_FILE_PATH)
+        ConfigReader.__parser.read(self.__CONFIG_FILE_PATH)
 
     def get_config_value_single(self, section: str, option: str) -> str:
         """Reads a single config value"""
-        return self.__parser.get(section, option)
+        return ConfigReader.__parser.get(section, option)
 
     def get_config_value_list(self, section: str, option: str) -> List[str]:
         """Reads a config value list"""
-        value = self.__parser.get(section, option)
+        value = ConfigReader.__parser.get(section, option)
         value = value.split(",")  # split by comma and change to list
         return value

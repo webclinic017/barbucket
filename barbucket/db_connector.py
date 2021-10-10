@@ -12,18 +12,15 @@ class DbConnector():
     """Handles all non-specific database operations."""
     __db_path: Path = None
     __is_initialized: bool = False
+    __config_reader = ConfigReader()
 
     def __init__(self) -> None:
-        self.__config_reader = ConfigReader()
-
-    def connect(self) -> sqlite3.Connection:
-        """Provides a 'connection'-object for the database."""
-
-        # Initialization can be moved to 'init', when db_connector is no longer
-        # part of the mediator, as mediator cannot be called from 'init'.
         if not DbConnector.__is_initialized:
             self.__initialize_database()
             DbConnector.__is_initialized = True
+
+    def connect(self) -> sqlite3.Connection:
+        """Provides a 'connection'-object for the database."""
 
         if not DbConnector.__is_initialized:
             raise NotInitializedError(
@@ -54,7 +51,7 @@ class DbConnector():
             logger.debug("Database already exists. Finished initialization.")
 
     def __get_db_path(self) -> None:
-        db_path = self.__config_reader.get_config_value_single(
+        db_path = DbConnector.__config_reader.get_config_value_single(
             section="database",
             option="db_location")
         DbConnector.__db_path = Path.home() / Path(db_path)

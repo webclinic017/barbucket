@@ -1,6 +1,5 @@
 import logging
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -9,8 +8,8 @@ logger = logging.getLogger(__name__)
 class TvDetailsDbConnector(DbConnector):
     """Provides methods to access the 'quotes' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def insert_tv_details(
             self, contract_id: int, market_cap: int, avg_vol_30_in_curr: int,

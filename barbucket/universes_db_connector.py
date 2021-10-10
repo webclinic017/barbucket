@@ -2,7 +2,6 @@ import sqlite3
 import logging
 from typing import List
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -10,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 class UniversesDbConnector(DbConnector):
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def create_universe(self, name: str, contract_ids: List[int]) -> None:
         """Create a new universe with given contracts"""

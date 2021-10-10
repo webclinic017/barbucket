@@ -1,7 +1,6 @@
 import logging
 from typing import Any
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -10,8 +9,8 @@ logger = logging.getLogger(__name__)
 class IbDetailsDbConnector(DbConnector):
     """Provides methods to access the 'ib_details' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def insert_ib_details(self, contract_id: str,
                           contract_type_from_details: str,

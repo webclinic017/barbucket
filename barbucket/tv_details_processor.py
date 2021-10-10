@@ -6,6 +6,8 @@ from typing import Any, List, Dict
 import pandas as pd
 
 from .mediator import Mediator
+from .contracts_db_connector import ContractsDbConnector
+from .tv_details_db_connector import TvDetailsDbConnector
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
 from .encoder import Encoder
@@ -16,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 class TvDetailsProcessor():
     """Processing of contract details provided by Tradingview screener"""
+    __contracts_db_connector = ContractsDbConnector()
+    __tv_details_db_connector = TvDetailsDbConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -98,9 +102,10 @@ class TvDetailsProcessor():
             'exchange': exchange,
             'contract_type_from_listing': "STOCK",
             'exchange_symbol': ticker}
-        columns = ['contract_id']
-        parameters = {'filters': filters, 'return_columns': columns}
-        query_result = self.mediator.notify("get_contracts", parameters)
+        return_columns = ['contract_id']
+        query_result = TvDetailsProcessor.__contracts_db_connector.get_contracts(
+            filters=filters,
+            return_columns=return_columns)
         if len(query_result) == 0:
             logger.warning(
                 f"{len(query_result)} contracts found in master listing for "
@@ -119,19 +124,11 @@ class TvDetailsProcessor():
     def __write_contract_details_to_db(self, contract_id: int) -> None:
         """Writing tv details to db"""
 
-        market_cap = self.__file_row['market_cap'],
-        avg_vol_30_in_curr = self.__file_row['avg_vol_30_in_curr'],
-        country = self.__file_row['country'],
-        employees = self.__file_row['employees'],
-        profit = self.__file_row['profit'],
-        revenue = self.__file_row['revenue']
-
-        self.mediator.notify(
-            "insert_tv_details", {
-                'contract_id': contract_id,
-                'market_cap': market_cap,
-                'avg_vol_30_in_curr': avg_vol_30_in_curr,
-                'country': country,
-                'employees': employees,
-                'profit': profit,
-                'revenue': revenue})
+        TvDetailsProcessor.__tv_details_db_connector.insert_tv_details(
+            contract_id=contract_id,
+            market_cap=self.__file_row['market_cap'],
+            avg_vol_30_in_curr=self.__file_row['avg_vol_30_in_curr'],
+            country=self.__file_row['country'],
+            employees=self.__file_row['employees'],
+            profit=self.__file_row['profit'],
+            revenue=self.__file_row['revenue'])
