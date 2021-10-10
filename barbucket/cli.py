@@ -3,6 +3,7 @@ from typing import Any
 
 import click
 
+from .universes_db_connector import UniversesDbConnector
 from .custom_exceptions import ExitSignalDetectedError
 """
 The click cli is not designed to be declared within a class. So its functions
@@ -15,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class CliConnector():
+    __universes_db_connector = UniversesDbConnector()
+
     def __init__(self, mediator: Any = None) -> None:
         self.mediator = mediator
 
@@ -98,9 +101,9 @@ def create(name: str, contract_ids: str) -> None:
         f"User requested to create universe '{name}' with {len(contract_ids)} "
         f"members via the cli.")
     con_list = [int(n) for n in contract_ids.split(",")]
-    cli_connector.mediator.notify(
-        "create_universe",
-        {'name': name, 'contract_ids': con_list})
+    CliConnector.__universes_db_connector.create_universe(
+        name=name,
+        contract_ids=con_list)
     click.echo(
         f"Created universe '{name}' with {len(contract_ids)} members.")
 
@@ -109,7 +112,7 @@ def create(name: str, contract_ids: str) -> None:
 def list() -> None:
     """List all universes"""
     logger.info(f"User requestet to list all universes via the cli.")
-    universes = cli_connector.mediator.notify("get_universes")
+    universes = CliConnector.__universes_db_connector.get_universes()
     click.echo(universes)
 
 
@@ -120,9 +123,8 @@ def members(name: str) -> None:
     logger.info(
         f"User requestet to list the members for universe '{name}' via the "
         f"cli.")
-    members = cli_connector.mediator.notify(
-        "get_universe_members",
-        {'universe': name})
+    members = CliConnector.__universes_db_connector.get_universe_members(
+        universe=name)
     click.echo(members)
 
 
@@ -134,9 +136,7 @@ def delete(name: str) -> None:
     """Delete universe"""
     logger.info(
         f"User requestet to delete universe '{name}' via the cli.")
-    cli_connector.mediator.notify(
-        "delete_universe",
-        {'universe': name})
+    CliConnector.__universes_db_connector.delete_universe(universe=name)
     click.echo(f"Deleted universe '{name}'.")
 
 
