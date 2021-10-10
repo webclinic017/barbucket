@@ -73,7 +73,7 @@ class ContractsDbConnector(DbConnector):
              'status_code': 0,
              'status_text': "No quotes downloaded yet.",
              'daily_quotes_requested_from': "NULL",
-             'daily_quotes_requested_till': "NULL"})
+             'daily_quotes_requested_till': "NULL"})  # This should be called from the overlying processor object
         conn.commit()
         cur.close()
         self.disconnect(conn)
