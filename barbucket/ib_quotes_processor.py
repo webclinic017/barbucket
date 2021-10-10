@@ -12,6 +12,10 @@ from .mediator import Mediator
 from .signal_handler import SignalHandler
 from .encoder import Encoder
 from .config_reader import ConfigReader
+from .contracts_db_connector import ContractsDbConnector
+from .universes_db_connector import UniversesDbConnector
+from .quotes_db_connector import QuotesDbConnector
+from .quotes_status_db_connector import QuotesStatusDbConnector
 from .custom_exceptions import (
     ExistingDataIsSufficientError,
     ExistingDataIsTooOldError,
@@ -27,6 +31,10 @@ logger = logging.getLogger(__name__)
 
 class IbQuotesProcessor():
     """Provides methods to download historical quotes from TWS."""
+    __contracts_db_connector = ContractsDbConnector()
+    __universes_db_connector = UniversesDbConnector()
+    __quotes_db_connector = QuotesDbConnector()
+    __quotes_status_db_connector = QuotesStatusDbConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -98,9 +106,8 @@ class IbQuotesProcessor():
             self.__disconnect_tws()
 
     def __get_contracts(self, universe: str) -> List[int]:
-        return self.mediator.notify(
-            "get_universe_members",
-            {'universe': universe})
+        return IbQuotesProcessor.__universes_db_connector.get_universe_members(
+            universe=universe)
 
     def __connect_tws(self) -> None:
         self.mediator.notify("connect_to_tws")
@@ -118,10 +125,10 @@ class IbQuotesProcessor():
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
-        columns = ['broker_symbol', 'exchange', 'currency']
-        contract_data = self.mediator.notify(
-            "get_contracts",
-            {'filters': filters, 'return_columns': columns})
+        return_columns = ['broker_symbol', 'exchange', 'currency']
+        contract_data = IbQuotesProcessor.__contracts_db_connector.get_contracts(
+            filters=filters,
+            return_columns=return_columns)
         if len(contract_data) == 0:
             raise QueryReturnedNoResultError
         elif len(contract_data) > 1:
@@ -192,16 +199,15 @@ class IbQuotesProcessor():
         return self.mediator.notify("download_historical_quotes", parameters)
 
     def __write_quotes_to_db(self, quotes) -> None:
-        self.mediator.notify("insert_quotes", {'quotes': quotes})
+        IbQuotesProcessor.__quotes_db_connector.insert_quotes(quotes=quotes)
 
     def __write_success_status_to_db(self):
-        parameters = {
-            'contract_id': self.__contract_id,
-            'status_code': 1,
-            'status_text': "Successful",
-            'daily_quotes_requested_from': self.__quotes_from,
-            'daily_quotes_requested_till': self.__quotes_till}
-        self.mediator.notify("insert_quotes_status", parameters)
+        IbQuotesProcessor.__quotes_status_db_connector.update_quotes_status(
+            contract_id=self.__contract_id,
+            status_code=1,
+            status_text="Successful",
+            daily_quotes_requested_from=self.__quotes_from,
+            daily_quotes_requested_till=self.__quotes_till)
 
     def __handle_tws_contract_related_error(self, e):
         logger.warning(f"Contract-related problem in TWS detected: "
@@ -211,13 +217,12 @@ class IbQuotesProcessor():
             "show_cli_message",
             {'message': (f"Request {e.req_id} for contract {e.contract} "
                          f"returned error {e.error_code}: {e.error_string}")})
-        parameters = {
-            'contract_id': self.__contract_id,
-            'status_code': e.error_code,
-            'status_text': e.error_string,
-            'daily_quotes_requested_from': None,
-            'daily_quotes_requested_till': None}
-        self.mediator.notify("insert_quotes_status", parameters)
+        IbQuotesProcessor.__quotes_status_db_connector.update_quotes_status(
+            contract_id=self.__contract_id,
+            status_code=e.error_code,
+            status_text=e.error_string,
+            daily_quotes_requested_from=None,
+            daily_quotes_requested_till=None)
 
     def __handle_tws_systemic_error(self, e):
         logger.error(f"Systemic problem in TWS connection detected: "
