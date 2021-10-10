@@ -15,6 +15,10 @@ if __name__ == '__main__':
     """Docstring"""
 
     # Setup logging
+    def my_filenamer(filename):
+        new_name = filename.replace("logfile.", "logfile_") + ".log"
+        return new_name
+
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
@@ -25,8 +29,9 @@ if __name__ == '__main__':
     root_logger.addHandler(console_handler)
 
     file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=Path.home() / ".barbucket/logfile.log",
+        filename=Path.home() / ".barbucket/logfile",
         when='midnight')
+    file_handler.namer = my_filenamer
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter(
         "%(asctime)s;%(name)s;%(levelname)s;%(message)s")
