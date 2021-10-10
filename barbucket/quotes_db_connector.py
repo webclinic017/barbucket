@@ -3,7 +3,6 @@ import logging
 
 import pandas as pd
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -12,8 +11,8 @@ logger = logging.getLogger(__name__)
 class QuotesDbConnector(DbConnector):
     """Provides methods to access the 'quotes' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def insert_quotes(self, quotes: List[Any]) -> None:
         """Insert quotes into the db"""
