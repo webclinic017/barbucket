@@ -2,7 +2,6 @@ import sqlite3
 import logging
 from typing import Dict, List
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
@@ -11,8 +10,8 @@ logger = logging.getLogger(__name__)
 class ContractsDbConnector(DbConnector):
     """Provides methods to access the 'contracts' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def create_contract(self, contract_type_from_listing: str,
                         exchange_symbol: str, broker_symbol: str, name: str,
