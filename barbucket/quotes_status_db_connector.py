@@ -2,7 +2,6 @@ import sqlite3
 from typing import Any
 import logging
 
-from .mediator import Mediator
 from .db_connector import DbConnector
 from .custom_exceptions import QueryReturnedMultipleResultsError
 from .custom_exceptions import QueryReturnedNoResultError
@@ -13,8 +12,8 @@ logger = logging.getLogger(__name__)
 class QuotesStatusDbConnector(DbConnector):
     """Provides methods to access the 'quotes_status' table of the database."""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
+        super().__init__()
 
     def get_quotes_status(self, contract_id: int) -> Any:
         """Get a contract's quote status from the db"""
