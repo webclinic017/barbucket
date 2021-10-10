@@ -8,12 +8,6 @@ class Mediator():
 
     def __init__(
             self,
-            contracts_db_connector: Any,
-            universe_db_connector: Any,
-            quotes_db_connector: Any,
-            quotes_status_db_connector: Any,
-            ib_details_db_connector: Any,
-            tv_details_db_connector: Any,
             tws_connector: Any,
             ib_listings_processor: Any,
             ib_details_processor: Any,
@@ -21,24 +15,6 @@ class Mediator():
             cli: Any) -> None:
 
         # Instanciate components
-        self.__contracts_db_connector = contracts_db_connector
-        self.__contracts_db_connector.mediator = self
-
-        self.__universe_db_connector = universe_db_connector
-        self.__universe_db_connector.mediator = self
-
-        self.__quotes_db_connector = quotes_db_connector
-        self.__quotes_db_connector.mediator = self
-
-        self.__quotes_status_db_connector = quotes_status_db_connector
-        self.__quotes_status_db_connector.mediator = self
-
-        self.__ib_details_connector = ib_details_db_connector
-        self.__ib_details_connector.mediator = self
-
-        self.__tv_details_connector = tv_details_db_connector
-        self.__tv_details_connector.mediator = self
-
         self.__tws_connector = tws_connector
         self.__tws_connector.mediator = self
 
@@ -55,65 +31,8 @@ class Mediator():
         self.__cli.cli_connector.mediator = self
 
     def notify(self, action: str, parameters: dict = {}) -> Optional[object]:
-        # ContractsDbConnector
-        if action == "get_contracts":
-            return self.__contracts_db_connector.get_contracts(
-                filters=parameters['filters'],
-                return_columns=parameters['return_columns'])
-        elif action == "create_contract":
-            return self.__contracts_db_connector.create_contract(
-                contract_type_from_listing=parameters['contract_type_from_listing'],
-                exchange_symbol=parameters['exchange_symbol'],
-                broker_symbol=parameters['broker_symbol'],
-                name=parameters['name'],
-                currency=parameters['currency'],
-                exchange=parameters['exchange'])
-        # UniversesDbConnector
-        elif action == "get_universe_members":
-            return self.__universe_db_connector.get_universe_members(
-                universe=parameters['universe'])
-        elif action == "create_universe":
-            return self.__universe_db_connector.create_universe(
-                name=parameters['name'],
-                contract_ids=parameters['contract_ids'])
-        elif action == "get_universes":
-            return self.__universe_db_connector.get_universes()
-        elif action == "delete_universe":
-            return self.__universe_db_connector.delete_universe(
-                universe=parameters['universe'])
-        # QuotesDbConnector
-        elif action == "insert_quotes":
-            return self.__quotes_db_connector.insert_quotes(
-                quotes=parameters['quotes'])
-        # QuotesStatusDbConnector
-        elif action == "insert_quotes_status":
-            return self.__quotes_status_db_connector.insert_quotes_status(
-                contract_id=parameters['contract_id'],
-                status_code=parameters['status_code'],
-                status_text=parameters['status_text'],
-                daily_quotes_requested_from=parameters['daily_quotes_requested_from'],
-                daily_quotes_requested_till=parameters['daily_quotes_requested_till'])
-        # IbDetailsDbConnector
-        elif action == "insert_ib_details":
-            return self.__ib_details_db_connector.insert_ib_details(
-                contract_id=parameters['contract_id'],
-                contract_type_from_details=parameters['contract_type_from_details'],
-                primary_exchange=parameters['primary_exchange'],
-                industry=parameters['industry'],
-                category=parameters['category'],
-                subcategory=parameters['subcategory'])
-        # TvDetailsDbConnector
-        elif action == "insert_tv_details":
-            return self.__tv_details_db_connector.insert_tv_details(
-                contract_id=parameters['contract_id'],
-                market_cap=parameters['market_cap'],
-                avg_vol_30_in_curr=parameters['avg_vol_30_in_curr'],
-                country=parameters['country'],
-                employees=parameters['employees'],
-                profit=parameters['profit'],
-                revenue=parameters['revenue'])
         # TwsConnector
-        elif action == "download_contract_details_from_tws":
+        if action == "download_contract_details_from_tws":
             return self.__tws_connector.download_contract_details(
                 contract_type_from_listing=parameters['contract_type_from_listing'],
                 broker_symbol=parameters['broker_symbol'],
