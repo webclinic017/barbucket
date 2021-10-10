@@ -6,6 +6,8 @@ import enlighten
 from .mediator import Mediator
 from .encoder import Encoder
 from .signal_handler import SignalHandler
+from .contracts_db_connector import ContractsDbConnector
+from .ib_details_db_connector import IbDetailsDbConnector
 from .custom_exceptions import (
     QueryReturnedNoResultError,
     QueryReturnedMultipleResultsError,
@@ -18,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 class IbDetailsProcessor():
     """Downloading of contract details from IB TWS and storing to db"""
+    __contracts_db_connector = ContractsDbConnector()
+    __ib_details_db_connector = IbDetailsDbConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator: Mediator = mediator
@@ -70,12 +74,13 @@ class IbDetailsProcessor():
     def __get_contracts(self) -> None:
         """Get contracts from db, where IB details are missing"""
 
-        columns = [
+        return_columns = [
             'contract_id', 'contract_type_from_listing', 'broker_symbol',
             'exchange', 'currency']
         filters = {'primary_exchange': "NULL"}
-        parameters = {'filters': filters, 'return_columns': columns}
-        self.__contracts = self.mediator.notify("get_contracts", parameters)
+        self.__contracts = IbDetailsProcessor.__contracts_db_connector.get_contracts(
+            filters=filters,
+            return_columns=return_columns)
         logger.debug(f"Found {len(self.__contracts)} contracts with missing "
                      f"IB details in master listing.")
 
@@ -125,13 +130,14 @@ class IbDetailsProcessor():
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
         """Insert contract details into db"""
-        self.mediator.notify("insert_ib_details", {
-            'contract_id': contract['contract_id'],
-            'contract_type_from_details': self.__details['contract_type_from_details'],
-            'primary_exchange': self.__details['primary_exchange'],
-            'industry': self.__details['industry'],
-            'category': self.__details['category'],
-            'subcategory': self.__details['subcategory)']})
+
+        IbDetailsProcessor.__ib_details_db_connector.insert_ib_details(
+            contract_id=contract['contract_id'],
+            contract_type_from_details=self.__details['contract_type_from_details'],
+            primary_exchange=self.__details['primary_exchange'],
+            industry=self.__details['industry'],
+            category=self.__details['category'],
+            subcategory=self.__details['subcategory)'])
 
     def __handle_tws_contract_related_error(self, e):
         logger.warning(
