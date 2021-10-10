@@ -16,23 +16,69 @@ class QuotesStatusDbConnector(DbConnector):
         super().__init__()
 
     def get_quotes_status(self, contract_id: int) -> Any:
-        """Get a contract's quote status from the db"""
+        """
+        Get a contract's quote status from the db. Create, if entry does not 
+        exist.
+        """
 
+        if self.__check_status_exists(contract_id=contract_id):
+            status_entry = self.__get_status(contract_id=contract_id)
+        else:
+            self.__create_status_entry(contract_id=contract_id)
+            status_entry = self.__get_status(contract_id=contract_id)
+        return status_entry
+
+    def __check_status_exists(self, contract_id: int) -> Any:
+        conn = self.connect()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(
+            """SELECT COUNT(* WHERE contract_id = ?);""",
+            (contract_id,))
+        count = cur.fetchone()
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
+        if count > 0:
+            return True
+        else:
+            return False
+
+    def __get_status(self, contract_id: int) -> Any:
         conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute("""SELECT *
                     FROM quotes_status
-                    WHERE contract_id = ?;""", (contract_id,))
-        result = cur.fetchall()
+                    WHERE contract_id = ?;""",
+                    (contract_id))
+        result = cur.fetchone()
         conn.commit()
         cur.close()
         self.disconnect(conn)
+        return result
 
-        # todo: Check for result length != 1
-        return result[0]
+    def __create_status_entry(self, contract_id: int) -> None:
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(
+            """REPLACE into quotes_status(
+                contract_id,
+                status_code,
+                status_text,
+                daily_quotes_requested_from,
+                daily_quotes_requested_till) VALUES(?, ?, ?, ?, ?)""",
+            (contract_id,
+                0,
+                "No quotes downloaded yet.",
+                "NULL",
+                "NULL"))
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
+        logger.debug(f"Created new quotes_status_db entry: {contract_id}.")
 
-    def insert_quotes_status(self, contract_id: int, status_code: int,
+    def update_quotes_status(self, contract_id: int, status_code: int,
                              status_text: str,
                              daily_quotes_requested_from: str,
                              daily_quotes_requested_till: str) -> None:
