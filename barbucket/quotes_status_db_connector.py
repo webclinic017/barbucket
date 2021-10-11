@@ -3,8 +3,6 @@ from typing import Any
 import logging
 
 from .db_connector import DbConnector
-from .custom_exceptions import QueryReturnedMultipleResultsError
-from .custom_exceptions import QueryReturnedNoResultError
 
 logger = logging.getLogger(__name__)
 
