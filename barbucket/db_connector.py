@@ -22,7 +22,7 @@ class DbConnector():
     def connect(self) -> sqlite3.Connection:
         """Provides a 'connection'-object for the database."""
 
-        if not DbConnector.__is_initialized:
+        if not DbConnector.__db_path.is_file():
             raise NotInitializedError(
                 f"Database file {DbConnector.__db_path} does not exist.")
             # otherwise sqlite3.connect() would create an empty file and
