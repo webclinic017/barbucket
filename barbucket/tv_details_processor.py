@@ -5,7 +5,6 @@ from typing import Any, List, Dict
 
 import pandas as pd
 
-from .mediator import Mediator
 from .contracts_db_connector import ContractsDbConnector
 from .tv_details_db_connector import TvDetailsDbConnector
 from .custom_exceptions import QueryReturnedMultipleResultsError
@@ -21,8 +20,7 @@ class TvDetailsProcessor():
     __contracts_db_connector = ContractsDbConnector()
     __tv_details_db_connector = TvDetailsDbConnector()
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
         self.__file_row = None
 
     def read_tv_data(self) -> int:
