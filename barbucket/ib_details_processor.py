@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 class IbDetailsProcessor():
     """Downloading of contract details from IB TWS and storing to db"""
-    __contracts_db_connector = ContractsDbConnector()
-    __ib_details_db_connector = IbDetailsDbConnector()
-    __tws_connector = TwsConnector()
 
     def __init__(self) -> None:
+        self.__contracts_db_connector = ContractsDbConnector()
+        self.__ib_details_db_connector = IbDetailsDbConnector()
+        self.__tws_connector = TwsConnector()
         self.__contracts: List[Any] = None
         self.__details: Any = None
         self.__pbar: Any = None
@@ -76,7 +76,7 @@ class IbDetailsProcessor():
             'contract_id', 'contract_type_from_listing', 'broker_symbol',
             'exchange', 'currency']
         filters = {'primary_exchange': "NULL"}
-        self.__contracts = IbDetailsProcessor.__contracts_db_connector.get_contracts(
+        self.__contracts = self.__contracts_db_connector.get_contracts(
             filters=filters,
             return_columns=return_columns)
         logger.debug(f"Found {len(self.__contracts)} contracts with missing "
@@ -84,11 +84,11 @@ class IbDetailsProcessor():
 
     def __connect_tws(self) -> None:
         """Connect to TWS app"""
-        IbDetailsProcessor.__tws_connector.connect()
+        self.__tws_connector.connect()
 
     def __disconnect_tws(self) -> None:
         """Disconnect from TWS app"""
-        IbDetailsProcessor.__tws_connector.disconnect()
+        self.__tws_connector.disconnect()
 
     def __check_abort_signal(self) -> None:
         """Check for abort signal."""
@@ -101,7 +101,7 @@ class IbDetailsProcessor():
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""
 
-        IbDetailsProcessor.__tws_connector.download_contract_details(
+        self.__tws_connector.download_contract_details(
             contract_type_from_listing=contract['contract_type_from_listing'],
             broker_symbol=contract['broker_symbol'],
             exchange=contract['exchange'],
@@ -125,7 +125,7 @@ class IbDetailsProcessor():
     def __insert_ib_details_into_db(self, contract: Any) -> None:
         """Insert contract details into db"""
 
-        IbDetailsProcessor.__ib_details_db_connector.insert_ib_details(
+        self.__ib_details_db_connector.insert_ib_details(
             contract_id=contract['contract_id'],
             contract_type_from_details=self.__details['contract_type_from_details'],
             primary_exchange=self.__details['primary_exchange'],
