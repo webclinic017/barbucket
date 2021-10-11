@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 class IbExchangeListingsProcessor():
     """Provides methods to sync local exchange listings to the IB website."""
-    __contracts_db_connector = ContractsDbConnector()
 
     def __init__(self) -> None:
+        self.__contracts_db_connector = ContractsDbConnector()
         self.__ctype: str = None
         self.__exchange: str = None
         self.__website_contracts: List[Any] = []
@@ -65,7 +65,7 @@ class IbExchangeListingsProcessor():
             'contract_type_from_listing': self.__ctype,
             'exchange': self.__exchange}
         return_columns = ['broker_symbol', 'currency']
-        self.__database_contracts = IbExchangeListingsProcessor.__contracts_db_connector.get_contracts(
+        self.__database_contracts = self.__contracts_db_connector.get_contracts(
             filters=filters,
             return_columns=return_columns)
 
@@ -80,7 +80,7 @@ class IbExchangeListingsProcessor():
                     exists = True
                     break
             if not exists:
-                IbExchangeListingsProcessor.__contracts_db_connector.delete_contract(
+                self.__contracts_db_connector.delete_contract(
                     symbol=db_row['broker_symbol'],
                     exchange=self.__exchange.upper(),
                     currency=db_row['currency'])
@@ -104,7 +104,7 @@ class IbExchangeListingsProcessor():
                     exists = True
                     break
             if not exists:
-                IbExchangeListingsProcessor.__contracts_db_connector.create_contract(
+                self.__contracts_db_connector.create_contract(
                     contract_type_from_listing=self.__ctype,
                     exchange_symbol=web_row['exchange_symbol'],
                     broker_symbol=web_row['broker_symbol'],
