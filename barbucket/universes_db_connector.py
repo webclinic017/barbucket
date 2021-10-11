@@ -21,6 +21,8 @@ class UniversesDbConnector(DbConnector):
                      f" contracts.")
 
     def __create_membership(self, contract_id: int, universe: str) -> None:
+        # Todo: What if member does not exist?
+
         conn = self.connect()
         cur = conn.cursor()
         cur.execute(
@@ -50,6 +52,7 @@ class UniversesDbConnector(DbConnector):
 
     def get_universe_members(self, universe: str) -> List[int]:
         """Get all members of a given universe"""
+        # Todo: What if universe does not exist?
 
         conn = self.connect()
         conn.row_factory = sqlite3.Row
@@ -71,6 +74,7 @@ class UniversesDbConnector(DbConnector):
 
     def delete_universe(self, universe: str) -> None:
         """Delete an existing universe"""
+        # Todo: What if universe does not exist?
 
         conn = self.connect()
         cur = conn.cursor()
