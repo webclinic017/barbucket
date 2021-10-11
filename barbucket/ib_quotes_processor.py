@@ -31,13 +31,13 @@ logger = logging.getLogger(__name__)
 
 class IbQuotesProcessor():
     """Provides methods to download historical quotes from TWS."""
-    __contracts_db_connector = ContractsDbConnector()
-    __universes_db_connector = UniversesDbConnector()
-    __quotes_db_connector = QuotesDbConnector()
-    __quotes_status_db_connector = QuotesStatusDbConnector()
-    __tws_connector = TwsConnector()
 
     def __init__(self) -> None:
+        self.__contracts_db_connector = ContractsDbConnector()
+        self.__universes_db_connector = UniversesDbConnector()
+        self.__quotes_db_connector = QuotesDbConnector()
+        self.__quotes_status_db_connector = QuotesStatusDbConnector()
+        self.__tws_connector = TwsConnector()
         self.__signal_handler = SignalHandler()
         self.__config_reader = ConfigReader()
         self.__contract_id = None
@@ -104,14 +104,14 @@ class IbQuotesProcessor():
             self.__disconnect_tws()
 
     def __get_contracts(self, universe: str) -> List[int]:
-        return IbQuotesProcessor.__universes_db_connector.get_universe_members(
+        return self.__universes_db_connector.get_universe_members(
             universe=universe)
 
     def __connect_tws(self) -> None:
-        IbQuotesProcessor.__tws_connector.connect()
+        self.__tws_connector.connect()
 
     def __disconnect_tws(self) -> None:
-        IbQuotesProcessor.__tws_connector.disconnect()
+        self.__tws_connector.disconnect()
 
     def __check_abort_signal(self) -> None:
         """Check for abort signal."""
@@ -124,7 +124,7 @@ class IbQuotesProcessor():
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
         return_columns = ['broker_symbol', 'exchange', 'currency']
-        contract_data = IbQuotesProcessor.__contracts_db_connector.get_contracts(
+        contract_data = self.__contracts_db_connector.get_contracts(
             filters=filters,
             return_columns=return_columns)
         if len(contract_data) == 0:
@@ -135,7 +135,7 @@ class IbQuotesProcessor():
             self.__contract_data = contract_data[0]
 
     def __get_contract_status(self) -> None:
-        IbQuotesProcessor.__quotes_status_db_connector.get_quotes_status(
+        self.__quotes_status_db_connector.get_quotes_status(
             contract_id=self.__contract_id)
 
     def __calculate_dates(self) -> None:
@@ -187,7 +187,7 @@ class IbQuotesProcessor():
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
         exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
-        quotes = IbQuotesProcessor.__tws_connector.download_historical_quotes(
+        quotes = self.__tws_connector.download_historical_quotes(
             contract_id=self.__contract_id,
             symbol=self.__contract_data['broker_symbol'],
             exchange=exchange,
@@ -196,10 +196,10 @@ class IbQuotesProcessor():
         return quotes
 
     def __write_quotes_to_db(self, quotes) -> None:
-        IbQuotesProcessor.__quotes_db_connector.insert_quotes(quotes=quotes)
+        self.__quotes_db_connector.insert_quotes(quotes=quotes)
 
     def __write_success_status_to_db(self):
-        IbQuotesProcessor.__quotes_status_db_connector.update_quotes_status(
+        self.__quotes_status_db_connector.update_quotes_status(
             contract_id=self.__contract_id,
             status_code=1,
             status_text="Successful",
@@ -210,7 +210,7 @@ class IbQuotesProcessor():
         logger.warning(f"Contract-related problem in TWS detected: "
                        f"{e.req_id}, {e.contract}, "
                        f"{e.error_code}, {e.error_string}")
-        IbQuotesProcessor.__quotes_status_db_connector.update_quotes_status(
+        self.__quotes_status_db_connector.update_quotes_status(
             contract_id=self.__contract_id,
             status_code=e.error_code,
             status_text=e.error_string,
