@@ -46,7 +46,7 @@ class DbConnector():
         if not DbConnector.__db_path.is_file():
             self.__create_db_file()
             self.__create_db_schema()
-            logger.debug("Database created. Finished initialization.")
+            logger.info("Database created. Finished db initialization.")
         else:
             logger.debug("Database already exists. Finished initialization.")
 
@@ -61,7 +61,7 @@ class DbConnector():
 
         conn = sqlite3.connect(DbConnector.__db_path)
         conn.close()
-        logger.debug("Created new database file.")
+        logger.debug(f"Created new database file {DbConnector.__db_path}")
 
     def __create_db_schema(self) -> None:
         """Create schema in database."""
