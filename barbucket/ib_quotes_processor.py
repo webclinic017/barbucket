@@ -100,10 +100,8 @@ class IbQuotesProcessor():
         except ExitSignalDetectedError as e:
             self.__handle_exit_signal_detected_error(e)
         else:
-            self.mediator.notify(
-                "show_cli_message", {
-                    'message': f"Finished downloading historical data for "
-                    f"universe '{universe}'"})
+            logger.info(
+                f"Finished downloading historical data for universe '{universe}'")
         finally:
             self.__disconnect_tws()
 
@@ -123,7 +121,7 @@ class IbQuotesProcessor():
             raise ExitSignalDetectedError
 
     def __handle_exit_signal_detected_error(self, e) -> None:
-        self.mediator.notify("show_cli_message", {'message': "Stopped."})
+        logger.info("Stopped.")
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
@@ -215,10 +213,6 @@ class IbQuotesProcessor():
         logger.warning(f"Contract-related problem in TWS detected: "
                        f"{e.req_id}, {e.contract}, "
                        f"{e.error_code}, {e.error_string}")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': (f"Request {e.req_id} for contract {e.contract} "
-                         f"returned error {e.error_code}: {e.error_string}")})
         IbQuotesProcessor.__quotes_status_db_connector.update_quotes_status(
             contract_id=self.__contract_id,
             status_code=e.error_code,
@@ -230,7 +224,3 @@ class IbQuotesProcessor():
         logger.error(f"Systemic problem in TWS connection detected: "
                      f"{e.req_id}, {e.contract}, "
                      f"{e.error_code}, {e.error_string}")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': (f"Request {e.req_id} for contract {e.contract} "
-                         f"returned error {e.error_code}: {e.error_string}")})
