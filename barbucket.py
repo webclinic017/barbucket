@@ -98,7 +98,7 @@ def list() -> None:
     """List all universes"""
     logger.debug(f"User requested to list all universes via the cli.")
     universes = universes_db_connector.get_universes()
-    logger.info(universes)
+    logger.info(f"Existing universes: {universes}")
 
 
 @universes.command()
@@ -110,7 +110,7 @@ def members(name: str) -> None:
         f"cli.")
     members = universes_db_connector.get_universe_members(
         universe=name)
-    logger.info(members)
+    logger.info(f"Members of universe {name}: {members}")
 
 
 @universes.command()
