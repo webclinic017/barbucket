@@ -51,7 +51,7 @@ def contracts() -> None:
 @click.option("-e", "--exchange", "exchange", required=True, type=str)
 def sync_listing(contract_type: str, exchange: str) -> None:
     """Sync master listing to IB exchange listing"""
-    logger.info(
+    logger.debug(
         f"User requested to sync '{contract_type}' contracts on '{exchange}' "
         f"to master listing via the cli.")
     CliConnector.ib_exchange_listings_processor.sync_contracts_to_listing(
@@ -63,7 +63,7 @@ def sync_listing(contract_type: str, exchange: str) -> None:
 @contracts.command()
 def download_ib_details() -> None:
     """Fetch details for all contracts from IB TWS"""
-    logger.info(
+    logger.debug(
         f"User requested to download details from TWS via the cli.")
     CliConnector.ib_details_processor.update_ib_contract_details()
 
@@ -71,11 +71,11 @@ def download_ib_details() -> None:
 @contracts.command()
 def read_tv_details() -> None:
     """Read details for all contracts from TV files"""
-    logger.info(
+    logger.debug(
         f"User requested to read and store details from tv files via the cli.")
     file_count = CliConnector.tv_details_processor.read_tv_data()
 
-    click.echo(f"Finished reading {file_count} TV files.")
+    logger.info(f"Finished reading {file_count} TV files.")
 
 
 # Group quotes
@@ -88,7 +88,7 @@ def quotes() -> None:
 @click.option("-u", "--universe", "universe", required=True, type=str)
 def fetch(universe: str) -> None:
     """Fetch quotes from IB TWS"""
-    logger.info(
+    logger.debug(
         f"User requested to download quotes from TWS for universe "
         f"'{universe}' via the cli.")
     CliConnector.ib_quotes_processor.download_historical_quotes(
@@ -106,35 +106,35 @@ def universes() -> None:
 @click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
 def create(name: str, contract_ids: str) -> None:
     """Create new universe"""
-    logger.info(
+    logger.debug(
         f"User requested to create universe '{name}' with {len(contract_ids)} "
         f"members via the cli.")
     con_list = [int(n) for n in contract_ids.split(",")]
     CliConnector.universes_db_connector.create_universe(
         name=name,
         contract_ids=con_list)
-    click.echo(
+    logger.info(
         f"Created universe '{name}' with {len(contract_ids)} members.")
 
 
 @universes.command()
 def list() -> None:
     """List all universes"""
-    logger.info(f"User requested to list all universes via the cli.")
+    logger.debug(f"User requested to list all universes via the cli.")
     universes = CliConnector.universes_db_connector.get_universes()
-    click.echo(universes)
+    logger.info(universes)
 
 
 @universes.command()
 @click.option("-n", "--name", "name", required=True, type=str)
 def members(name: str) -> None:
     """List universes members"""
-    logger.info(
+    logger.debug(
         f"User requested to list the members for universe '{name}' via the "
         f"cli.")
     members = CliConnector.universes_db_connector.get_universe_members(
         universe=name)
-    click.echo(members)
+    logger.info(members)
 
 
 @universes.command()
@@ -143,12 +143,7 @@ def members(name: str) -> None:
     prompt=("Are you sure you want to delete this universe?"))
 def delete(name: str) -> None:
     """Delete universe"""
-    logger.info(
+    logger.debug(
         f"User requested to delete universe '{name}' via the cli.")
     CliConnector.universes_db_connector.delete_universe(universe=name)
-    click.echo(f"Deleted universe '{name}'.")
-
-
-# Callbacks
-def show_messeage(message: str) -> None:
-    click.echo(message)
+    logger.info(f"Deleted universe '{name}'.")
