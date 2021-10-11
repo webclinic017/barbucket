@@ -67,9 +67,7 @@ class IbDetailsProcessor():
         except ExitSignalDetectedError as e:
             self.__handle_exit_signal_detected_error(e)
         else:
-            self.mediator.notify(
-                "show_cli_message", {
-                    'message': "Updated IB details for master listings."})
+            logger.info("Updated IB details for master listings.")
         finally:
             self.__disconnect_tws()
 
@@ -101,8 +99,6 @@ class IbDetailsProcessor():
 
     def __handle_exit_signal_detected_error(self, e) -> None:
         logger.info(f"Operation stopped.")
-        self.mediator.notify(
-            "show_cli_message", {'message': "Stopped."})
 
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""
@@ -143,30 +139,14 @@ class IbDetailsProcessor():
         logger.warning(
             f"Contract-related problem in TWS detected: {e.req_id}, "
             f"{e.contract}, {e.error_code}, {e.error_string}")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': (
-                f"Details request {e.req_id} for contract {e.contract} "
-                f"returned error {e.error_code}: {e.error_string}")})
 
     def __handle_tws_systemic_error(self, e):
         logger.error(
             f"Systemic problem in TWS connection detected: {e.req_id}, "
             f"{e.contract}, {e.error_code}, {e.error_string}")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': (
-                f"Details request {e.req_id} for contract{e.contract} "
-                f"returned error {e.error_code}: {e.error_string}")})
 
     def __handle_no_result_error(self, e):
         logger.warning(f"__handle_no_result_error")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': "__handle_no_result_error"})
 
     def __handle_multiple_results_error(self, e):
         logger.warning(f"__handle_multiple_results_error")
-        self.mediator.notify(
-            "show_cli_message",
-            {'message': "__handle_multiple_results_error"})
