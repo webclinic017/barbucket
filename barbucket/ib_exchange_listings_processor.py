@@ -49,23 +49,18 @@ class IbExchangeListingsProcessor():
         except QueryReturnedNoResultError as e:
             self.__handle_query_returned_no_result_error(e)
         else:
-            self.mediator.notify(
-                "show_cli_message", {
-                    'message': f"Master listing synced for {ctype} on "
-                    f"{exchange}. {added_count} contracts were added, "
-                    f"{removed_count} were removed."})
+            logger.info(
+                f"Master listing synced for {ctype} on {exchange}. "
+                f"{added_count} contracts were added, {removed_count} were "
+                f"removed.")
 
     def __handle_exit_signal_detected_error(self, e):
-        self.mediator.notify("show_cli_message", {'message': "Stopped."})
+        logger.info("Stopped.")
 
     def __handle_query_returned_no_result_error(self, e):
         logger.error(
             f"Webscraping for {self.__ctype} on {self.__exchange} returned "
             f"no results.")
-        self.mediator.notify(
-            "show_cli_message", {
-                'message': f"Webscraping for {self.__ctype} on "
-                f"{self.__exchange} returned no results."})
 
     def __get_contracts_from_db(self) -> None:
         filters = {
