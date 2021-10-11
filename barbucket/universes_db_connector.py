@@ -23,8 +23,10 @@ class UniversesDbConnector(DbConnector):
     def __create_membership(self, contract_id: int, universe: str) -> None:
         conn = self.connect()
         cur = conn.cursor()
-        cur.execute("""INSERT INTO universe_memberships (contract_id, universe) 
-            VALUES (?, ?)""", (contract_id, universe))
+        cur.execute(
+            """INSERT INTO universe_memberships (contract_id, universe) 
+                VALUES (?, ?)""",
+            (contract_id, universe))
         conn.commit()
         cur.close()
         self.disconnect(conn)
@@ -52,9 +54,11 @@ class UniversesDbConnector(DbConnector):
         conn = self.connect()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("""SELECT contract_id 
-            FROM universe_memberships 
-            WHERE universe = ?;""", (universe,))
+        cur.execute(
+            """SELECT contract_id 
+                FROM universe_memberships 
+                WHERE universe = ?;""",
+            (universe))
         row_list = cur.fetchall()
         conn.commit()
         cur.close()
@@ -72,7 +76,7 @@ class UniversesDbConnector(DbConnector):
         cur = conn.cursor()
         cur.execute(
             "DELETE FROM universe_memberships WHERE universe = ?;",
-            (universe,))
+            (universe))
         conn.commit()
         cur.close()
         self.disconnect(conn)
