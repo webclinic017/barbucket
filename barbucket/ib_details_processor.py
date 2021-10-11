@@ -8,6 +8,7 @@ from .encoder import Encoder
 from .signal_handler import SignalHandler
 from .contracts_db_connector import ContractsDbConnector
 from .ib_details_db_connector import IbDetailsDbConnector
+from .tws_connector import TwsConnector
 from .custom_exceptions import (
     QueryReturnedNoResultError,
     QueryReturnedMultipleResultsError,
@@ -22,6 +23,7 @@ class IbDetailsProcessor():
     """Downloading of contract details from IB TWS and storing to db"""
     __contracts_db_connector = ContractsDbConnector()
     __ib_details_db_connector = IbDetailsDbConnector()
+    __tws_connector = TwsConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator: Mediator = mediator
@@ -86,11 +88,11 @@ class IbDetailsProcessor():
 
     def __connect_tws(self) -> None:
         """Connect to TWS app"""
-        self.mediator.notify("connect_to_tws")
+        IbDetailsProcessor.__tws_connector.connect()
 
     def __disconnect_tws(self) -> None:
         """Disconnect from TWS app"""
-        self.mediator.notify("disconnect_from_tws")
+        IbDetailsProcessor.__tws_connector.disconnect()
 
     def __check_abort_signal(self) -> None:
         """Check for abort signal."""
@@ -105,13 +107,11 @@ class IbDetailsProcessor():
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""
 
-        parameters = {
-            'contract_type_from_listing': contract['contract_type_from_listing'],
-            'broker_symbol': contract['broker_symbol'],
-            'exchange': contract['exchange'],
-            'currency': contract['currency']}
-        self.__details = self.mediator.notify(
-            "download_contract_details_from_tws", parameters)
+        IbDetailsProcessor.__tws_connector.download_contract_details(
+            contract_type_from_listing=contract['contract_type_from_listing'],
+            broker_symbol=contract['broker_symbol'],
+            exchange=contract['exchange'],
+            currency=contract['currency'])
 
     def __validate_details(self) -> None:
         if len(self.__details) == 0:
