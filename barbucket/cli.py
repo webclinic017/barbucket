@@ -4,7 +4,12 @@ from typing import Any
 import click
 
 from .universes_db_connector import UniversesDbConnector
+from .ib_exchange_listings_processor import IbExchangeListingsProcessor
+from .ib_details_processor import IbDetailsProcessor
+from .tv_details_processor import TvDetailsProcessor
+from .ib_quotes_processor import IbQuotesProcessor
 from .custom_exceptions import ExitSignalDetectedError
+
 """
 The click cli is not designed to be declared within a class. So its functions
 are declared in the module without a class. Then a CliConnector class is 
@@ -17,12 +22,16 @@ logger = logging.getLogger(__name__)
 
 class CliConnector():
     universes_db_connector = UniversesDbConnector()
+    ib_exchange_listings_processor = IbExchangeListingsProcessor()
+    ib_details_processor = IbDetailsProcessor()
+    tv_details_processor = TvDetailsProcessor()
+    ib_quotes_processor = IbQuotesProcessor()
 
     def __init__(self, mediator: Any = None) -> None:
         self.mediator = mediator
 
 
-cli_connector = CliConnector()
+# cli_connector = CliConnector()
 
 
 # Initial group. This method is called to run the cli.
@@ -45,10 +54,10 @@ def sync_listing(contract_type: str, exchange: str) -> None:
     logger.info(
         f"User requested to sync '{contract_type}' contracts on '{exchange}' "
         f"to master listing via the cli.")
-    cli_connector.mediator.notify(
-        "sync_contracts_to_listing",
-        {'ctype': contract_type.upper(),
-            'exchange': exchange.upper()})
+    CliConnector.ib_exchange_listings_processor.sync_contracts_to_listing(
+        ctype=contract_type.upper(),
+        exchange=exchange.upper()
+    )
 
 
 @contracts.command()
@@ -56,7 +65,7 @@ def download_ib_details() -> None:
     """Fetch details for all contracts from IB TWS"""
     logger.info(
         f"User requested to download details from TWS via the cli.")
-    cli_connector.mediator.notify("update_ib_contract_details")
+    CliConnector.ib_details_processor.update_ib_contract_details()
 
 
 @contracts.command()
@@ -64,7 +73,8 @@ def read_tv_details() -> None:
     """Read details for all contracts from TV files"""
     logger.info(
         f"User requested to read and store details from tv files via the cli.")
-    file_count = cli_connector.mediator.notify("read_tv_data")
+    file_count = CliConnector.tv_details_processor.read_tv_data()
+
     click.echo(f"Finished reading {file_count} TV files.")
 
 
@@ -81,9 +91,8 @@ def fetch(universe: str) -> None:
     logger.info(
         f"User requested to download quotes from TWS for universe "
         f"'{universe}' via the cli.")
-    cli_connector.mediator.notify(
-        "download_historical_quotes",
-        {'universe': universe})
+    CliConnector.ib_quotes_processor.download_historical_quotes(
+        universe=universe)
 
 
 # Group universes
