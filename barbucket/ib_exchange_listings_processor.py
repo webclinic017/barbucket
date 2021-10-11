@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 import requests
 import enlighten
 
-from .mediator import Mediator
 from .signal_handler import SignalHandler
 from .contracts_db_connector import ContractsDbConnector
 from .custom_exceptions import ExitSignalDetectedError, QueryReturnedNoResultError
@@ -20,8 +19,7 @@ class IbExchangeListingsProcessor():
     """Provides methods to sync local exchange listings to the IB website."""
     __contracts_db_connector = ContractsDbConnector()
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
         self.__ctype: str = None
         self.__exchange: str = None
         self.__website_contracts: List[Any] = []
@@ -82,11 +80,10 @@ class IbExchangeListingsProcessor():
                     exists = True
                     break
             if not exists:
-                self.mediator.notify(
-                    "delete_contract",
-                    {'symbol': db_row['broker_symbol'],
-                     'exchange': self.__exchange.upper(),
-                     'currency': db_row['currency']})
+                IbExchangeListingsProcessor.__contracts_db_connector.delete_contract(
+                    symbol=db_row['broker_symbol'],
+                    exchange=self.__exchange.upper(),
+                    currency=db_row['currency'])
                 contracts_removed.append(
                     f"{self.__exchange.upper()}_{db_row['broker_symbol']}_"
                     f"{db_row['currency']}")
