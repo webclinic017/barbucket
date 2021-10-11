@@ -39,7 +39,7 @@ class DbConnector():
         """Disconnects the connection to the database."""
         conn.close()
 
-    def __initialize_database(self,) -> None:
+    def __initialize_database(self) -> None:
         """Initialize database if it doesnt exist. Else skip."""
 
         self.__get_db_path()
