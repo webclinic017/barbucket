@@ -16,6 +16,7 @@ from .contracts_db_connector import ContractsDbConnector
 from .universes_db_connector import UniversesDbConnector
 from .quotes_db_connector import QuotesDbConnector
 from .quotes_status_db_connector import QuotesStatusDbConnector
+from .tws_connector import TwsConnector
 from .custom_exceptions import (
     ExistingDataIsSufficientError,
     ExistingDataIsTooOldError,
@@ -35,6 +36,7 @@ class IbQuotesProcessor():
     __universes_db_connector = UniversesDbConnector()
     __quotes_db_connector = QuotesDbConnector()
     __quotes_status_db_connector = QuotesStatusDbConnector()
+    __tws_connector = TwsConnector()
 
     def __init__(self, mediator: Mediator = None) -> None:
         self.mediator = mediator
@@ -110,10 +112,10 @@ class IbQuotesProcessor():
             universe=universe)
 
     def __connect_tws(self) -> None:
-        self.mediator.notify("connect_to_tws")
+        IbQuotesProcessor.__tws_connector.connect()
 
     def __disconnect_tws(self) -> None:
-        self.mediator.notify("disconnect_from_tws")
+        IbQuotesProcessor.__tws_connector.disconnect()
 
     def __check_abort_signal(self) -> None:
         """Check for abort signal."""
@@ -190,13 +192,13 @@ class IbQuotesProcessor():
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
         exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
-        parameters = {
-            'contract_id': self.__contract_id,
-            'symbol': self.__contract_data['broker_symbol'],
-            'exchange': exchange,
-            'currency': self.__contract_data['currency'],
-            'duration': self.__duration}
-        return self.mediator.notify("download_historical_quotes", parameters)
+        quotes = IbQuotesProcessor.__tws_connector.download_historical_quotes(
+            contract_id=self.__contract_id,
+            symbol=self.__contract_data['broker_symbol'],
+            exchange=exchange,
+            currency=self.__contract_data['currency'],
+            duration=self.__duration)
+        return quotes
 
     def __write_quotes_to_db(self, quotes) -> None:
         IbQuotesProcessor.__quotes_db_connector.insert_quotes(quotes=quotes)
