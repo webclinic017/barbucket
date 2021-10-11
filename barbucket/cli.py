@@ -111,7 +111,7 @@ def create(name: str, contract_ids: str) -> None:
 @universes.command()
 def list() -> None:
     """List all universes"""
-    logger.info(f"User requestet to list all universes via the cli.")
+    logger.info(f"User requested to list all universes via the cli.")
     universes = CliConnector.universes_db_connector.get_universes()
     click.echo(universes)
 
@@ -121,7 +121,7 @@ def list() -> None:
 def members(name: str) -> None:
     """List universes members"""
     logger.info(
-        f"User requestet to list the members for universe '{name}' via the "
+        f"User requested to list the members for universe '{name}' via the "
         f"cli.")
     members = CliConnector.universes_db_connector.get_universe_members(
         universe=name)
@@ -135,7 +135,7 @@ def members(name: str) -> None:
 def delete(name: str) -> None:
     """Delete universe"""
     logger.info(
-        f"User requestet to delete universe '{name}' via the cli.")
+        f"User requested to delete universe '{name}' via the cli.")
     CliConnector.universes_db_connector.delete_universe(universe=name)
     click.echo(f"Deleted universe '{name}'.")
 
