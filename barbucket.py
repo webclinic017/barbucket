@@ -11,13 +11,6 @@ from barbucket.tv_details_processor import TvDetailsProcessor
 from barbucket.ib_quotes_processor import IbQuotesProcessor
 
 
-universes_db_connector = UniversesDbConnector()
-ib_exchange_listings_processor = IbExchangeListingsProcessor()
-ib_details_processor = IbDetailsProcessor()
-tv_details_processor = TvDetailsProcessor()
-ib_quotes_processor = IbQuotesProcessor()
-
-
 @click.group()
 # Initial group. This method is called to run the cli.
 def cli() -> None:
@@ -160,7 +153,13 @@ if __name__ == '__main__':
     root_logger.addHandler(file_handler)
 
     logger = logging.getLogger(__name__)
-    logger.debug("Application started.")
+    logger.debug("-------------- Application started --------------")
+
+    universes_db_connector = UniversesDbConnector()
+    ib_exchange_listings_processor = IbExchangeListingsProcessor()
+    ib_details_processor = IbDetailsProcessor()
+    tv_details_processor = TvDetailsProcessor()
+    ib_quotes_processor = IbQuotesProcessor()
 
     # Run Cli
     cli()
