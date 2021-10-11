@@ -25,7 +25,7 @@ class ConfigInitializer():
         except FileExistsError:
             logger.debug(f"Necessary directories already exist.")
         else:
-            logger.debug(f"Created directories `~/.barbucket/tv_screener`")
+            logger.info(f"Created directories `~/.barbucket/tv_screener`")
 
     def _create_config_file(
             self, source_path: Path,
@@ -35,4 +35,5 @@ class ConfigInitializer():
             logger.debug(f"Config file already exists.")
         else:
             copyfile(source_path, destination_path)
-            logger.debug(f"Created config file from default file.")
+            logger.info(
+                f"Created config file {destination_path} from default file.")
