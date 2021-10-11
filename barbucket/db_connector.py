@@ -12,9 +12,9 @@ class DbConnector():
     """Handles all non-specific database operations."""
     __db_path: Path = None
     __is_initialized: bool = False
-    __config_reader = ConfigReader()
 
     def __init__(self) -> None:
+        self.__config_reader = ConfigReader()
         if not DbConnector.__is_initialized:
             self.__initialize_database()
             DbConnector.__is_initialized = True
@@ -51,7 +51,7 @@ class DbConnector():
             logger.debug("Database already exists. Finished initialization.")
 
     def __get_db_path(self) -> None:
-        db_path = DbConnector.__config_reader.get_config_value_single(
+        db_path = self.__config_reader.get_config_value_single(
             section="database",
             option="db_location")
         DbConnector.__db_path = Path.home() / Path(db_path)
