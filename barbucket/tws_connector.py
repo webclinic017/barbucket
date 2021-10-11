@@ -3,7 +3,6 @@ import logging
 
 import ib_insync
 
-from .mediator import Mediator
 from .encoder import Encoder
 from .config_reader import ConfigReader
 from .custom_exceptions import (
@@ -17,8 +16,7 @@ logger = logging.getLogger(__name__)
 class TwsConnector():
     """Provides methods to download data from IB TWS"""
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
         self.__config_reader = ConfigReader()
         self.__ib = ib_insync.ib.IB()  # Create connection objec
         # Register own error handler on ib hook
