@@ -153,7 +153,7 @@ if __name__ == '__main__':
     root_logger.addHandler(file_handler)
 
     logger = logging.getLogger(__name__)
-    logger.debug("-------------- Application started --------------")
+    logger.debug("--------------------------------------- Application started")
 
     universes_db_connector = UniversesDbConnector()
     ib_exchange_listings_processor = IbExchangeListingsProcessor()
