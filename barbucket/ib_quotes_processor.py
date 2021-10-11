@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 import enlighten
 
-from .mediator import Mediator
 from .signal_handler import SignalHandler
 from .encoder import Encoder
 from .config_reader import ConfigReader
@@ -38,8 +37,7 @@ class IbQuotesProcessor():
     __quotes_status_db_connector = QuotesStatusDbConnector()
     __tws_connector = TwsConnector()
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator = mediator
+    def __init__(self) -> None:
         self.__signal_handler = SignalHandler()
         self.__config_reader = ConfigReader()
         self.__contract_id = None
@@ -137,9 +135,8 @@ class IbQuotesProcessor():
             self.__contract_data = contract_data[0]
 
     def __get_contract_status(self) -> None:
-        self.__quotes_status = self.mediator.notify(
-            "get_quotes_status",
-            {'contract_id': self.__contract_id})
+        IbQuotesProcessor.__quotes_status_db_connector.get_quotes_status(
+            contract_id=self.__contract_id)
 
     def __calculate_dates(self) -> None:
         if self.__quotes_status['status_code'] == 0:
