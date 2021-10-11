@@ -20,6 +20,3 @@ class Mediator():
         # Cli
         if action == "run_cli":
             return self.__cli.cli()
-        elif action == "show_cli_message":
-            return self.__cli.show_messeage(
-                message=parameters['message'])
