@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # Setup logging
     def my_filenamer(filename):
-        new_name = filename.replace("logfile.", "logfile_") + ".log"
+        new_name = filename.replace(".txt.", "_") + ".txt"
         return new_name
 
     root_logger = logging.getLogger()
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     root_logger.addHandler(console_handler)
 
     file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=Path.home() / ".barbucket/logfile",
+        filename=Path.home() / ".barbucket/logfile.txt",
         when='midnight')
     file_handler.namer = my_filenamer
     file_handler.setLevel(logging.DEBUG)
