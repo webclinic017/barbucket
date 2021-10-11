@@ -3,7 +3,6 @@ from typing import Any, List
 
 import enlighten
 
-from .mediator import Mediator
 from .encoder import Encoder
 from .signal_handler import SignalHandler
 from .contracts_db_connector import ContractsDbConnector
@@ -25,8 +24,7 @@ class IbDetailsProcessor():
     __ib_details_db_connector = IbDetailsDbConnector()
     __tws_connector = TwsConnector()
 
-    def __init__(self, mediator: Mediator = None) -> None:
-        self.mediator: Mediator = mediator
+    def __init__(self) -> None:
         self.__contracts: List[Any] = None
         self.__details: Any = None
         self.__pbar: Any = None
