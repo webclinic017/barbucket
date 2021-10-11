@@ -2,17 +2,15 @@ import signal
 import logging
 from typing import Any
 
-from barbucket.mediator import Mediator
 
 logger = logging.getLogger(__name__)
 
 
 class SignalHandler():
 
-    def __init__(self, mediator: Mediator = None) -> None:
+    def __init__(self) -> None:
         self.state = False
         signal.signal(signal.SIGINT, self.change_state)
-        self.mediator = mediator
 
     def change_state(self, signum: Any, frame: Any) -> None:
         """Interrupt method, called by system, when Ctrl-C is detected."""
