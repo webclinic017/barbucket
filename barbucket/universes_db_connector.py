@@ -61,7 +61,7 @@ class UniversesDbConnector(DbConnector):
             """SELECT contract_id 
                 FROM universe_memberships 
                 WHERE universe = ?;""",
-            (universe))
+            (universe,))  # Comma, to not iterate over string characters
         row_list = cur.fetchall()
         conn.commit()
         cur.close()
@@ -80,7 +80,7 @@ class UniversesDbConnector(DbConnector):
         cur = conn.cursor()
         cur.execute(
             "DELETE FROM universe_memberships WHERE universe = ?;",
-            (universe))
+            (universe,))  # Comma, to not iterate over string characters
         conn.commit()
         cur.close()
         self.disconnect(conn)
