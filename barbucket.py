@@ -13,8 +13,11 @@ from barbucket.ib_quotes_processor import IbQuotesProcessor
 
 @click.group()
 # Initial group. This method is called to run the cli.
-def cli() -> None:
-    pass
+@click.option("-v", "--verbose", count=True, default=0, help="-v for DEBUG")
+def cli(verbose) -> None:
+    if verbose > 0:  # -v -> 1, -vv -> 2, etc.
+        root_logger = logging.getLogger()
+        root_logger.handlers[0].level = logging.DEBUG  # Dirty
 
 
 # Group contracts
@@ -148,12 +151,13 @@ if __name__ == '__main__':
     file_handler.namer = my_filenamer
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter(
-        "%(asctime)s;%(name)s;%(levelname)s;%(message)s")
+        "%(asctime)s | %(name)s | %(levelname)s | %(message)s")
     file_handler.setFormatter(file_formatter)
     root_logger.addHandler(file_handler)
 
     logger = logging.getLogger(__name__)
-    logger.debug("--------------------------------------- Application started")
+    logger.debug("---------------------------------------")
+    logger.debug("Application started")
 
     universes_db_connector = UniversesDbConnector()
     ib_exchange_listings_processor = IbExchangeListingsProcessor()
