@@ -1,12 +1,10 @@
 import logging
-from pathlib import Path
-from os import path, listdir
-from typing import Any, List, Dict, Tuple
+from typing import Any, List
 from datetime import date, timedelta
 
-import pandas as pd
 import numpy as np
 import enlighten
+from ib_insync.wrapper import RequestError
 
 from .signal_handler import SignalHandler
 from .encoder import Encoder
@@ -16,15 +14,7 @@ from .universes_db_connector import UniversesDbConnector
 from .quotes_db_connector import QuotesDbConnector
 from .quotes_status_db_connector import QuotesStatusDbConnector
 from .tws_connector import TwsConnector
-from .custom_exceptions import (
-    ExistingDataIsSufficientError,
-    ExistingDataIsTooOldError,
-    ContractHasErrorStatusError,
-    QueryReturnedMultipleResultsError,
-    QueryReturnedNoResultError,
-    TwsSystemicError,
-    TwsContractRelatedError,
-    ExitSignalDetectedError)
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +36,7 @@ class IbQuotesProcessor():
         self.__duration = None
         self.__quotes_from = None
         self.__quotes_till = None
-        # Setup progress bar
-        manager = enlighten.get_manager()
+        manager = enlighten.get_manager()  # Setup progress bar
         self.__pbar = manager.counter(
             total=0,
             desc="Contracts", unit="contracts")
@@ -60,46 +49,38 @@ class IbQuotesProcessor():
         self.__connect_tws()
         try:
             for self.__contract_id in contract_ids:
-                self.__check_abort_signal()
-                try:
-                    self.__get_contract_data()
-                except (QueryReturnedNoResultError,
-                        QueryReturnedMultipleResultsError):
-                    self.__pbar.total -= 1
-                    self.__pbar.update(incr=0)
-                    continue
-                try:
-                    self.__get_contract_status()
-                except QueryReturnedNoResultError:
-                    print("QueryReturnedNoResultError")  # Todo
-                except QueryReturnedMultipleResultsError:
-                    print("QueryReturnedMultipleResultsError")  # Todo
+                if self.__signal_handler.check_exit_requested():
+                    raise ExitSignalDetectedError("Message")
+                self.__get_contract_data()
+                self.__get_contract_status()
                 try:
                     self.__calculate_dates()
-                except (ExistingDataIsSufficientError,
-                        ExistingDataIsTooOldError,
-                        ContractHasErrorStatusError):
+                except (QuotesDurationError, ContractHasErrorStatusError):
+                    # Decrement total, as these contracts add almost nothing to time
                     self.__pbar.total -= 1
                     self.__pbar.update(incr=0)
                     continue
                 try:
-                    quotes = self.__get_quotes_from_tws()
-                except TwsContractRelatedError as e:
-                    self.__handle_tws_contract_related_error(e)
-                except QueryReturnedNoResultError as e:
-                    print("This needs to be done.")  # Todo
-                    raise e
+                    bar_data = self.__get_quotes_from_tws()
+                except RequestError as e:
+                    logger.info(e)
+                    if e.reqId != -1:
+                        self.__update_quotes_status(
+                            error=True,
+                            status_code=e.code,
+                            status_text=e.message)
+                        self.__pbar.update(incr=1)
+                    continue
                 else:
-                    self.__write_quotes_to_db(quotes)
-                    self.__write_success_status_to_db()
-                self.__pbar.update(incr=1)
-        except TwsSystemicError as e:
-            self.__handle_tws_systemic_error(e)
-        except ExitSignalDetectedError as e:
-            self.__handle_exit_signal_detected_error(e)
+                    self.__write_quotes_to_db(bar_data)
+                    self.__update_quotes_status(error=False)
+                    self.__pbar.update(incr=1)
+        except ExitSignalDetectedError:
+            pass
         else:
             logger.info(
-                f"Finished downloading historical data for universe '{universe}'")
+                f"Finished downloading historical data for universe '"
+                f"{universe}'")
         finally:
             self.__disconnect_tws()
 
@@ -110,42 +91,28 @@ class IbQuotesProcessor():
     def __connect_tws(self) -> None:
         self.__tws_connector.connect()
 
-    def __disconnect_tws(self) -> None:
-        self.__tws_connector.disconnect()
-
-    def __check_abort_signal(self) -> None:
-        """Check for abort signal."""
-        if self.__signal_handler.exit_requested():
-            raise ExitSignalDetectedError
-
-    def __handle_exit_signal_detected_error(self, e) -> None:
-        logger.info("Stopped.")
-
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
         return_columns = ['broker_symbol', 'exchange', 'currency']
         contract_data = self.__contracts_db_connector.get_contracts(
             filters=filters,
             return_columns=return_columns)
-        if len(contract_data) == 0:
-            raise QueryReturnedNoResultError
-        elif len(contract_data) > 1:
-            raise QueryReturnedMultipleResultsError
-        else:
-            self.__contract_data = contract_data[0]
+        self.__contract_data = contract_data[0]
 
     def __get_contract_status(self) -> None:
-        self.__quotes_status_db_connector.get_quotes_status(
+        self.__quotes_status = self.__quotes_status_db_connector.get_quotes_status(
             contract_id=self.__contract_id)
 
     def __calculate_dates(self) -> None:
+        print(self.__quotes_status['status_code'])
         if self.__quotes_status['status_code'] == 0:
             self.__calculate_dates_for_new_contract()
         elif self.__quotes_status['status_code'] == 1:
             self.__calculate_dates_for_existing_contract()
         else:
-            self.__contract_has_error_status()
-        logger.debug(f"Calculated 'duration' as: {self.__duration}"
+            # self.__contract_has_error_status()
+            self.__calculate_dates_for_new_contract()  # Test
+        logger.debug(f"Calculated 'duration' as: {self.__duration}, "
                      f"'from' as: {self.__quotes_from}, "
                      f"'till' as: {self.__quotes_till}")
 
@@ -170,19 +137,22 @@ class IbQuotesProcessor():
         end_date = date.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
         if ndays <= REDOWNLOAD_DAYS:
-            logger.debug(f"Existing data is only {ndays} days old.")
-            raise ExistingDataIsSufficientError
+            message = f"Existing data is only {ndays} days old."
+            logger.info(message)
+            raise QuotesDurationError(message)
         if ndays > 360:
-            logger.debug(f"Existing data is already {ndays} days old.")
-            raise ExistingDataIsTooOldError
+            message = f"Existing data is already {ndays} days old."
+            logger.info(message)
+            raise QuotesDurationError(message)
         ndays += OVERLAP_DAYS
         self.__duration = str(ndays) + " D"
         self.__quotes_from = self.__quotes_status['daily_quotes_requested_from']
         self.__quotes_till = end_date
 
     def __contract_has_error_status(self) -> None:
-        logger.debug("Contract already has error status. Skipped.")
-        raise ContractHasErrorStatusError
+        message = "Contract already has error status. Skipped."
+        logger.info(message)
+        raise ContractHasErrorStatusError(message)
 
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
@@ -195,29 +165,66 @@ class IbQuotesProcessor():
             duration=self.__duration)
         return quotes
 
-    def __write_quotes_to_db(self, quotes) -> None:
+    def __update_quotes_status(
+            self,
+            error: bool,
+            status_code: int = None,
+            status_text: str = None) -> None:
+        if error:
+            code = status_code
+            text = status_text
+            q_from = "NULL"
+            q_till = "NULL"
+        else:
+            code = 1
+            text = "Successful"
+            q_from = self.__quotes_from
+            q_till = self.__quotes_till
+        self.__quotes_status_db_connector.update_quotes_status(
+            contract_id=self.__contract_id,
+            status_code=code,
+            status_text=text,
+            daily_quotes_requested_from=q_from,
+            daily_quotes_requested_till=q_till)
+
+    def __write_quotes_to_db(self, bar_data) -> None:
+        quotes = []
+        for bar in bar_data:
+            quote = (
+                self.__contract_id,
+                bar.date.strftime('%Y-%m-%d'),
+                bar.open,
+                bar.high,
+                bar.low,
+                bar.close,
+                bar.volume)
+            quotes.append(quote)
         self.__quotes_db_connector.insert_quotes(quotes=quotes)
 
-    def __write_success_status_to_db(self):
-        self.__quotes_status_db_connector.update_quotes_status(
-            contract_id=self.__contract_id,
-            status_code=1,
-            status_text="Successful",
-            daily_quotes_requested_from=self.__quotes_from,
-            daily_quotes_requested_till=self.__quotes_till)
+    def __disconnect_tws(self) -> None:
+        self.__tws_connector.disconnect()
 
-    def __handle_tws_contract_related_error(self, e):
-        logger.warning(f"Contract-related problem in TWS detected: "
-                       f"{e.req_id}, {e.contract}, "
-                       f"{e.error_code}, {e.error_string}")
-        self.__quotes_status_db_connector.update_quotes_status(
-            contract_id=self.__contract_id,
-            status_code=e.error_code,
-            status_text=e.error_string,
-            daily_quotes_requested_from=None,
-            daily_quotes_requested_till=None)
 
-    def __handle_tws_systemic_error(self, e):
-        logger.error(f"Systemic problem in TWS connection detected: "
-                     f"{e.req_id}, {e.contract}, "
-                     f"{e.error_code}, {e.error_string}")
+class QuotesDurationError(Exception):
+    """Docstring"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+class ContractHasErrorStatusError(Exception):
+    """Docstring"""
+# TODO
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+class ExitSignalDetectedError(Exception):
+    """"Doc"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
