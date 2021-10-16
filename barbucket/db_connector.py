@@ -3,7 +3,6 @@ from pathlib import Path
 import logging
 
 from .config_reader import ConfigReader
-from .custom_exceptions import NotInitializedError
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class DbConnector():
         """Provides a 'connection'-object for the database."""
 
         if not DbConnector.__db_path.is_file():
-            raise NotInitializedError(
+            raise DBNotInitializedError(
                 f"Database file {DbConnector.__db_path} does not exist.")
             # otherwise sqlite3.connect() would create an empty file and
             # we dont want that
@@ -161,3 +160,11 @@ class DbConnector():
         cur.close()
         self.disconnect(conn)
         logger.debug("Created database schema.")
+
+
+class DBNotInitializedError(Exception):
+    """Custom exception for connecting to a non-present database."""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
