@@ -7,8 +7,6 @@ import pandas as pd
 
 from .contracts_db_connector import ContractsDbConnector
 from .tv_details_db_connector import TvDetailsDbConnector
-from .custom_exceptions import QueryReturnedMultipleResultsError
-from .custom_exceptions import QueryReturnedNoResultError
 from .encoder import Encoder
 
 
@@ -33,9 +31,9 @@ class TvDetailsProcessor():
                 self.__file_row = row
                 try:
                     contract_id = self.__get_contract_id_from_db()
-                except QueryReturnedNoResultError:
+                except TvQueryResultError:
                     print("QueryReturnedNoResultError")  # Todo
-                except QueryReturnedMultipleResultsError:
+                except TvQueryResultError:
                     print("QueryReturnedMultipleResultsError")  # Todo
                 else:
                     self.__write_contract_details_to_db(contract_id)
@@ -109,13 +107,13 @@ class TvDetailsProcessor():
                 f"{len(query_result)} contracts found in master listing for "
                 f"'{self.__file_row['ticker']}' on '"
                 f"{self.__file_row['exchange']}'.")
-            raise QueryReturnedNoResultError
+            raise TvQueryResultError("Message")
         elif len(query_result) > 1:
             logger.warning(
                 f"{len(query_result)} contracts found in master listing for '"
                 f"{self.__file_row['ticker']}' on '"
                 f"{self.__file_row['exchange']}'.")
-            raise QueryReturnedMultipleResultsError
+            raise TvQueryResultError("Message")
         else:
             return query_result[0]
 
@@ -130,3 +128,11 @@ class TvDetailsProcessor():
             employees=self.__file_row['employees'],
             profit=self.__file_row['profit'],
             revenue=self.__file_row['revenue'])
+
+
+class TvQueryResultError(Exception):
+    """[summary]"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
