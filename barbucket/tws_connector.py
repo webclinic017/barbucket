@@ -16,34 +16,7 @@ class TwsConnector():
     def __init__(self) -> None:
         self.__config_reader = ConfigReader()
         self.__ib = ib_insync.ib.IB()  # Create connection objec
-        # Register own error handler on ib hook
-        self.__ib.errorEvent += self.on_tws_error
-
-    def on_tws_error(
-            self, reqId: int, errorCode: int, errorString: str,
-            contract: Any) -> None:
-        """
-        Is called from 'ib_insync' as callback on errors and writes error
-        details to quotes_status in database.
-        """
-
-        codes = self.__config_reader.get_config_value_single(
-            section="tws_connector",
-            option="non_systemic_codes")
-        NON_SYSTEMIC_CODES = list(map(int, codes))
-        if errorCode not in NON_SYSTEMIC_CODES:
-            raise TwsSystemicError(
-                req_id=reqId,
-                error_code=errorCode,
-                error_string=errorString,
-                contract=contract)
-        # if contract is not None:
-        else:
-            raise TwsContractRelatedError(
-                req_id=reqId,
-                error_code=errorCode,
-                error_string=errorString,
-                contract=contract)
+        self.__ib.RaiseRequestErrors = True  # Enable exceptions
 
     def connect(self) -> None:
         IP = self.__config_reader.get_config_value_single(
