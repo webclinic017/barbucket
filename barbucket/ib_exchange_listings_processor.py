@@ -91,9 +91,6 @@ class IbExchangeListingsProcessor():
                     f"{self.__exchange.upper()}_{db_row['broker_symbol']}_"
                     f"{db_row['currency']}")
                 removed_count += 1
-        logger.debug(
-            f"{removed_count} contracts removed from master listing: "
-            f"{contracts_removed}")
         return removed_count
 
     def __add_new_contracts_to_db(self) -> int:
@@ -118,7 +115,4 @@ class IbExchangeListingsProcessor():
                     f"{self.__exchange.upper()}_{web_row['broker_symbol']}_"
                     f"{web_row['currency']}")
                 added_count += 1
-        logger.debug(
-            f"{added_count} contracts added to master listing: "
-            f"{contracts_added}")
         return added_count
