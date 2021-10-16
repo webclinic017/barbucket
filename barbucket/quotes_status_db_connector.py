@@ -31,13 +31,13 @@ class QuotesStatusDbConnector(DbConnector):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(
-            """SELECT COUNT(* WHERE contract_id = ?);""",
+            """SELECT COUNT(*) FROM contracts WHERE contract_id = ?;""",
             (contract_id,))
         count = cur.fetchone()
         conn.commit()
         cur.close()
         self.disconnect(conn)
-        if count > 0:
+        if count[0] > 0:
             return True
         else:
             return False
