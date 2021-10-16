@@ -23,6 +23,6 @@ class SignalHandler():
         cls.__state = True
 
     @classmethod
-    def check_exit_requested(cls) -> bool:
+    def exit_requested(cls) -> bool:
         """Check if the user pressed Ctrl-C."""
         return cls.__state

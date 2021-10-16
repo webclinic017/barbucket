@@ -38,7 +38,7 @@ class IbDetailsProcessor():
         self.__connect_tws()
         try:
             for contract in self.__contracts:
-                if self.__signal_handler.check_exit_requested():
+                if self.__signal_handler.exit_requested():
                     raise ExitSignalDetectedError("Message")
                 try:
                     self.__get_contract_details_from_tws(contract)
