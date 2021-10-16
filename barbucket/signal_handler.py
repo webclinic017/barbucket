@@ -7,20 +7,22 @@ logger = logging.getLogger(__name__)
 
 
 class SignalHandler():
+    __state = False
 
     def __init__(self) -> None:
-        self.state = False
-        signal.signal(signal.SIGINT, self.change_state)
+        signal.signal(signal.SIGINT, SignalHandler.change_state)
 
-    def change_state(self, signum: Any, frame: Any) -> None:
+    @classmethod
+    def change_state(cls, signum: Any, frame: Any) -> None:
         """Interrupt method, called by system, when Ctrl-C is detected."""
 
         logger.warn(
-            f"Ctrl-C detected, gracefully stopping operation. Press again to "
+            f" Ctrl-C detected, gracefully stopping operation. Press again to "
             f"stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        self.state = True
+        cls.__state = True
 
-    def exit_requested(self) -> bool:
+    @classmethod
+    def check_exit_requested(cls) -> bool:
         """Check if the user pressed Ctrl-C."""
-        return self.state
+        return cls.__state
