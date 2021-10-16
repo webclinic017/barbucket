@@ -49,7 +49,7 @@ class QuotesStatusDbConnector(DbConnector):
         cur.execute("""SELECT *
                     FROM quotes_status
                     WHERE contract_id = ?;""",
-                    (contract_id))
+                    (contract_id,))
         result = cur.fetchone()
         conn.commit()
         cur.close()
