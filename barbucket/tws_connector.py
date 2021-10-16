@@ -72,7 +72,7 @@ class TwsConnector():
             symbol=symbol,
             exchange=exchange,
             currency=currency)
-        bars = self.__ib.reqHistoricalData(
+        bar_data = self.__ib.reqHistoricalData(
             contract=ib_contract,
             endDateTime='',
             durationStr=duration,
@@ -80,26 +80,9 @@ class TwsConnector():
             whatToShow='ADJUSTED_LAST',
             useRTH=True)
         logger.debug(
-            f"Received {len(bars)} quotes for {exchange}_{symbol}_"
+            f"Received {len(bar_data)} quotes for {exchange}_{symbol}_"
             f"{currency}_{duration.replace(' ', '')} from TWS.")
-
-        if len(bars) == 0:
-            raise QueryReturnedNoResultError
-        return self.__reformat_bars(contract_id, bars)
-
-    def __reformat_bars(self, contract_id, bars):
-        quotes = []
-        for bar in bars:
-            quote = (
-                contract_id,
-                bar.date.strftime('%Y-%m-%d'),
-                bar.open,
-                bar.high,
-                bar.low,
-                bar.close,
-                bar.volume)
-            quotes.append(quote)
-        return quotes
+        return bar_data
 
     def download_contract_details(
             self, contract_type_from_listing: str, broker_symbol: str,
