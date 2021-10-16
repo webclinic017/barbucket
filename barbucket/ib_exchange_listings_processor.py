@@ -3,12 +3,11 @@ from typing import Any, List
 
 from .contracts_db_connector import ContractsDbConnector
 from .ib_exchange_listing_reader import (
-    IbExchangeListingReader,
     IbExchangeListingSinglepageReader,
-    IbExchangeListingMultipageReader)
-from .custom_exceptions import (
-    ExitSignalDetectedError,
-    QueryReturnedNoResultError)
+    IbExchangeListingMultipageReader,
+    WebscrapingReturnedNoResultError,
+    ExitSignalDetectedError)
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class IbExchangeListingsProcessor():
             added_count = self.__add_new_contracts_to_db()
         except ExitSignalDetectedError as e:
             self.__handle_exit_signal_detected_error(e)
-        except QueryReturnedNoResultError as e:
+        except WebscrapingReturnedNoResultError as e:
             self.__handle_query_returned_no_result_error(e)
         else:
             logger.info(
