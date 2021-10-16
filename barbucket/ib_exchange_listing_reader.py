@@ -8,7 +8,6 @@ import requests
 import enlighten
 
 from .signal_handler import SignalHandler
-from .custom_exceptions import ExitSignalDetectedError, QueryReturnedNoResultError
 
 logger = logging.getLogger(__name__)
 
@@ -78,11 +77,12 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
                 'currency': columns[3].text.strip(),
                 'exchange': self.__exchange.upper()}
             website_contracts.append(row_dict)
+        # todo: log amount
         return website_contracts
 
     def __validate_result(self, contracts):
         if len(contracts) == 0:
-            raise QueryReturnedNoResultError
+            raise WebscrapingReturnedNoResultError
 
 
 class IbExchangeListingMultipageReader(IbExchangeListingReader):
@@ -129,6 +129,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         page_buttons = pagination_tables[0].find_all('li')
         self.__page_count = int(page_buttons[-2].text)
         self.__pbar.total = self.__page_count
+        # todo: handle errors
 
     def __get_html(self) -> None:
         url = (f"https://www.interactivebrokers.com/en/index.php?f=2222"
@@ -164,7 +165,26 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 'currency': cols[3].text.strip(),
                 'exchange': self.__exchange.upper()}
             self.__website_data.append(row_dict)
+        # todo: log ammount
+        # todo: handle ammount == 0
 
     def __check_abort_signal(self) -> None:
         if self.__signal_handler.exit_requested():
+            # Todo: CHANGED!
             raise ExitSignalDetectedError
+
+
+class WebscrapingReturnedNoResultError(Exception):
+    """[summary]"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+class ExitSignalDetectedError(Exception):
+    """"Doc"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
