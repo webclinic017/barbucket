@@ -81,23 +81,10 @@ class QuotesStatusDbConnector(DbConnector):
                              daily_quotes_requested_from: str,
                              daily_quotes_requested_till: str) -> None:
         """ Update a contract's quote status in the db."""
-
         # Status code:
         # 0: No quotes downloaded yet
         # 1: Successfully downloaded quotes
         # >1: TWS error code
-
-        if ((daily_quotes_requested_from == None)
-                or (daily_quotes_requested_till == None)):  # Db entry might not exist yet.
-            existing_status = self.get_quotes_status(contract_id=contract_id)
-            if ((daily_quotes_requested_from is None)
-                    and (existing_status is not None)):
-                daily_quotes_requested_from = existing_status[
-                    'daily_quotes_requested_from']
-            if ((daily_quotes_requested_till is None)
-                    and (existing_status is not None)):
-                daily_quotes_requested_till = existing_status[
-                    'daily_quotes_requested_till']
 
         conn = self.connect()
         cur = conn.cursor()
