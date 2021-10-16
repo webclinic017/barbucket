@@ -2,18 +2,13 @@ import logging
 from typing import Any, List
 
 import enlighten
+from ib_insync.wrapper import RequestError
 
 from .encoder import Encoder
 from .signal_handler import SignalHandler
 from .contracts_db_connector import ContractsDbConnector
 from .ib_details_db_connector import IbDetailsDbConnector
 from .tws_connector import TwsConnector
-from .custom_exceptions import (
-    QueryReturnedNoResultError,
-    QueryReturnedMultipleResultsError,
-    TwsSystemicError,
-    TwsContractRelatedError,
-    ExitSignalDetectedError)
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +24,7 @@ class IbDetailsProcessor():
         self.__details: Any = None
         self.__pbar: Any = None
         self.__signal_handler = SignalHandler()
-
-        # Setup progress bar
-        manager = enlighten.get_manager()
+        manager = enlighten.get_manager()  # Setup progress bar
         self.__pbar = manager.counter(
             total=0,
             desc="Contracts", unit="contracts")
@@ -39,33 +32,33 @@ class IbDetailsProcessor():
     def update_ib_contract_details(self) -> None:
         """Download and store all missing contract details entries from IB TWS."""
 
+        updates: int = 0
         self.__get_contracts()
         self.__pbar.total = len(self.__contracts)
         self.__connect_tws()
         try:
             for contract in self.__contracts:
-                self.__check_abort_signal()
+                if self.__signal_handler.check_exit_requested():
+                    raise ExitSignalDetectedError("Message")
                 try:
                     self.__get_contract_details_from_tws(contract)
-                except TwsContractRelatedError as e:
-                    self.__handle_tws_contract_related_error(e)
-                try:
-                    self.__validate_details()
-                except QueryReturnedNoResultError as e:
-                    self.__handle_no_result_error(e)
-                except QueryReturnedMultipleResultsError as e:
-                    self.__handle_multiple_results_error(e)
+                except RequestError as e:
+                    logger.info(e)
+                    continue
+                if not self.__details_valid():
+                    self.__pbar.update(inc=1)
+                    continue
                 else:
                     self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
-                finally:
                     self.__pbar.update(inc=1)
-        except TwsSystemicError as e:
-            self.__handle_tws_systemic_error(e)
-        except ExitSignalDetectedError as e:
-            self.__handle_exit_signal_detected_error(e)
+                    updates += 1
+        except ExitSignalDetectedError:
+            pass
         else:
-            logger.info("Updated IB details for master listings.")
+            logger.info(
+                f"Updated IB details for master listings, {updates} contracts "
+                f"updated.")
         finally:
             self.__disconnect_tws()
 
@@ -79,8 +72,8 @@ class IbDetailsProcessor():
         self.__contracts = self.__contracts_db_connector.get_contracts(
             filters=filters,
             return_columns=return_columns)
-        logger.debug(f"Found {len(self.__contracts)} contracts with missing "
-                     f"IB details in master listing.")
+        logger.info(f"Found {len(self.__contracts)} contracts with missing "
+                    f"IB details in master listing.")
 
     def __connect_tws(self) -> None:
         """Connect to TWS app"""
@@ -90,30 +83,28 @@ class IbDetailsProcessor():
         """Disconnect from TWS app"""
         self.__tws_connector.disconnect()
 
-    def __check_abort_signal(self) -> None:
-        """Check for abort signal."""
-        if self.__signal_handler.exit_requested():
-            raise ExitSignalDetectedError
-
-    def __handle_exit_signal_detected_error(self, e) -> None:
-        logger.info(f"Operation stopped.")
-
     def __get_contract_details_from_tws(self, contract: Any) -> None:
         """Download contract details over TWS."""
 
-        self.__tws_connector.download_contract_details(
+        self.__details = self.__tws_connector.download_contract_details(
             contract_type_from_listing=contract['contract_type_from_listing'],
             broker_symbol=contract['broker_symbol'],
             exchange=contract['exchange'],
             currency=contract['currency'])
 
-    def __validate_details(self) -> None:
-        if len(self.__details) == 0:
-            raise QueryReturnedNoResultError
+    def __details_valid(self) -> bool:
+        if self.__details is None:
+            logger.info(f"Result is None")
+            return False
+        elif len(self.__details) == 0:
+            logger.info(f"Result is []")
+            return False
         elif len(self.__details) > 1:
-            raise QueryReturnedMultipleResultsError
+            logger.info(f"Multiple results")
+            return False
         else:
             self.__details = self.__details[0]
+            return True
 
     def __decode_exchange_names(self) -> None:
         """Decode exchange names"""
@@ -127,24 +118,16 @@ class IbDetailsProcessor():
 
         self.__ib_details_db_connector.insert_ib_details(
             contract_id=contract['contract_id'],
-            contract_type_from_details=self.__details['contract_type_from_details'],
-            primary_exchange=self.__details['primary_exchange'],
-            industry=self.__details['industry'],
-            category=self.__details['category'],
-            subcategory=self.__details['subcategory)'])
+            contract_type_from_details=self.__details.stockType,
+            primary_exchange=self.__details.contract.primaryExchange,
+            industry=self.__details.industry,
+            category=self.__details.category,
+            subcategory=self.__details.subcategory)
 
-    def __handle_tws_contract_related_error(self, e):
-        logger.warning(
-            f"Contract-related problem in TWS detected: {e.req_id}, "
-            f"{e.contract}, {e.error_code}, {e.error_string}")
 
-    def __handle_tws_systemic_error(self, e):
-        logger.error(
-            f"Systemic problem in TWS connection detected: {e.req_id}, "
-            f"{e.contract}, {e.error_code}, {e.error_string}")
+class ExitSignalDetectedError(Exception):
+    """"Doc"""
 
-    def __handle_no_result_error(self, e):
-        logger.warning(f"__handle_no_result_error")
-
-    def __handle_multiple_results_error(self, e):
-        logger.warning(f"__handle_multiple_results_error")
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
