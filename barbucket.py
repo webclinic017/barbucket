@@ -92,8 +92,6 @@ def create(name: str, contract_ids: str) -> None:
     universes_db_connector.create_universe(
         name=name,
         contract_ids=con_list)
-    logger.info(
-        f"Created universe '{name}' with {len(contract_ids)} members.")
 
 
 @universes.command()
@@ -125,7 +123,6 @@ def delete(name: str) -> None:
     logger.debug(
         f"User requested to delete universe '{name}' via the cli.")
     universes_db_connector.delete_universe(universe=name)
-    logger.info(f"Deleted universe '{name}'.")
 
 
 if __name__ == '__main__':
