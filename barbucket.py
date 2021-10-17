@@ -53,8 +53,7 @@ def read_tv_details() -> None:
     """Read details for all contracts from TV files"""
     logger.debug(
         f"User requested to read and store details from tv files via the cli.")
-    file_count = tv_details_processor.read_tv_data()
-    logger.info(f"Finished reading {file_count} TV files.")
+    tv_details_processor.read_tv_data()
 
 
 # Group quotes
