@@ -126,7 +126,7 @@ class TvDetailsProcessor():
                 f"{self.__file_row['exchange']}'.")
             raise TvQueryResultError("Message")
         else:
-            return query_result[0]
+            return query_result[0]['contract_id']
 
     def __write_contract_details_to_db(self, contract_id: int) -> None:
         """Writing tv details to db"""
