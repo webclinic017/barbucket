@@ -39,4 +39,4 @@ class TvDetailsDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-        logger.debug("Wrote tv details for contract_id {contract_id} to db.")
+        logger.debug(f"Wrote tv details for contract_id {contract_id} to db.")
