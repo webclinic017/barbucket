@@ -17,6 +17,8 @@ class TwsConnector():
         self.__config_reader = ConfigReader()
         self.__ib = ib_insync.ib.IB()  # Create connection objec
         self.__ib.RaiseRequestErrors = True  # Enable exceptions
+        logging.getLogger("ib_insync").setLevel(
+            logging.WARN)  # todo: change with verbosity level option
 
     def connect(self) -> None:
         IP = self.__config_reader.get_config_value_single(
