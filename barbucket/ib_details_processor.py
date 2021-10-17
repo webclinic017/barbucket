@@ -32,7 +32,6 @@ class IbDetailsProcessor():
     def update_ib_contract_details(self) -> None:
         """Download and store all missing contract details entries from IB TWS."""
 
-        updates: int = 0
         self.__get_contracts()
         self.__pbar.total = len(self.__contracts)
         self.__connect_tws()
@@ -40,6 +39,9 @@ class IbDetailsProcessor():
             for contract in self.__contracts:
                 if self.__signal_handler.exit_requested():
                     raise ExitSignalDetectedError("Message")
+                logger.info(
+                    f"{contract['broker_symbol']}_{contract['exchange']}_"
+                    f"{contract['currency']}")
                 try:
                     self.__get_contract_details_from_tws(contract)
                 except RequestError as e:
@@ -52,13 +54,11 @@ class IbDetailsProcessor():
                     self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
                     self.__pbar.update(inc=1)
-                    updates += 1
         except ExitSignalDetectedError:
             pass
         else:
             logger.info(
-                f"Updated IB details for master listings, {updates} contracts "
-                f"updated.")
+                f"Updated IB details for master listings.")
         finally:
             self.__disconnect_tws()
 
@@ -87,7 +87,6 @@ class IbDetailsProcessor():
         """Download contract details over TWS."""
 
         self.__details = self.__tws_connector.download_contract_details(
-            contract_type_from_listing=contract['contract_type_from_listing'],
             broker_symbol=contract['broker_symbol'],
             exchange=contract['exchange'],
             currency=contract['currency'])
