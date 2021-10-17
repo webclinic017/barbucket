@@ -170,7 +170,6 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
 
     def __check_abort_signal(self) -> None:
         if self.__signal_handler.exit_requested():
-            # Todo: CHANGED!
             raise ExitSignalDetectedError("Message")
 
 
