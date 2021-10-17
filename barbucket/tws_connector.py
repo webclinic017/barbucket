@@ -34,8 +34,8 @@ class TwsConnector():
         logger.debug("Disconnected from TWS.")
 
     def download_historical_quotes(
-            self, contract_id: int, symbol: str,
-            exchange: str, currency: str, duration: str) -> List[Tuple[Any]]:
+            self, symbol: str, exchange: str, currency: str, duration: str
+    ) -> List[Tuple[Any]]:
         """Download historical quotes from IB TWS"""
 
         ib_contract = ib_insync.contract.Stock(
@@ -55,8 +55,7 @@ class TwsConnector():
         return bar_data
 
     def download_contract_details(
-            self, contract_type_from_listing: str, broker_symbol: str,
-            exchange: str, currency: str) -> Any:
+            self, broker_symbol: str, exchange: str, currency: str) -> Any:
         """Download details for a contract from IB TWS"""
 
         ex = Encoder.encode_exchange_ib(exchange)
