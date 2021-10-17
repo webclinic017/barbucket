@@ -158,7 +158,6 @@ class IbQuotesProcessor():
         """Download quotes for one contract from TWS"""
         exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
         quotes = self.__tws_connector.download_historical_quotes(
-            contract_id=self.__contract_id,
             symbol=self.__contract_data['broker_symbol'],
             exchange=exchange,
             currency=self.__contract_data['currency'],
