@@ -42,15 +42,19 @@ DROP TABLE contract_details_tw_temp;
 ######
 """
 INSERT INTO universe_memberships (contract_id, universe)
-	SELECT contract_id, 'germany_top_800_cap'
-			FROM all_contract_info
-			WHERE (
-				(exchange IN ('IBIS', 'FWB'))
-				and
-				(contract_type_from_details IN ('COMMON'))
-			)
-			ORDER BY market_cap DESC 
-			LIMIT 800
+	SELECT contract_id, 'stocks_germany'
+		FROM all_contract_info
+		WHERE (
+			(contract_type_from_details IN ('COMMON'))
+			AND
+			(exchange IN ('IBIS', 'FWB'))
+			AND
+			(exchange = primary_exchange)
+			AND
+			(country = 'Germany')
+		)
+		ORDER BY market_cap DESC 
+		LIMIT 1000
 """
 
 
