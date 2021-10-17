@@ -4,6 +4,7 @@ from os import path, listdir
 from typing import Any, List, Dict
 
 import pandas as pd
+import enlighten
 
 from .contracts_db_connector import ContractsDbConnector
 from .tv_details_db_connector import TvDetailsDbConnector
@@ -20,6 +21,10 @@ class TvDetailsProcessor():
         self.__contracts_db_connector = ContractsDbConnector()
         self.__tv_details_db_connector = TvDetailsDbConnector()
         self.__file_row = None
+        manager = enlighten.get_manager()  # Setup progress bar
+        self.__pbar = manager.counter(
+            total=0,
+            desc="Contracts", unit="contracts")
 
     def read_tv_data(self) -> int:
         """Read contract details from tv files and write to database"""
@@ -27,6 +32,8 @@ class TvDetailsProcessor():
         files = self.__get_files_from_dir()
         for file in files:
             file_data = self.__get_contracts_from_file(file=file)
+            self.__pbar.count = 0
+            self.__pbar.total = len(file_data)
             for row in file_data:
                 self.__file_row = row
                 try:
@@ -37,7 +44,7 @@ class TvDetailsProcessor():
                     print("QueryReturnedMultipleResultsError")  # Todo
                 else:
                     self.__write_contract_details_to_db(contract_id)
-        return len(files)
+                self.__pbar.update(inc=1)
 
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
