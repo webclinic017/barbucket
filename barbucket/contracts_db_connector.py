@@ -39,9 +39,9 @@ class ContractsDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-        logger.debug(f"Created new contract_db entry: "
-                     f"{contract_type_from_listing}_{exchange}_"
-                     f"{broker_symbol}_{currency}.")
+        logger.debug(
+            f"Created new contract_db entry: {contract_type_from_listing}_"
+            f"{exchange}_{broker_symbol}_{currency}.")
 
     def get_contracts(self, filters: Dict = {}, return_columns: List = []
                       ) -> List[sqlite3.Row]:
