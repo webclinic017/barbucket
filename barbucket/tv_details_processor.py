@@ -40,10 +40,8 @@ class TvDetailsProcessor():
                 self.__file_row = row
                 try:
                     contract_id = self.__get_contract_id_from_db()
-                except TvQueryResultError:
-                    print("QueryReturnedNoResultError")  # Todo
-                except TvQueryResultError:
-                    print("QueryReturnedMultipleResultsError")  # Todo
+                except TvQueryResultError as e:
+                    logger.info(e)
                 else:
                     self.__write_contract_details_to_db(contract_id)
                     n_found += 1
@@ -114,17 +112,15 @@ class TvDetailsProcessor():
             filters=filters,
             return_columns=return_columns)
         if len(query_result) == 0:
-            logger.warning(
-                f"{len(query_result)} contracts found in master listing for "
+            raise TvQueryResultError(
+                f"No contract found in master listing for "
                 f"'{self.__file_row['ticker']}' on '"
                 f"{self.__file_row['exchange']}'.")
-            raise TvQueryResultError("Message")
         elif len(query_result) > 1:
-            logger.warning(
+            raise TvQueryResultError(
                 f"{len(query_result)} contracts found in master listing for '"
                 f"{self.__file_row['ticker']}' on '"
                 f"{self.__file_row['exchange']}'.")
-            raise TvQueryResultError("Message")
         else:
             return query_result[0]['contract_id']
 
