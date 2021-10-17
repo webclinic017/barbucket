@@ -31,9 +31,11 @@ class TvDetailsProcessor():
 
         files = self.__get_files_from_dir()
         for file in files:
+            logger.info(f"Processing {file}")
             file_data = self.__get_contracts_from_file(file=file)
             self.__pbar.count = 0
             self.__pbar.total = len(file_data)
+            n_found = 0
             for row in file_data:
                 self.__file_row = row
                 try:
@@ -44,7 +46,10 @@ class TvDetailsProcessor():
                     print("QueryReturnedMultipleResultsError")  # Todo
                 else:
                     self.__write_contract_details_to_db(contract_id)
+                    n_found += 1
                 self.__pbar.update(inc=1)
+            logger.info(
+                f"Added details for {n_found} of {len(file_data)} contracts.")
 
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""
@@ -59,7 +64,6 @@ class TvDetailsProcessor():
     def __get_contracts_from_file(self, file: Path) -> List[Dict[str, Any]]:
         """Create formatted list of all contracts of a tv file"""
 
-        logger.debug(f"Reading data from TV file {file}.")
         df = pd.read_csv(file, sep=",")
         file_contracts = []
 
