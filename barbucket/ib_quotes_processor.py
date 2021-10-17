@@ -104,7 +104,6 @@ class IbQuotesProcessor():
             contract_id=self.__contract_id)
 
     def __calculate_dates(self) -> None:
-        print(self.__quotes_status['status_code'])
         if self.__quotes_status['status_code'] == 0:
             self.__calculate_dates_for_new_contract()
         elif self.__quotes_status['status_code'] == 1:
