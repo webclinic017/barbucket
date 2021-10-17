@@ -31,7 +31,7 @@ class QuotesStatusDbConnector(DbConnector):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(
-            """SELECT COUNT(*) FROM contracts WHERE contract_id = ?;""",
+            """SELECT COUNT(*) FROM quotes_status WHERE contract_id = ?;""",
             (contract_id,))
         count = cur.fetchone()
         conn.commit()
