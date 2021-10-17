@@ -1,9 +1,10 @@
-# Data migration code collection
-# For manual use only
+######
+# Additional db queries, for manual use only
+######
 
+# Change data type of column in table without dependencies
+######
 """
-/* Change data type of column in table without dependencies */
-
 CREATE TABLE contract_details_tw_temp AS
     SELECT
 		contract_id,
@@ -14,7 +15,6 @@ CREATE TABLE contract_details_tw_temp AS
 		profit,
 		revenue
 	FROM contract_details_tw;
-
 
 CREATE TABLE contract_details_tw (
 	contract_id INTEGER,
@@ -30,18 +30,17 @@ CREATE TABLE contract_details_tw (
 	        ON DELETE CASCADE,
 	UNIQUE (contract_id));
 
-
 INSERT INTO	contract_details_tw 
 	SELECT * FROM contract_details_tw_temp;
-	
 
 DROP TABLE contract_details_tw_temp;
 """
 
 
+# Create a new universe
+# Todo: Remove duplicates on multiple exchanges
+######
 """
-/* Create new universe */
-
 INSERT INTO universe_memberships (contract_id, universe)
 	SELECT contract_id, 'germany_top_800_cap'
 			FROM all_contract_info
@@ -52,4 +51,31 @@ INSERT INTO universe_memberships (contract_id, universe)
 			)
 			ORDER BY market_cap DESC 
 			LIMIT 800
+"""
+
+
+# Find ETFs, listed only as ETF (or as STOCK)
+######
+"""
+select exchange_symbol
+from all_contract_info
+where (
+	(exchange = 'FWB')
+	and
+	(contract_type_from_details in ('ETF', 'ETC', 'ETN', 'ETP'))
+	and
+	(contract_type_from_listing = 'STOCK')
+	and
+	(exchange_symbol not in (
+		select exchange_symbol
+		from all_contract_info
+		where (
+			(exchange = 'FWB')
+			and
+			(contract_type_from_details in ('ETF', 'ETC', 'ETN', 'ETP'))
+			and
+			(contract_type_from_listing = 'ETF')
+		)
+	))
+)
 """
