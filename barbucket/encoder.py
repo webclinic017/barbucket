@@ -38,7 +38,7 @@ class Encoder():
         """Encode from Barbucket-notation to TV-notation"""
 
         exchange_codes = {
-            'NASDAQ': "NASDAQ",     # NASDAQ / Island
+            'ISLAND': "NASDAQ",     # NASDAQ / Island
             'ARCA': "NYSE ARCA",    # Archipelago
             'IBIS': "XETR"}         # XETRA
         if exchange in exchange_codes.keys():
@@ -51,7 +51,7 @@ class Encoder():
         """Decode from IB-notation to Barbucket-notation"""
 
         exchange_codes = {
-            'ISLAND': "NASDAQ",     # NASDAQ / Island
+            'NASDAQ': "ISLAND",     # NASDAQ / Island
             'NYSE ARCA': "ARCA",    # Archipelago
             'XETR': "IBIS"}         # XETRA
         if exchange in exchange_codes.keys():
@@ -65,7 +65,7 @@ class Encoder():
 
         exchange_codes = {
             'NASDAQ': "ISLAND",     # NASDAQ / Island
-            'ARCA': "NYSE ARCA"}    # Archipelago
+            'ARCA': "ARCA"}    # Archipelago
         if exchange in exchange_codes.keys():
             return exchange_codes[exchange]
         else:
@@ -77,7 +77,7 @@ class Encoder():
 
         exchange_codes = {
             'ISLAND': "NASDAQ",     # NASDAQ / Island
-            'NYSE ARCA': "ARCA"}    # Archipelago
+            'ARCA': "ARCA"}    # Archipelago
         if exchange in exchange_codes.keys():
             return exchange_codes[exchange]
         else:
