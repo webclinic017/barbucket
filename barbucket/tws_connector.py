@@ -3,7 +3,7 @@ import logging
 
 import ib_insync
 
-from .encoder import Encoder
+from .encodings import Api, Exchange
 from .config_reader import ConfigReader
 
 
@@ -60,7 +60,9 @@ class TwsConnector():
             self, broker_symbol: str, exchange: str, currency: str) -> Any:
         """Download details for a contract from IB TWS"""
 
-        ex = Encoder.encode_exchange_ib(exchange)
+        ex = Exchange.encode(
+            name=exchange,
+            to_api=Api.IB)
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
             exchange=ex,
