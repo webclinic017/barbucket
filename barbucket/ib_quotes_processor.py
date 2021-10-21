@@ -7,7 +7,7 @@ import enlighten
 from ib_insync.wrapper import RequestError
 
 from .signal_handler import SignalHandler
-from .encoder import Encoder
+from .encodings import Api, Exchange
 from .config_reader import ConfigReader
 from .contracts_db_connector import ContractsDbConnector
 from .universes_db_connector import UniversesDbConnector
@@ -158,7 +158,9 @@ class IbQuotesProcessor():
 
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
-        exchange = Encoder.encode_exchange_ib(self.__contract_data['exchange'])
+        exchange = Exchange.encode(
+            name=self.__contract_data['exchange'],
+            to_api=Api.IB)
         quotes = self.__tws_connector.download_historical_quotes(
             symbol=self.__contract_data['broker_symbol'],
             exchange=exchange,
