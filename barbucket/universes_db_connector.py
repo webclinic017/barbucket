@@ -37,7 +37,7 @@ class UniversesDbConnector(DbConnector):
             f"Created universe membership for {contract_id} in universe "
             f"'{universe}'")
 
-    def get_universes(self) -> None:
+    def get_universes(self) -> List[str]:
         """Get all existing universes"""
 
         conn = self.connect()
