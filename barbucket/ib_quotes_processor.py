@@ -79,8 +79,8 @@ class IbQuotesProcessor():
             pass
         else:
             logger.info(
-                f"Finished downloading historical data for universe '"
-                f"{universe}'")
+                f"Finished downloading historical data for universe "
+                f"'{universe}'")
         finally:
             self.__disconnect_tws()
 
@@ -109,8 +109,7 @@ class IbQuotesProcessor():
         elif self.__quotes_status['status_code'] == 1:
             self.__calculate_dates_for_existing_contract()
         else:
-            # self.__contract_has_error_status()
-            self.__calculate_dates_for_new_contract()  # Test
+            self.__contract_has_error_status()
         logger.debug(f"Calculated 'duration' as: {self.__duration}, "
                      f"'from' as: {self.__quotes_from}, "
                      f"'till' as: {self.__quotes_till}")
@@ -136,12 +135,16 @@ class IbQuotesProcessor():
         end_date = date.today().strftime('%Y-%m-%d')
         ndays = np.busday_count(start_date, end_date)
         if ndays <= REDOWNLOAD_DAYS:
-            message = f"Existing data is only {ndays} days old."
-            logger.info(message)
+            message = (
+                f"Skipping {self.__contract_data['broker_symbol']}, existing "
+                f"data is only {ndays} days old.")
+            logger.debug(message)
             raise QuotesDurationError(message)
         if ndays > 360:
-            message = f"Existing data is already {ndays} days old."
-            logger.info(message)
+            message = (
+                f"Skipping {self.__contract_data['broker_symbol']}, existing "
+                f"data is already {ndays} days old.")
+            logger.debug(message)
             raise QuotesDurationError(message)
         ndays += OVERLAP_DAYS
         self.__duration = str(ndays) + " D"
@@ -149,8 +152,8 @@ class IbQuotesProcessor():
         self.__quotes_till = end_date
 
     def __contract_has_error_status(self) -> None:
-        message = "Contract already has error status. Skipped."
-        logger.info(message)
+        message = f"{self.__contract_data['broker_symbol']} already has error status. Skipped."
+        logger.debug(message)
         raise ContractHasErrorStatusError(message)
 
     def __get_quotes_from_tws(self) -> List[Any]:

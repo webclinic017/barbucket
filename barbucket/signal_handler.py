@@ -17,7 +17,7 @@ class SignalHandler():
         """Interrupt method, called by system, when Ctrl-C is detected."""
 
         logger.warn(
-            f" Ctrl-C detected, gracefully stopping operation. Press again to "
+            f": Ctrl-C detected, gracefully stopping operation. Press again to "
             f"stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         cls.__state = True

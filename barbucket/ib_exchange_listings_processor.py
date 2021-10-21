@@ -50,7 +50,7 @@ class IbExchangeListingsProcessor():
             self.__handle_query_returned_no_result_error(e)
         else:
             logger.info(
-                f"Master listing synced for {ctype} on {exchange}. "
+                f"Master listing synced for '{ctype}' on '{exchange}'. "
                 f"{added_count} contracts were added, {removed_count} were "
                 f"removed.")
 

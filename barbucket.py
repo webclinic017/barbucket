@@ -51,6 +51,7 @@ def download_ib_details() -> None:
 @contracts.command()
 def read_tv_details() -> None:
     """Read details for all contracts from TV files"""
+
     logger.debug(
         f"User requested to read and store details from tv files via the cli.")
     tv_details_processor.read_tv_data()
@@ -66,6 +67,7 @@ def quotes() -> None:
 @click.option("-u", "--universe", "universe", required=True, type=str)
 def fetch(universe: str) -> None:
     """Fetch quotes from IB TWS"""
+
     logger.debug(
         f"User requested to download quotes from TWS for universe "
         f"'{universe}' via the cli.")
@@ -84,6 +86,7 @@ def universes() -> None:
 @click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
 def create(name: str, contract_ids: str) -> None:
     """Create new universe"""
+
     logger.debug(
         f"User requested to create universe '{name}' with {len(contract_ids)} "
         f"members via the cli.")
@@ -91,26 +94,34 @@ def create(name: str, contract_ids: str) -> None:
     universes_db_connector.create_universe(
         name=name,
         contract_ids=con_list)
+    logger.info(f"Created universe '{name}' with {len(con_list)} contracts.")
 
 
 @universes.command()
 def list() -> None:
     """List all universes"""
-    logger.debug(f"User requested to list all universes via the cli.")
+
+    logger.debug(
+        f"User requested to list all existing universes via the cli.")
     universes = universes_db_connector.get_universes()
-    logger.info(f"Existing universes: {universes}")
+    if universes:
+        logger.info(f"Existing universes: {universes}")
+    else:
+        logger.info(f"No existing universes")
 
 
 @universes.command()
 @click.option("-n", "--name", "name", required=True, type=str)
 def members(name: str) -> None:
     """List universes members"""
+
     logger.debug(
-        f"User requested to list the members for universe '{name}' via the "
-        f"cli.")
-    members = universes_db_connector.get_universe_members(
-        universe=name)
-    logger.info(f"Members of universe {name}: {members}")
+        f"User requested to list the members of universe '{name}' via the cli.")
+    members = universes_db_connector.get_universe_members(universe=name)
+    if members:
+        logger.info(f"Members of universe '{name}': {members}")
+    else:
+        logger.info(f"Universe '{name}' does not exist.")
 
 
 @universes.command()
@@ -119,9 +130,15 @@ def members(name: str) -> None:
     prompt=("Are you sure you want to delete this universe?"))
 def delete(name: str) -> None:
     """Delete universe"""
+
     logger.debug(
-        f"User requested to delete universe '{name}' via the cli.")
-    universes_db_connector.delete_universe(universe=name)
+        f"User requested to delete the universe '{name}' via the cli.")
+    n_affeced_rows = universes_db_connector.delete_universe(universe=name)
+    if n_affeced_rows > 0:
+        logger.info(
+            f"Deleted universe '{name}' with {n_affeced_rows} members.")
+    else:
+        logger.info(f"Universe '{name}' did not exist.")
 
 
 if __name__ == '__main__':

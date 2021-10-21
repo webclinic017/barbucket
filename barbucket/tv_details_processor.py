@@ -47,7 +47,8 @@ class TvDetailsProcessor():
                     n_found += 1
                 self.__pbar.update(inc=1)
             logger.info(
-                f"Added details for {n_found} of {len(file_data)} contracts.")
+                f"Added details for {n_found} of {len(file_data)} contracts "
+                f"in file '{file}'.")
 
     def __get_files_from_dir(self) -> List[Path]:
         """Create list of paths to all *.csv files in directory"""

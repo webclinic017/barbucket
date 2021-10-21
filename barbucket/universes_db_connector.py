@@ -1,3 +1,4 @@
+from os import name
 import sqlite3
 import logging
 from typing import List
@@ -17,8 +18,8 @@ class UniversesDbConnector(DbConnector):
 
         for contract_id in contract_ids:
             self.__create_membership(contract_id, name)
-        logger.debug(f"Created universe '{name}' with {len(contract_ids)}"
-                     f" contracts.")
+        logger.debug(
+            f"Created universe '{name}' with {len(contract_ids)} contracts.")
 
     def __create_membership(self, contract_id: int, universe: str) -> None:
         # Todo: What if member does not exist?
@@ -32,8 +33,11 @@ class UniversesDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
+        logger.debug(
+            f"Created universe membership for {contract_id} in universe "
+            f"'{universe}'")
 
-    def get_universes(self) -> List[str]:
+    def get_universes(self) -> None:
         """Get all existing universes"""
 
         conn = self.connect()
@@ -44,15 +48,11 @@ class UniversesDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-
-        result = []
-        for row in row_list:
-            result.append(row['universe'])
-        return result
+        logger.debug(f"Query for universes returned {len(row_list)} entries")
+        return [row['universe'] for row in row_list]
 
     def get_universe_members(self, universe: str) -> List[int]:
         """Get all members of a given universe"""
-        # Todo: What if universe does not exist?
 
         conn = self.connect()
         conn.row_factory = sqlite3.Row
@@ -66,22 +66,26 @@ class UniversesDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
+        logger.debug(
+            f"Query for members of universe '{universe}' returned {len(row_list)} "
+            f"entries")
+        return [row['contract_id'] for row in row_list]
 
-        result = []
-        for row in row_list:
-            result.append(row['contract_id'])
-        return result
-
-    def delete_universe(self, universe: str) -> None:
+    def delete_universe(self, universe: str) -> int:
         """Delete an existing universe"""
-        # Todo: What if universe does not exist?
 
         conn = self.connect()
         cur = conn.cursor()
         cur.execute(
             "DELETE FROM universe_memberships WHERE universe = ?;",
             (universe,))  # Comma, to not iterate over string characters
+        cur.execute(
+            "select changes()")
+        n_affeced_rows = cur.fetchone()[0]
         conn.commit()
         cur.close()
         self.disconnect(conn)
-        logger.debug(f"Deleted universe '{universe}'.")
+        logger.debug(
+            f"Deleting universe '{universe}' resulted in {n_affeced_rows} "
+            f"affected rows")
+        return n_affeced_rows
