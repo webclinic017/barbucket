@@ -4,7 +4,7 @@ from typing import Any, List
 import enlighten
 from ib_insync.wrapper import RequestError
 
-from .encoder import Encoder
+from .encodings import Api, Exchange
 from .signal_handler import SignalHandler
 from .contracts_db_connector import ContractsDbConnector
 from .ib_details_db_connector import IbDetailsDbConnector
@@ -107,10 +107,12 @@ class IbDetailsProcessor():
 
     def __decode_exchange_names(self) -> None:
         """Decode exchange names"""
-        self.__details.contract.exchange = Encoder.decode_exchange_ib(
-            self.__details.contract.exchange)
-        self.__details.contract.primaryExchange = Encoder.decode_exchange_ib(
-            self.__details.contract.primaryExchange)
+        self.__details.contract.exchange = Exchange.decode(
+            name=self.__details.contract.exchange,
+            from_api=Api.IB)
+        self.__details.contract.primaryExchange = Exchange.decode(
+            name=self.__details.contract.primaryExchange,
+            from_api=Api.IB)
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
         """Insert contract details into db"""
