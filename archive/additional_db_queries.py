@@ -83,3 +83,23 @@ where (
 	))
 )
 """
+
+
+# manually delete contracts and clean dependent tables (Sqlite contraints/pragma are complicated)
+######
+"""
+delete from contracts where contract_type_from_listing = 'ETF';
+
+delete
+	from (
+		contract_details_ib,
+		contract_details_tv,
+		quotes,
+		quotes_status,
+		universe_memberships
+	)
+	where contract_id NOT IN (
+		select contract_id
+			from contracts
+	);
+"""
