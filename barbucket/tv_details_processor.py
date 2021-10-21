@@ -8,7 +8,7 @@ import enlighten
 
 from .contracts_db_connector import ContractsDbConnector
 from .tv_details_db_connector import TvDetailsDbConnector
-from .encoder import Encoder
+from .encodings import Api, Exchange
 
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,9 @@ class TvDetailsProcessor():
                      "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
-        exchange = Encoder.decode_exchange_tv(self.__file_row['exchange'])
+        exchange = Exchange.decode(
+            name=self.__file_row['exchange'],
+            from_api=Api.TV)
         filters = {
             'exchange': exchange,
             'contract_type_from_listing': "STOCK",
