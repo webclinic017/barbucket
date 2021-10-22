@@ -8,6 +8,7 @@ import requests
 import enlighten
 
 from .signal_handler import SignalHandler, ExitSignalDetectedError
+from .encodings import Api, Exchange
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,7 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
         """Docstring"""
 
         self.__ctype = ctype
-        self.__exchange = exchange
-
+        self.__exchange = Exchange.encode(name=exchange, to_api=Api.IB)
         self.__get_html()
         self.__correct_ib_error()
         contracts = self.__extract_data()
@@ -59,7 +59,7 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
                 f"IB error for singlepage listings no longer present. Checked "
                 f"{len(old_lines)} lines.")
 
-    def __extract_data(self) -> List[Dict[Any, Any]]:
+    def __extract_data(self) -> List[Dict[str, Any]]:
         soup = BeautifulSoup(self.__html, 'html.parser')
         tables = soup.find_all(
             'table',
@@ -75,7 +75,7 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
                 'name': columns[1].text.strip(),
                 'exchange_symbol': columns[2].text.strip(),
                 'currency': columns[3].text.strip(),
-                'exchange': self.__exchange.upper()}
+                'exchange': self.__exchange}
             website_contracts.append(row_dict)
         # todo: log amount
         return website_contracts
@@ -105,7 +105,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         """Docstring"""
 
         self.__ctype = ctype
-        self.__exchange = exchange
+        self.__exchange = Exchange.encode(name=exchange, to_api=Api.IB)
 
         while self.__current_page <= self.__page_count:
             self.__get_html()
@@ -148,7 +148,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 f"IB error for paginated listings no longer present. Checked "
                 f"{len(self.__html.splitlines())} lines.")
 
-    def __extract_data(self) -> List[Dict[Any, Any]]:
+    def __extract_data(self) -> None:
         soup = BeautifulSoup(self.__html, 'html.parser')
         tables = soup.find_all(
             'table',
@@ -163,7 +163,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 'name': cols[1].text.strip(),
                 'exchange_symbol': cols[2].text.strip(),
                 'currency': cols[3].text.strip(),
-                'exchange': self.__exchange.upper()}
+                'exchange': self.__exchange}
             self.__website_data.append(row_dict)
         # todo: log ammount
         # todo: handle ammount == 0
