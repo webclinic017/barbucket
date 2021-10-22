@@ -9,6 +9,7 @@ from barbucket.ib_exchange_listings_processor import IbExchangeListingsProcessor
 from barbucket.ib_details_processor import IbDetailsProcessor
 from barbucket.tv_details_processor import TvDetailsProcessor
 from barbucket.ib_quotes_processor import IbQuotesProcessor
+from barbucket.encodings import Exchange
 
 
 @click.group()
@@ -34,10 +35,11 @@ def sync_listing(contract_type: str, exchange: str) -> None:
     logger.debug(
         f"User requested to sync '{contract_type}' contracts on '{exchange}' "
         f"to master listing via the cli.")
-    ib_exchange_listings_processor.sync_contracts_to_listing(
-        ctype=contract_type.upper(),
-        exchange=exchange.upper()
-    )
+    if validate_exchange(exchange.upper()):
+        ib_exchange_listings_processor.sync_contracts_to_listing(
+            ctype=contract_type.upper(),
+            exchange=exchange.upper()
+        )
 
 
 @contracts.command()
@@ -143,6 +145,15 @@ def delete(name: str) -> None:
             f"Deleted universe '{name}' with {n_affeced_rows} members.")
     else:
         logger.info(f"Universe '{name}' did not exist.")
+
+
+def validate_exchange(exchange) -> bool:
+    exchanges = [member.name for member in Exchange]
+    if not exchange in exchanges:
+        logger.info(f"'{exchange}' is not a valid exchange. Valid exchanges "
+                    f"are: {exchanges}")
+        return False
+    return True
 
 
 if __name__ == '__main__':
