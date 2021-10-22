@@ -8,7 +8,7 @@ import enlighten
 
 from .contracts_db_connector import ContractsDbConnector
 from .tv_details_db_connector import TvDetailsDbConnector
-from .encodings import Api, Exchange
+from .encodings import Api, Exchange, Symbol
 
 
 logger = logging.getLogger(__name__)
@@ -71,11 +71,12 @@ class TvDetailsProcessor():
             row_formated = {}
 
             # Prepare the data
-            row_formated['ticker'] = row['Ticker']
-            exchange = Exchange.decode(
+            row_formated['ticker'] = Symbol.decode(
+                name=row['Ticker'],
+                from_api=Api.TV)
+            row_formated['exchange'] = Exchange.decode(
                 name=row['Exchange'],
                 from_api=Api.TV)
-            row_formated['exchange'] = exchange
             row_formated['market_cap'] = int(row['Market Capitalization'])
             avg_vol_30_in_curr = row["Average Volume (30 day)"] * \
                 row["Simple Moving Average (30)"]
@@ -104,8 +105,7 @@ class TvDetailsProcessor():
 
         logger.debug(f"Get contract id from db matching some contract info "
                      "from a tv file row.")
-        ticker = self.__file_row['ticker'].replace(
-            ".", " ")  # Todo: Create tool
+        ticker = self.__file_row['ticker']
         exchange = self.__file_row['exchange']
         filters = {
             'exchange': exchange,

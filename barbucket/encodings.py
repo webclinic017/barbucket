@@ -96,3 +96,27 @@ class ContractType(Encoding):
     TRACKING_STOCK = {Api.IB: 'TRACKING STK', Api.TV: ''}
     UNIT = {Api.IB: 'UNIT', Api.TV: ''}
     US_DOMESTIC = {Api.IB: 'US DOMESTIC', Api.TV: ''}
+
+
+class Symbol():
+    """Doc"""
+
+    @classmethod
+    def encode(cls, name: str, to_api: Api) -> str:
+        """Encode from Barbucket notation to specific API notation"""
+
+        if to_api == Api.IB:
+            name = name.replace("_", " ")
+        elif to_api == Api.TV:
+            name = name.replace("_", ".")
+        return name
+
+    @classmethod
+    def decode(cls, name: str, from_api: Api) -> str:
+        """Decode from specific API notation to Barbucket notation"""
+
+        if from_api == Api.IB:
+            name = name.replace(" ", "_")
+        elif from_api == Api.TV:
+            name = name.replace(".", "_")
+        return name

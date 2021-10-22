@@ -8,7 +8,7 @@ import requests
 import enlighten
 
 from .signal_handler import SignalHandler, ExitSignalDetectedError
-from .encodings import Api, Exchange
+from .encodings import Api, Exchange, Symbol
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +71,17 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
             columns = row.find_all('td')
             row_dict = {
                 'type': self.__ctype,
-                'broker_symbol': columns[0].text.strip(),
+                'broker_symbol': Symbol.decode(
+                    name=columns[0].text.strip(),
+                    from_api=Api.IB),
                 'name': columns[1].text.strip(),
-                'exchange_symbol': columns[2].text.strip(),
+                'exchange_symbol': Symbol.decode(
+                    name=columns[2].text.strip(),
+                    from_api=Api.IB),
                 'currency': columns[3].text.strip(),
-                'exchange': self.__exchange}
+                'exchange': Exchange.decode(
+                    name=self.__exchange,
+                    from_api=Api.IB)}
             website_contracts.append(row_dict)
         # todo: log amount
         return website_contracts
