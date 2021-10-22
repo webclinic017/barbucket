@@ -72,7 +72,7 @@ class ContractType(Encoding):
 
     ADR = {Api.IB: 'ADR', Api.TV: ''}
     BOND = {Api.IB: 'BOND', Api.TV: ''}
-    CLOSED_END_FUND = {Api.IB: 'CLOSED_END_FUND', Api.TV: ''}
+    CLOSED_END_FUND = {Api.IB: 'CLOSED-END FUND', Api.TV: ''}
     COMMON_STOCK = {Api.IB: 'COMMON', Api.TV: ''}
     CONV_PREFERRED = {Api.IB: 'CONVPREFERRED', Api.TV: ''}
     DUTCH_CERT = {Api.IB: 'DUTCH CERT', Api.TV: ''}
