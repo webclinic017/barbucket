@@ -165,11 +165,17 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             cols = row.find_all('td')
             row_dict = {
                 'type': self.__ctype,
-                'broker_symbol': cols[0].text.strip(),
+                'broker_symbol': Symbol.decode(
+                    name=cols[0].text.strip(),
+                    from_api=Api.IB),
                 'name': cols[1].text.strip(),
-                'exchange_symbol': cols[2].text.strip(),
+                'exchange_symbol': Symbol.decode(
+                    name=cols[2].text.strip(),
+                    from_api=Api.IB),
                 'currency': cols[3].text.strip(),
-                'exchange': self.__exchange}
+                'exchange': Exchange.decode(
+                    name=self.__exchange,
+                    from_api=Api.IB)}
             self.__website_data.append(row_dict)
         # todo: log ammount
         # todo: handle ammount == 0
