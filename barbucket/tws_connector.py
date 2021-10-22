@@ -3,7 +3,7 @@ import logging
 
 import ib_insync
 
-from .encodings import Api, Exchange
+from .encodings import Api, Exchange, ContractType
 from .config_reader import ConfigReader
 
 
@@ -36,10 +36,14 @@ class TwsConnector():
         logger.debug("Disconnected from TWS.")
 
     def download_historical_quotes(
-            self, symbol: str, exchange: str, currency: str, duration: str
-    ) -> List[Tuple[Any]]:
+            self,
+            symbol: str,
+            exchange: str,
+            currency: str,
+            duration: str) -> List[Tuple[Any]]:
         """Download historical quotes from IB TWS"""
 
+        exchange = Exchange.encode(name=exchange, from_api=Api.IB)
         ib_contract = ib_insync.contract.Stock(
             symbol=symbol,
             exchange=exchange,

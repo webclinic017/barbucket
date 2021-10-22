@@ -157,12 +157,10 @@ class IbQuotesProcessor():
 
     def __get_quotes_from_tws(self) -> List[Any]:
         """Download quotes for one contract from TWS"""
-        exchange = Exchange.encode(
-            name=self.__contract_data['exchange'],
-            to_api=Api.IB)
+
         quotes = self.__tws_connector.download_historical_quotes(
             symbol=self.__contract_data['broker_symbol'],
-            exchange=exchange,
+            exchange=self.__contract_data['exchange'],
             currency=self.__contract_data['currency'],
             duration=self.__duration)
         return quotes
