@@ -3,7 +3,7 @@ import logging
 
 import ib_insync
 
-from .encodings import Api, Exchange, ContractType
+from .encodings import Api, Exchange, ContractType, Symbol
 from .config_reader import ConfigReader
 
 
@@ -43,7 +43,8 @@ class TwsConnector():
             duration: str) -> List[Tuple[Any]]:
         """Download historical quotes from IB TWS"""
 
-        exchange = Exchange.encode(name=exchange, from_api=Api.IB)
+        exchange = Exchange.encode(name=exchange, to_api=Api.IB)
+        symbol = Symbol.encode(name=symbol, to_api=Api.IB)
         ib_contract = ib_insync.contract.Stock(
             symbol=symbol,
             exchange=exchange,
@@ -64,9 +65,10 @@ class TwsConnector():
             self, broker_symbol: str, exchange: str, currency: str) -> Any:
         """Download details for a contract from IB TWS"""
 
-        exchange = Exchange.encode(name=exchange, from_api=Api.IB)
+        exchange = Exchange.encode(name=exchange, to_api=Api.IB)
+        symbol = Symbol.encode(name=broker_symbol, to_api=Api.IB)
         ib_contract = ib_insync.contract.Stock(
-            symbol=broker_symbol,
+            symbol=symbol,
             exchange=exchange,
             currency=currency)
         details = self.__ib.reqContractDetails(ib_contract)
