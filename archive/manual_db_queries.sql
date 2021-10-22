@@ -1,10 +1,11 @@
-######
-# Additional db queries, for manual use only
-######
+-- ##########
+-- Additional db queries for manual use
+-- ##########
 
-# Change data type of column in table without dependencies
-######
-"""
+
+-- ##########
+-- Change data type of column in table without dependencies 
+-- ##########
 CREATE TABLE contract_details_tw_temp AS
     SELECT
 		contract_id,
@@ -34,33 +35,31 @@ INSERT INTO	contract_details_tw
 	SELECT * FROM contract_details_tw_temp;
 
 DROP TABLE contract_details_tw_temp;
-"""
 
 
-# Create a new universe
-# Todo: Remove duplicates on multiple exchanges
-######
-"""
+-- ##########
+-- Create a new universe
+-- ##########
 INSERT INTO universe_memberships (contract_id, universe)
-	SELECT contract_id, 'stocks_germany'
+	SELECT contract_id, 'COMMON_STOCKS_ON_GERMAN_EXCHANGES'
 		FROM all_contract_info
 		WHERE (
-			(contract_type_from_details IN ('COMMON'))
+			(contract_type_from_details IN ('COMMON_STOCK'))
 			AND
-			(exchange IN ('IBIS', 'FWB'))
+			(exchange IN ('XETRA', 'FWB'))
 			AND
 			(exchange = primary_exchange)
 			AND
 			(country = 'Germany')
 		)
 		ORDER BY market_cap DESC 
-		LIMIT 1000
-"""
+		--LIMIT 1000
+		;
 
 
-# Find ETFs, listed only as ETF (or as STOCK)
-######
-"""
+-- ##########
+-- Find ETFs, listed only as ETF (or as STOCK)
+-- ##########
 select exchange_symbol
 from all_contract_info
 where (
@@ -82,12 +81,11 @@ where (
 		)
 	))
 )
-"""
 
 
-# manually delete contracts and clean dependent tables (Sqlite contraints/pragma are complicated)
-######
-"""
+-- ##########
+-- manually delete contracts and clean dependent tables (Sqlite contraints/pragma are complicated)
+-- ##########
 delete from contracts where contract_type_from_listing = 'ETF';
 
 delete
@@ -102,4 +100,3 @@ delete
 		select contract_id
 			from contracts
 	);
-"""
