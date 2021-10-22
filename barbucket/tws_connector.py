@@ -60,15 +60,56 @@ class TwsConnector():
             self, broker_symbol: str, exchange: str, currency: str) -> Any:
         """Download details for a contract from IB TWS"""
 
-        ex = Exchange.encode(
-            name=exchange,
-            to_api=Api.IB)
+        exchange = Exchange.encode(name=exchange, from_api=Api.IB)
         ib_contract = ib_insync.contract.Stock(
             symbol=broker_symbol,
-            exchange=ex,
+            exchange=exchange,
             currency=currency)
         details = self.__ib.reqContractDetails(ib_contract)
+        self.__validate_details(
+            details=details,
+            broker_symbol=broker_symbol,
+            exchange=exchange,
+            currency=currency)
+        details = details[0]
         logger.debug(
             f"Received contract details for {broker_symbol}_{exchange}_"
             f"{currency} from TWS")
+        details = self.__decode_details(details)
         return details
+
+    def __validate_details(
+            self,
+            details,
+            broker_symbol: str,
+            exchange: str,
+            currency: str) -> None:
+        if details is None:
+            raise IbDetailsInvalidError(
+                f"Result for {broker_symbol}_{exchange}_{currency} is None")
+        elif len(details) == 0:
+            raise IbDetailsInvalidError(
+                f"Result for {broker_symbol}_{exchange}_{currency} is []")
+        elif len(details) > 1:
+            raise IbDetailsInvalidError(
+                f"Multiple results for {broker_symbol}_{exchange}_{currency}")
+
+    def __decode_details(self, details) -> Any:
+        details.contract.exchange = Exchange.decode(
+            name=details.contract.exchange,
+            from_api=Api.IB)
+        details.contract.primaryExchange = Exchange.decode(
+            name=details.contract.primaryExchange,
+            from_api=Api.IB)
+        details.stockType = ContractType.decode(
+            name=details.stockType,
+            from_api=Api.IB)
+        return details
+
+
+class IbDetailsInvalidError(Exception):
+    """"Doc"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)

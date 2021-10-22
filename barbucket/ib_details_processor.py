@@ -7,7 +7,7 @@ from ib_insync.wrapper import RequestError
 from .signal_handler import SignalHandler, ExitSignalDetectedError
 from .contracts_db_connector import ContractsDbConnector
 from .ib_details_db_connector import IbDetailsDbConnector
-from .tws_connector import TwsConnector
+from .tws_connector import TwsConnector, IbDetailsInvalidError
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +46,12 @@ class IbDetailsProcessor():
                 except RequestError as e:
                     logger.info(e)
                     continue
-                if not self.__details_valid():
-                    self.__pbar.update(inc=1)
+                except IbDetailsInvalidError as e:
+                    logger.info(e)
                     continue
                 else:
-                    self.__decode_exchange_names()
                     self.__insert_ib_details_into_db(contract)
+                finally:
                     self.__pbar.update(inc=1)
         except ExitSignalDetectedError:
             pass
@@ -65,8 +65,7 @@ class IbDetailsProcessor():
         """Get contracts from db, where IB details are missing"""
 
         return_columns = [
-            'contract_id', 'contract_type_from_listing', 'broker_symbol',
-            'exchange', 'currency']
+            'contract_id', 'broker_symbol', 'exchange', 'currency']
         filters = {'primary_exchange': "NULL"}
         self.__contracts = self.__contracts_db_connector.get_contracts(
             filters=filters,
@@ -90,32 +89,7 @@ class IbDetailsProcessor():
             exchange=contract['exchange'],
             currency=contract['currency'])
 
-    def __details_valid(self) -> bool:
-        if self.__details is None:
-            logger.info(f"Result is None")
-            return False
-        elif len(self.__details) == 0:
-            logger.info(f"Result is []")
-            return False
-        elif len(self.__details) > 1:
-            logger.info(f"Multiple results")
-            return False
-        else:
-            self.__details = self.__details[0]
-            return True
-
-    def __decode_exchange_names(self) -> None:
-        """Decode exchange names"""
-        self.__details.contract.exchange = Exchange.decode(
-            name=self.__details.contract.exchange,
-            from_api=Api.IB)
-        self.__details.contract.primaryExchange = Exchange.decode(
-            name=self.__details.contract.primaryExchange,
-            from_api=Api.IB)
-
     def __insert_ib_details_into_db(self, contract: Any) -> None:
-        """Insert contract details into db"""
-
         self.__ib_details_db_connector.insert_ib_details(
             contract_id=contract['contract_id'],
             contract_type_from_details=self.__details.stockType,
