@@ -72,7 +72,6 @@ class IbExchangeListingsProcessor():
             return_columns=return_columns)
 
     def __remove_deleted_contracts_from_db(self) -> int:
-        contracts_removed = []  # todo remove
         removed_count = 0
         for db_row in self.__database_contracts:
             exists = False
@@ -84,16 +83,12 @@ class IbExchangeListingsProcessor():
             if not exists:
                 self.__contracts_db_connector.delete_contract(
                     symbol=db_row['broker_symbol'],
-                    exchange=self.__exchange.upper(),
+                    exchange=self.__exchange,
                     currency=db_row['currency'])
-                contracts_removed.append(
-                    f"{self.__exchange.upper()}_{db_row['broker_symbol']}_"
-                    f"{db_row['currency']}")
                 removed_count += 1
         return removed_count
 
     def __add_new_contracts_to_db(self) -> int:
-        contracts_added = []  # todo remove
         added_count = 0
         for web_row in self.__website_contracts:
             exists = False
@@ -109,9 +104,6 @@ class IbExchangeListingsProcessor():
                     broker_symbol=web_row['broker_symbol'],
                     name=web_row['name'],
                     currency=web_row['currency'],
-                    exchange=self.__exchange.upper())
-                contracts_added.append(
-                    f"{self.__exchange.upper()}_{web_row['broker_symbol']}_"
-                    f"{web_row['currency']}")
+                    exchange=self.__exchange)
                 added_count += 1
         return added_count
