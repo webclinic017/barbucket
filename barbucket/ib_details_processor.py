@@ -4,8 +4,7 @@ from typing import Any, List
 import enlighten
 from ib_insync.wrapper import RequestError
 
-from .encodings import Api, Exchange
-from .signal_handler import SignalHandler
+from .signal_handler import SignalHandler, ExitSignalDetectedError
 from .contracts_db_connector import ContractsDbConnector
 from .ib_details_db_connector import IbDetailsDbConnector
 from .tws_connector import TwsConnector
@@ -124,11 +123,3 @@ class IbDetailsProcessor():
             industry=self.__details.industry,
             category=self.__details.category,
             subcategory=self.__details.subcategory)
-
-
-class ExitSignalDetectedError(Exception):
-    """"Doc"""
-
-    def __init__(self, message) -> None:
-        self.message = message
-        super().__init__(message)

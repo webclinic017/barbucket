@@ -26,3 +26,11 @@ class SignalHandler():
     def exit_requested(cls) -> bool:
         """Check if the user pressed Ctrl-C."""
         return cls.__state
+
+
+class ExitSignalDetectedError(Exception):
+    """"Doc"""
+
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)

@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import enlighten
 
-from .signal_handler import SignalHandler
+from .signal_handler import SignalHandler, ExitSignalDetectedError
 
 logger = logging.getLogger(__name__)
 
@@ -175,14 +175,6 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
 
 class WebscrapingReturnedNoResultError(Exception):
     """[summary]"""
-
-    def __init__(self, message) -> None:
-        self.message = message
-        super().__init__(message)
-
-
-class ExitSignalDetectedError(Exception):
-    """"Doc"""
 
     def __init__(self, message) -> None:
         self.message = message

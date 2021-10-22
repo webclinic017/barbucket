@@ -6,8 +6,7 @@ import numpy as np
 import enlighten
 from ib_insync.wrapper import RequestError
 
-from .signal_handler import SignalHandler
-from .encodings import Api, Exchange
+from .signal_handler import SignalHandler, ExitSignalDetectedError
 from .config_reader import ConfigReader
 from .contracts_db_connector import ContractsDbConnector
 from .universes_db_connector import UniversesDbConnector
@@ -219,14 +218,6 @@ class QuotesDurationError(Exception):
 class ContractHasErrorStatusError(Exception):
     """Docstring"""
 # TODO
-
-    def __init__(self, message) -> None:
-        self.message = message
-        super().__init__(message)
-
-
-class ExitSignalDetectedError(Exception):
-    """"Doc"""
 
     def __init__(self, message) -> None:
         self.message = message
