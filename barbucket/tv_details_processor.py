@@ -72,7 +72,10 @@ class TvDetailsProcessor():
 
             # Prepare the data
             row_formated['ticker'] = row['Ticker']
-            row_formated['exchange'] = row['Exchange']
+            exchange = Exchange.decode(
+                name=row['Exchange'],
+                from_api=Api.TV)
+            row_formated['exchange'] = exchange
             row_formated['market_cap'] = int(row['Market Capitalization'])
             avg_vol_30_in_curr = row["Average Volume (30 day)"] * \
                 row["Simple Moving Average (30)"]
@@ -103,9 +106,7 @@ class TvDetailsProcessor():
                      "from a tv file row.")
         ticker = self.__file_row['ticker'].replace(
             ".", " ")  # Todo: Create tool
-        exchange = Exchange.decode(
-            name=self.__file_row['exchange'],
-            from_api=Api.TV)
+        exchange = self.__file_row['exchange']
         filters = {
             'exchange': exchange,
             'contract_type_from_listing': "STOCK",
