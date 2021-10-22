@@ -68,6 +68,7 @@ def quotes() -> None:
 def fetch(universe: str) -> None:
     """Fetch quotes from IB TWS"""
 
+    universe = universe.upper()
     logger.debug(
         f"User requested to download quotes from TWS for universe "
         f"'{universe}' via the cli.")
@@ -87,6 +88,7 @@ def universes() -> None:
 def create(name: str, contract_ids: str) -> None:
     """Create new universe"""
 
+    name = name.upper()
     logger.debug(
         f"User requested to create universe '{name}' with {len(contract_ids)} "
         f"members via the cli.")
@@ -115,6 +117,7 @@ def list() -> None:
 def members(name: str) -> None:
     """List universes members"""
 
+    name = name.upper()
     logger.debug(
         f"User requested to list the members of universe '{name}' via the cli.")
     members = universes_db_connector.get_universe_members(universe=name)
@@ -131,6 +134,7 @@ def members(name: str) -> None:
 def delete(name: str) -> None:
     """Delete universe"""
 
+    name = name.upper()
     logger.debug(
         f"User requested to delete the universe '{name}' via the cli.")
     n_affeced_rows = universes_db_connector.delete_universe(universe=name)
