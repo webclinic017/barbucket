@@ -103,7 +103,7 @@ class ContractsDbConnector(DbConnector):
         cur.execute(
             """DELETE FROM contracts
                     WHERE contract_id = ?;""",
-            contract_id)
+            (contract_id,))
         conn.commit()
         cur.close()
         self.disconnect(conn)
