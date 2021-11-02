@@ -17,8 +17,8 @@ class IbExchangeListingsProcessor():
 
     def __init__(self) -> None:
         self.__contracts_db_connector = ContractsDbConnector()
-        self.__ctype: str = None
-        self.__exchange: str = None
+        self.__ctype: str = ""
+        self.__exchange: str = ""
         self.__website_contracts: List[Any] = []
         self.__database_contracts: List[Any] = []
 
