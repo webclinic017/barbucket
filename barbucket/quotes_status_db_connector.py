@@ -19,12 +19,9 @@ class QuotesStatusDbConnector(DbConnector):
         exist.
         """
 
-        if self.__check_status_exists(contract_id=contract_id):
-            status_entry = self.__get_status(contract_id=contract_id)
-        else:
+        if not self.__check_status_exists(contract_id=contract_id):
             self.__create_status_entry(contract_id=contract_id)
-            status_entry = self.__get_status(contract_id=contract_id)
-        return status_entry
+        return self.__get_status(contract_id=contract_id)
 
     def __check_status_exists(self, contract_id: int) -> Any:
         conn = self.connect()
@@ -103,7 +100,37 @@ class QuotesStatusDbConnector(DbConnector):
         conn.commit()
         cur.close()
         self.disconnect(conn)
-        logger.debug(f"Inserted quotes status into db: {contract_id} "
-                     f"{status_code} {status_text} "
-                     f"{daily_quotes_requested_from} "
-                     f"{daily_quotes_requested_till}")
+        logger.debug(f"Inserted quotes status into db: '{contract_id}', "
+                     f"'{status_code}', '{status_text}', "
+                     f"'{daily_quotes_requested_from}', "
+                     f"'{daily_quotes_requested_till}'")
+
+    def update_quotes_status_error(
+            self, contract_id: int,
+            status_code: int,
+            status_text: str) -> None:
+        """ Update a contract's quote status in the db."""
+        # Status code:
+        # 0: No quotes downloaded yet
+        # 1: Successfully downloaded quotes
+        # >1: TWS error code
+
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(
+            """REPLACE into quotes_status(
+                contract_id,
+                status_code,
+                status_text,
+                daily_quotes_requested_from,
+                daily_quotes_requested_till) VALUES(?, ?, ?, ?, ?)""",
+            (contract_id,
+             status_code,
+             status_text,
+             "NULL",
+             "NULL"))
+        conn.commit()
+        cur.close()
+        self.disconnect(conn)
+        logger.debug(f"Inserted error quotes status into db: '{contract_id}', "
+                     f"'{status_code}', '{status_text}' ")
