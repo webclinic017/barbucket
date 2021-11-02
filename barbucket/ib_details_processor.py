@@ -19,7 +19,7 @@ class IbDetailsProcessor():
         self.__contracts_db_connector = ContractsDbConnector()
         self.__ib_details_db_connector = IbDetailsDbConnector()
         self.__tws_connector = TwsConnector()
-        self.__contracts: List[Any] = None
+        self.__contracts: List[Any] = []
         self.__details: Any = None
         self.__pbar: Any = None
         self.__signal_handler = SignalHandler()
