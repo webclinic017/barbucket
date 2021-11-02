@@ -20,13 +20,13 @@ class TvDetailsProcessor():
     def __init__(self) -> None:
         self.__contracts_db_connector = ContractsDbConnector()
         self.__tv_details_db_connector = TvDetailsDbConnector()
-        self.__file_row = None
+        self.__file_row: Any = None
         manager = enlighten.get_manager()  # Setup progress bar
         self.__pbar = manager.counter(
             total=0,
             desc="Contracts", unit="contracts")
 
-    def read_tv_data(self) -> int:
+    def read_tv_data(self) -> None:
         """Read contract details from tv files and write to database"""
 
         files = self.__get_files_from_dir()
@@ -50,7 +50,7 @@ class TvDetailsProcessor():
                 f"Added details for {n_found} of {len(file_data)} contracts "
                 f"in file '{file}'.")
 
-    def __get_files_from_dir(self) -> List[Path]:
+    def __get_files_from_dir(self) -> List[str]:
         """Create list of paths to all *.csv files in directory"""
 
         logger.debug(
@@ -60,7 +60,7 @@ class TvDetailsProcessor():
             dir_path) if f.endswith(".csv")]  # This also excludes directories
         return tv_files
 
-    def __get_contracts_from_file(self, file: Path) -> List[Dict[str, Any]]:
+    def __get_contracts_from_file(self, file: str) -> List[Dict[str, Any]]:
         """Create formatted list of all contracts of a tv file"""
 
         df = pd.read_csv(file, sep=",")
@@ -68,7 +68,7 @@ class TvDetailsProcessor():
 
         # Iterate over file rows
         for _, row in df.iterrows():
-            row_formated = {}
+            row_formated: Dict[str, Any] = {}
 
             # Prepare the data
             row_formated['ticker'] = Symbol.decode(
