@@ -10,57 +10,51 @@
 
 -i https://pypi.org/simple
 alabaster==0.7.12
-appnope==0.1.2; sys_platform == 'darwin'
+astroid==2.8.4; python_version ~= '3.6'
 attrs==21.2.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
+autopep8==1.6.0
 babel==2.9.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-backcall==0.2.0
-beautifulsoup4==4.9.3
-blessed==1.18.1; python_version >= '2.7'
-certifi==2021.5.30
-chardet==4.0.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-click==8.0.1
-debugpy==1.3.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-decorator==5.0.9; python_version >= '3.5'
-docutils==0.16; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
+beautifulsoup4==4.10.0
+blessed==1.19.0; python_version >= '2.7'
+certifi==2021.10.8
+charset-normalizer==2.0.7; python_version >= '3.0'
+click==8.0.3
+docutils==0.17.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 enlighten==1.10.1
-eventkit==0.8.8
-ib-insync==0.9.66
-idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+eventkit==0.8.9
+ib-insync==0.9.69
+idna==3.3; python_version >= '3.0'
 imagesize==1.2.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 iniconfig==1.1.1
-ipykernel==6.0.1
-ipython-genutils==0.2.0
-ipython==7.25.0; python_version >= '3.7'
-jedi==0.18.0; python_version >= '3.6'
-jinja2==3.0.1; python_version >= '3.6'
-jupyter-client==6.1.12; python_version >= '3.5'
-jupyter-core==4.7.1; python_version >= '3.6'
+isort==5.9.3; python_version < '4' and python_full_version >= '3.6.1'
+jinja2==3.0.2; python_version >= '3.6'
+lazy-object-proxy==1.6.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
 markupsafe==2.0.1; python_version >= '3.6'
-matplotlib-inline==0.1.2; platform_system == 'Darwin'
+mccabe==0.6.1
+mypy-extensions==0.4.3
+mypy==0.910
 nest-asyncio==1.5.1; python_version >= '3.5'
-numpy==1.21.0
+numpy==1.21.3
 packaging==21.0; python_version >= '3.6'
-pandas==1.3.0
-parso==0.8.2; python_version >= '3.6'
-pexpect==4.8.0; sys_platform != 'win32'
-pickleshare==0.7.5
-pluggy==0.13.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pandas==1.3.4
+platformdirs==2.4.0; python_version >= '3.6'
+pluggy==1.0.0; python_version >= '3.6'
 prefixed==0.3.2
-prompt-toolkit==3.0.19; python_full_version >= '3.6.1'
-ptyprocess==0.7.0; os_name != 'nt'
 py==1.10.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pygments==2.9.0; python_version >= '3.5'
-pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pytest==6.2.4
-python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pytz==2021.1
-pyzmq==22.1.0; python_version >= '3.6'
-requests==2.25.1
+pycodestyle==2.8.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
+pygments==2.10.0; python_version >= '3.5'
+pylint==2.11.1
+pyparsing==3.0.1; python_version >= '3.6'
+pytest==6.2.5
+python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pytz==2021.3
+requests==2.26.0
+rope==0.21.0
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 snowballstemmer==2.1.0
-soupsieve==2.2.1; python_version >= '3.0'
-sphinx-rtd-theme==0.5.2
-sphinx==4.0.2
+soupsieve==2.2.1; python_version >= '3.6'
+sphinx-rtd-theme==1.0.0
+sphinx==4.2.0
 sphinxcontrib-applehelp==1.0.2; python_version >= '3.5'
 sphinxcontrib-devhelp==1.0.2; python_version >= '3.5'
 sphinxcontrib-htmlhelp==2.0.0; python_version >= '3.6'
@@ -69,9 +63,8 @@ sphinxcontrib-qthelp==1.0.3; python_version >= '3.5'
 sphinxcontrib-serializinghtml==1.1.5; python_version >= '3.5'
 toml==0.10.2; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 toolz==0.11.1; python_version >= '3.5'
-tornado==6.1; python_version >= '3.5'
-tqdm==4.61.1
 trading-calendars==2.1.1
-traitlets==5.0.5; python_version >= '3.7'
-urllib3==1.26.6; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
+typing-extensions==3.10.0.2; python_version < '3.10'
+urllib3==1.26.7; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
 wcwidth==0.2.5
+wrapt==1.13.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'

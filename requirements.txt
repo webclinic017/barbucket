@@ -6,25 +6,25 @@
 #
 
 -i https://pypi.org/simple
-beautifulsoup4==4.9.3
-blessed==1.18.1; python_version >= '2.7'
-certifi==2021.5.30
-chardet==4.0.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-click==8.0.1
+beautifulsoup4==4.10.0
+blessed==1.19.0; python_version >= '2.7'
+certifi==2021.10.8
+charset-normalizer==2.0.7; python_version >= '3.0'
+click==8.0.3
 enlighten==1.10.1
-eventkit==0.8.8
-ib-insync==0.9.66
-idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+eventkit==0.8.9
+ib-insync==0.9.69
+idna==3.3; python_version >= '3.0'
 nest-asyncio==1.5.1; python_version >= '3.5'
-numpy==1.21.0
-pandas==1.3.0
+numpy==1.21.3
+pandas==1.3.4
 prefixed==0.3.2
-python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pytz==2021.1
-requests==2.25.1
+python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pytz==2021.3
+requests==2.26.0
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-soupsieve==2.2.1; python_version >= '3.0'
+soupsieve==2.2.1; python_version >= '3.6'
 toolz==0.11.1; python_version >= '3.5'
 trading-calendars==2.1.1
-urllib3==1.26.6; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
+urllib3==1.26.7; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
 wcwidth==0.2.5

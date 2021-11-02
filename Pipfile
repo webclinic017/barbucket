@@ -4,23 +4,24 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+autopep8 = "*"
+mypy = "*"
+pylint = "*"
 pytest = "*"
+rope = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
-tqdm = "*"
-autopep8 = "*"
-pylint = "*"
-rope = "*"
+types-requests = "*"
 
 [packages]
-pandas = "*"
-numpy = "*"
-ib-insync = "*"
-requests = "*"
-trading-calendars = "*"
+beautifulsoup4 = "*"
 click = "*"
 enlighten = "*"
-beautifulsoup4 = "*"
+ib-insync = "*"
+numpy = "*"
+pandas = "*"
+requests = "*"
+trading-calendars = "*"
 
 [requires]
 python_version = "3.8"
