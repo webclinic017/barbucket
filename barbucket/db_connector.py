@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class DbConnector():
     """Handles all non-specific database operations."""
-    __db_path: Path = None
+    __db_path: Path
     __is_initialized: bool = False
 
     def __init__(self) -> None:
