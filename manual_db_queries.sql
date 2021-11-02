@@ -1,11 +1,11 @@
--- ##########
--- Additional db queries for manual use
--- ##########
+/* ##########
+Additional db queries for manual use
+########## */
 
 
--- ##########
--- Change data type of column in table without dependencies 
--- ##########
+/* ##########
+Change data type of column in table without dependencies 
+########## */
 CREATE TABLE contract_details_tw_temp AS
     SELECT
 		contract_id,
@@ -37,9 +37,9 @@ INSERT INTO	contract_details_tw
 DROP TABLE contract_details_tw_temp;
 
 
--- ##########
--- Create a new universe
--- ##########
+/* ##########
+Create a new universe
+########## */
 INSERT INTO universe_memberships (contract_id, universe)
 	SELECT contract_id, 'COMMON_STOCKS_ON_GERMAN_EXCHANGES'
 		FROM all_contract_info
@@ -57,9 +57,9 @@ INSERT INTO universe_memberships (contract_id, universe)
 		;
 
 
--- ##########
--- Find ETFs, listed only as ETF (or as STOCK)
--- ##########
+/* ##########
+Find ETFs, listed only as ETF (or as STOCK)
+########## */
 select exchange_symbol
 from all_contract_info
 where (
@@ -83,9 +83,9 @@ where (
 )
 
 
--- ##########
--- manually delete contracts and clean dependent tables (Sqlite contraints/pragma are complicated)
--- ##########
+/* ##########
+manually delete contracts and clean dependent tables (Sqlite contraints/pragma are complicated)
+########## */
 delete from contracts where contract_type_from_listing = 'ETF';
 
 delete
