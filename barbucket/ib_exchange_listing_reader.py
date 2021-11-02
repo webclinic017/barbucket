@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class IbExchangeListingReader(ABC):
-    def read_ib_exchange_listing(self):
+    def read_ib_exchange_listing(self, ctype: str, exchange: str) -> Any:
         raise NotImplementedError
 
 
@@ -22,11 +22,11 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
     """Docstring"""
 
     def __init__(self) -> None:
-        self.__html: str = None
-        self.__ctype: str = None
-        self.__exchange: str = None
+        self.__html: str = ""
+        self.__ctype: str = ""
+        self.__exchange: str = ""
 
-    def read_ib_exchange_listing(self, ctype: str, exchange: str):
+    def read_ib_exchange_listing(self, ctype: str, exchange: str) -> Any:
         """Docstring"""
 
         self.__ctype = ctype
@@ -98,10 +98,10 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         self.__signal_handler = SignalHandler()
         self.__current_page = 1
         self.__page_count = 1
-        self.__html: str = None
-        self.__website_data = []
-        self.__ctype: str = None
-        self.__exchange: str = None
+        self.__html: str = ""
+        self.__website_data: Any = []
+        self.__ctype: str = ""
+        self.__exchange: str = ""
         manager = enlighten.get_manager()
         self.__pbar = manager.counter(
             total=0,
