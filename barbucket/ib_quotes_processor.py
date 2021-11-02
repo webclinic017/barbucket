@@ -65,15 +65,14 @@ class IbQuotesProcessor():
                 except RequestError as e:
                     logger.info(e)
                     if e.reqId != -1:
-                        self.__update_quotes_status(
-                            error=True,
+                        self.__update_quotes_status_error(
                             status_code=e.code,
                             status_text=e.message)
                         self.__pbar.update(incr=1)
                     continue
                 else:
                     self.__write_quotes_to_db(bar_data)
-                    self.__update_quotes_status(error=False)
+                    self.__update_quotes_status()
                     self.__pbar.update(incr=1)
         except ExitSignalDetectedError:
             pass
@@ -166,27 +165,23 @@ class IbQuotesProcessor():
             duration=self.__duration)
         return quotes
 
-    def __update_quotes_status(
-            self,
-            error: bool,
-            status_code: int = None,
-            status_text: str = None) -> None:
-        if error:
-            code = status_code
-            text = status_text
-            q_from = "NULL"
-            q_till = "NULL"
-        else:
-            code = 1
-            text = "Successful"
-            q_from = self.__quotes_from
-            q_till = self.__quotes_till
+    def __update_quotes_status(self) -> None:
         self.__quotes_status_db_connector.update_quotes_status(
             contract_id=self.__contract_id,
-            status_code=code,
-            status_text=text,
-            daily_quotes_requested_from=q_from,
-            daily_quotes_requested_till=q_till)
+            status_code=1,
+            status_text="Successful",
+            daily_quotes_requested_from=self.__quotes_from,
+            daily_quotes_requested_till=self.__quotes_till)
+
+    def __update_quotes_status_error(
+            self,
+            status_code: int,
+            status_text: str) -> None:
+
+        self.__quotes_status_db_connector.update_quotes_status_error(
+            contract_id=self.__contract_id,
+            status_code=status_code,
+            status_text=status_text)
 
     def __write_quotes_to_db(self, bar_data) -> None:
         quotes = []
