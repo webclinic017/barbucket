@@ -40,7 +40,7 @@ class TwsConnector():
             symbol: str,
             exchange: str,
             currency: str,
-            duration: str) -> List[Tuple[Any]]:
+            duration: str) -> Any:
         """Download historical quotes from IB TWS"""
 
         exchange = Exchange.encode(name=exchange, to_api=Api.IB)
@@ -77,11 +77,10 @@ class TwsConnector():
             broker_symbol=broker_symbol,
             exchange=exchange,
             currency=currency)
-        details = details[0]
         logger.debug(
             f"Received contract details for {broker_symbol}_{exchange}_"
             f"{currency} from TWS")
-        details = self.__decode_details(details)
+        details = self.__decode_details(details[0])
         return details
 
     def __validate_details(
