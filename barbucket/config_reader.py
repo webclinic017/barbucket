@@ -27,5 +27,4 @@ class ConfigReader():
     def get_config_value_list(self, section: str, option: str) -> List[str]:
         """Reads a config value list"""
         value = ConfigReader.__parser.get(section, option)
-        value = value.split(",")  # split by comma and change to list
-        return value
+        return value.split(",")  # split by comma and change to list
