@@ -1,6 +1,7 @@
 import logging
 from typing import Any, List
 from datetime import date, timedelta
+from sqlite3 import Row
 
 import numpy as np
 import enlighten
@@ -29,12 +30,12 @@ class IbQuotesProcessor():
         self.__tws_connector = TwsConnector()
         self.__signal_handler = SignalHandler()
         self.__config_reader = ConfigReader()
-        self.__contract_id = None
-        self.__contract_data = None
-        self.__quotes_status = None
-        self.__duration = None
-        self.__quotes_from = None
-        self.__quotes_till = None
+        self.__contract_id: int
+        self.__contract_data: Row
+        self.__quotes_status: Row
+        self.__duration: str
+        self.__quotes_from: str
+        self.__quotes_till: str
         manager = enlighten.get_manager()  # Setup progress bar
         self.__pbar = manager.counter(
             total=0,
