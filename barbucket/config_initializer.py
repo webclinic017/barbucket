@@ -15,7 +15,7 @@ class ConfigInitializer():
         """Initializes the configuration file, if not present"""
         self._create_directories()
         self._create_config_file(
-            source_path="default_config.ini",
+            source_path=Path("default_config.ini"),
             destination_path=filepath)
 
     def _create_directories(self) -> None:
@@ -28,7 +28,8 @@ class ConfigInitializer():
             logger.info(f"Created directories `~/.barbucket/tv_screener`")
 
     def _create_config_file(
-            self, source_path: Path,
+            self,
+            source_path: Path,
             destination_path: Path) -> None:
         """Creates file with default config if none exists"""
         if Path.is_file(destination_path):
