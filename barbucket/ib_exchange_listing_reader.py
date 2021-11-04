@@ -1,33 +1,47 @@
 import time
 import logging
 from typing import Any, Dict, List
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 import requests
 import enlighten
 
-from .signal_handler import SignalHandler, ExitSignalDetectedError
+from .signal_handler import SignalHandler
 from .encodings import Api, Exchange, Symbol
 
 logger = logging.getLogger(__name__)
 
 
 class IbExchangeListingReader(ABC):
+    """Abstract baseclass for exchange listings readers"""
+
+    @abstractmethod
     def read_ib_exchange_listing(self, ctype: str, exchange: str) -> Any:
         raise NotImplementedError
 
 
 class IbExchangeListingSinglepageReader(IbExchangeListingReader):
-    """Docstring"""
+    """Exchange listings reader for singlepage listings"""
 
     def __init__(self) -> None:
         self.__html: str = ""
         self.__ctype: str = ""
         self.__exchange: str = ""
 
-    def read_ib_exchange_listing(self, ctype: str, exchange: str) -> Any:
-        """Docstring"""
+    def read_ib_exchange_listing(
+            self,
+            ctype: str,
+            exchange: str) -> List[Dict[str, Any]]:
+        """Read contracts from exchange listing website
+
+        :param ctype: Contracts type to read
+        :type ctype: str
+        :param exchange: Exchange to read from
+        :type exchange: str
+        :return: Contracts from website
+        :rtype: List[Dict[str, Any]]
+        """
 
         self.__ctype = ctype
         self.__exchange = Exchange.encode(name=exchange, to_api=Api.IB)
@@ -44,6 +58,8 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
         self.__html = requests.get(url).text
 
     def __correct_ib_error(self) -> None:
+        """Website HTML contains structural errors that prevent parsing."""
+
         old_lines = self.__html.splitlines()
         new_lines = []
         corrections = 0
@@ -92,7 +108,7 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
 
 
 class IbExchangeListingMultipageReader(IbExchangeListingReader):
-    """Docstring"""
+    """Exchange listings reader for multipage listings"""
 
     def __init__(self) -> None:
         self.__signal_handler = SignalHandler()
@@ -107,8 +123,19 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             total=0,
             desc="Pages", unit="pages")
 
-    def read_ib_exchange_listing(self, ctype: str, exchange: str):
-        """Docstring"""
+    def read_ib_exchange_listing(
+            self,
+            ctype: str,
+            exchange: str) -> List[Dict[str, Any]]:
+        """Read contracts from exchange listing website
+
+        :param ctype: Contracts type to read
+        :type ctype: str
+        :param exchange: Exchange to read from
+        :type exchange: str
+        :return: Contracts from website
+        :rtype: List[Dict[str, Any]]
+        """
 
         self.__ctype = ctype
         self.__exchange = Exchange.encode(name=exchange, to_api=Api.IB)
@@ -144,6 +171,8 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         self.__html = requests.get(url).text
 
     def __correct_ib_error(self) -> None:
+        """Website HTML contains structural errors that prevent parsing."""
+
         if ("(click link for more details)</span></th>\n                       </th>"
                 in self.__html):
             self.__html = self.__html.replace(
@@ -182,7 +211,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
 
 
 class WebscrapingReturnedNoResultError(Exception):
-    """[summary]"""
+    """Obviously something went wrong."""
 
     def __init__(self, message) -> None:
         self.message = message

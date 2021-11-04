@@ -19,7 +19,13 @@ class DbConnector():
             DbConnector.__is_initialized = True
 
     def connect(self) -> sqlite3.Connection:
-        """Provides a 'connection'-object for the database."""
+        """Provides a 'connection' object for the database.
+
+        :raises DBNotInitializedError: The database needs to be initialized 
+        by an internal method before use, this is handled automatically.
+        :return: Connection object to the database
+        :rtype: sqlite3.Connection
+        """
 
         if not DbConnector.__db_path.is_file():
             raise DBNotInitializedError(
@@ -35,7 +41,11 @@ class DbConnector():
         return conn
 
     def disconnect(self, conn: sqlite3.Connection) -> None:
-        """Disconnects the connection to the database."""
+        """Disconnects the connection to the database.
+
+        :param conn: Connection object, provided from this class
+        :type conn: sqlite3.Connection
+        """
         conn.close()
 
     def __initialize_database(self) -> None:
@@ -56,15 +66,11 @@ class DbConnector():
         DbConnector.__db_path = Path.home() / Path(db_path)
 
     def __create_db_file(self) -> None:
-        """Create a new database file."""
-
         conn = sqlite3.connect(DbConnector.__db_path)
         conn.close()
         logger.debug(f"Created new database file {DbConnector.__db_path}")
 
     def __create_db_schema(self) -> None:
-        """Create schema in database."""
-
         conn = self.connect()
         cur = conn.cursor()
 

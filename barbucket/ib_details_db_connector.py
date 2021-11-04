@@ -15,7 +15,21 @@ class IbDetailsDbConnector(DbConnector):
                           contract_type_from_details: str,
                           primary_exchange: str, industry: str, category: str,
                           subcategory: str) -> None:
-        """Insert contract details into db"""
+        """Insert contract details into db
+
+        :param contract_id: Contract ID of the contract
+        :type contract_id: str
+        :param contract_type_from_details: Type of the contract
+        :type contract_type_from_details: str
+        :param primary_exchange: Primary exchange of the contract
+        :type primary_exchange: str
+        :param industry: Industry classification of the contract
+        :type industry: str
+        :param category: Category classification of the contract
+        :type category: str
+        :param subcategory: Subcategory classification of the contract
+        :type subcategory: str
+        """
 
         conn = self.connect()
         cur = conn.cursor()

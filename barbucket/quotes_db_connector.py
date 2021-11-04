@@ -15,7 +15,11 @@ class QuotesDbConnector(DbConnector):
         super().__init__()
 
     def insert_quotes(self, quotes: List[Any]) -> None:
-        """Insert quotes into the db"""
+        """Insert quotes into the db
+
+        :param quotes: quotes
+        :type quotes: List[Any]
+        """
 
         conn = self.connect()
         cur = conn.cursor()
@@ -31,7 +35,13 @@ class QuotesDbConnector(DbConnector):
                      f"into db.")
 
     def get_quotes(self, contract_id: int) -> pd.DataFrame:
-        """Get quotes from the db"""
+        """Get quotes from the db
+
+        :param contract_id: Contract ID to supply quotes for
+        :type contract_id: int
+        :return: All quotes available from the database for the given contract
+        :rtype: pd.DataFrame
+        """
 
         query = f"""SELECT date, open, high, low, close, volume
                     FROM quotes

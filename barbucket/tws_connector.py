@@ -1,7 +1,9 @@
-from typing import Any
+from typing import Any, List
 import logging
 
-import ib_insync
+from ib_insync.ib import IB
+from ib_insync.objects import BarDataList
+from ib_insync.contract import Stock, ContractDetails
 
 from .encodings import Api, Exchange, ContractType, Symbol
 from .config_reader import ConfigReader
@@ -15,23 +17,26 @@ class TwsConnector():
 
     def __init__(self) -> None:
         self.__config_reader = ConfigReader()
-        self.__ib = ib_insync.ib.IB()  # Create connection objec
+        self.__ib = IB()  # Create connection objec
         self.__ib.RaiseRequestErrors = True  # Enable exceptions
         logging.getLogger("ib_insync").setLevel(
             logging.WARN)  # todo: change with verbosity level option
 
     def connect(self) -> None:
+        """Connect to TWS"""
+
         IP = self.__config_reader.get_config_value_single(
             section="tws_connector",
             option="ip")
         PORT = int(self.__config_reader.get_config_value_single(
             section="tws_connector",
             option="port"))
-
         self.__ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
         logger.debug(f"Connected to TWS on {IP}:{PORT}.")
 
     def disconnect(self) -> None:
+        """Disconnect from TWS"""
+
         self.__ib.disconnect()
         logger.debug("Disconnected from TWS.")
 
@@ -40,12 +45,24 @@ class TwsConnector():
             symbol: str,
             exchange: str,
             currency: str,
-            duration: str) -> Any:
-        """Download historical quotes from IB TWS"""
+            duration: str) -> BarDataList:
+        """Download historical quotes for a contract from IB TWS
+
+        :param symbol: Contracts symbol
+        :type symbol: str
+        :param exchange: Contracts exchange
+        :type exchange: str
+        :param currency: Contracts currency
+        :type currency: str
+        :param duration: Duration to download
+        :type duration: str
+        :return: 
+        :rtype: ib_insync.objects.BarDataList
+        """
 
         exchange = Exchange.encode(name=exchange, to_api=Api.IB)
         symbol = Symbol.encode(name=symbol, to_api=Api.IB)
-        ib_contract = ib_insync.contract.Stock(
+        ib_contract = Stock(
             symbol=symbol,
             exchange=exchange,
             currency=currency)
@@ -61,13 +78,23 @@ class TwsConnector():
             f"{currency}_{duration.replace(' ', '')} from TWS.")
         return bar_data
 
-    def download_contract_details(
-            self, broker_symbol: str, exchange: str, currency: str) -> Any:
-        """Download details for a contract from IB TWS"""
+    def download_contract_details(self, broker_symbol: str, exchange: str,
+                                  currency: str) -> List[ContractDetails]:
+        """Download details for a contract from IB TWS
+
+        :param symbol: Contracts symbol
+        :type symbol: str
+        :param exchange: Contracts exchange
+        :type exchange: str
+        :param currency: Contracts currency
+        :type currency: str
+        :return: Details object for the contract from IB TWS
+        :rtype: ib_insync.contract.ContractDetails
+        """
 
         exchange = Exchange.encode(name=exchange, to_api=Api.IB)
         symbol = Symbol.encode(name=broker_symbol, to_api=Api.IB)
-        ib_contract = ib_insync.contract.Stock(
+        ib_contract = Stock(
             symbol=symbol,
             exchange=exchange,
             currency=currency)
@@ -80,12 +107,11 @@ class TwsConnector():
         logger.debug(
             f"Received contract details for {broker_symbol}_{exchange}_"
             f"{currency} from TWS")
-        details = self.__decode_details(details[0])
-        return details
+        return self.__decode_details(details[0])
 
     def __validate_details(
             self,
-            details,
+            details: List[ContractDetails],
             broker_symbol: str,
             exchange: str,
             currency: str) -> None:
@@ -99,7 +125,7 @@ class TwsConnector():
             raise IbDetailsInvalidError(
                 f"Multiple results for {broker_symbol}_{exchange}_{currency}")
 
-    def __decode_details(self, details) -> Any:
+    def __decode_details(self, details: ContractDetails) -> ContractDetails:
         details.contract.exchange = Exchange.decode(
             name=details.contract.exchange,
             from_api=Api.IB)

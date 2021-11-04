@@ -12,26 +12,32 @@ class ConfigInitializer():
         pass
 
     def initalize_config(self, filepath: Path) -> None:
-        """Initializes the configuration file, if not present"""
-        self._create_directories()
-        self._create_config_file(
+        """Checks for the presence of a configuration file for the current 
+        user. If not present, creates the folders and a default configuration 
+        file
+
+        :param filepath: Path to the configuration file
+        :type filepath: Path
+        """
+
+        self.__create_directories()
+        self.__create_config_file(
             source_path=Path("default_config.ini"),
             destination_path=filepath)
 
-    def _create_directories(self) -> None:
-        """Creates barbucket directories, if not present"""
+    def __create_directories(self) -> None:
         try:
-            Path.mkdir((Path.home() / ".barbucket/tv_screener"), parents=True)
+            directories = (Path.home() / ".barbucket/tv_screener")
+            Path.mkdir(directories, parents=True)
         except FileExistsError:
             logger.debug(f"Necessary directories already exist.")
         else:
-            logger.info(f"Created directories `~/.barbucket/tv_screener`")
+            logger.info(f"Created directories '{directories}'")
 
-    def _create_config_file(
+    def __create_config_file(
             self,
             source_path: Path,
             destination_path: Path) -> None:
-        """Creates file with default config if none exists"""
         if Path.is_file(destination_path):
             logger.debug(f"Config file already exists.")
         else:

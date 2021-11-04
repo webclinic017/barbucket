@@ -29,11 +29,12 @@ class IbDetailsProcessor():
             desc="Contracts", unit="contracts")
 
     def update_ib_contract_details(self) -> None:
-        """Download and store all missing contract details entries from IB TWS."""
+        """Download and store all missing contract details entries from IB TWS.
+        """
 
         self.__get_contracts()
         self.__pbar.total = len(self.__contracts)
-        self.__connect_tws()
+        self.__tws_connector.connect()
         try:
             for contract in self.__contracts:
                 self.__signal_handler.is_exit_requested()
@@ -58,7 +59,7 @@ class IbDetailsProcessor():
             logger.info(
                 f"Updated IB details for master listings.")
         finally:
-            self.__disconnect_tws()
+            self.__tws_connector.disconnect()
 
     def __get_contracts(self) -> None:
         """Get contracts from db, where IB details are missing"""
@@ -72,17 +73,7 @@ class IbDetailsProcessor():
         logger.info(f"Found {len(self.__contracts)} contracts with missing "
                     f"IB details in master listing.")
 
-    def __connect_tws(self) -> None:
-        """Connect to TWS app"""
-        self.__tws_connector.connect()
-
-    def __disconnect_tws(self) -> None:
-        """Disconnect from TWS app"""
-        self.__tws_connector.disconnect()
-
     def __get_contract_details_from_tws(self, contract: Any) -> None:
-        """Download contract details over TWS."""
-
         self.__details = self.__tws_connector.download_contract_details(
             broker_symbol=contract['broker_symbol'],
             exchange=contract['exchange'],

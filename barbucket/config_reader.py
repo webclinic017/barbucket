@@ -21,10 +21,26 @@ class ConfigReader():
         ConfigReader.__parser.read(self.__CONFIG_FILE_PATH)
 
     def get_config_value_single(self, section: str, option: str) -> str:
-        """Reads a single config value"""
+        """Reads a single config value from the config file
+
+        :param section: Section of the config file
+        :type section: str
+        :param option: Option of the config file
+        :type option: str
+        :return: Value from the config file
+        :rtype: str
+        """
         return ConfigReader.__parser.get(section, option)
 
     def get_config_value_list(self, section: str, option: str) -> List[str]:
-        """Reads a config value list"""
+        """Reads a config value list from the config file
+
+        :param section: Section of the config file
+        :type section: str
+        :param option: Option of the config file
+        :type option: str
+        :return: Values from the config file
+        :rtype: List[str]
+        """
         value = ConfigReader.__parser.get(section, option)
         return value.split(",")  # split by comma and change to list

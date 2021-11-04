@@ -2,17 +2,26 @@ from enum import Enum
 
 
 class Api(Enum):
-    """Doc"""
+    """Enumeration of available APIs"""
     IB = 1
     TV = 2
 
 
-class Encoding(Enum):
-    """Doc"""
+class EncodingBase(Enum):
+    """Base class for encodings"""
 
     @classmethod
     def encode(cls, name: str, to_api: Api) -> str:
-        """Encode from Barbucket notation to specific API notation"""
+        """Encode from Barbucket notation to specific API notation
+
+        :param name: Name to encode
+        :type name: str
+        :param to_api: Api to encode to
+        :type to_api: Api
+        :raises AttributeError: Name was not found in encoding table
+        :return: Encoded name
+        :rtype: str
+        """
 
         for element in cls:
             if element.name == name:
@@ -21,7 +30,16 @@ class Encoding(Enum):
 
     @classmethod
     def decode(cls, name: str, from_api: Api) -> str:
-        """Decode from specific API notation to Barbucket notation"""
+        """Decode from specific API notation to Barbucket notation
+
+        :param name: Name to decode
+        :type name: str
+        :param from_api: Api to decode from
+        :type from_api: Api
+        :raises AttributeError: Name was not found in encoding table
+        :return: Decoded name
+        :rtype: str
+        """
 
         for element in cls:
             if element.value[from_api] == name:
@@ -29,8 +47,8 @@ class Encoding(Enum):
         raise AttributeError(f"Attribute '{name}' not found.")
 
 
-class Exchange(Encoding):
-    """Doc"""
+class Exchange(EncodingBase):
+    """Decode and encode exchange names to specific API notations"""
 
     AEB = {Api.IB: 'AEB', Api.TV: ''}
     AMEX = {Api.IB: 'AMEX', Api.TV: ''}
@@ -67,8 +85,8 @@ class Exchange(Encoding):
         return super().decode(name=name, from_api=from_api)
 
 
-class ContractType(Encoding):
-    """Doc"""
+class ContractType(EncodingBase):
+    """Decode and encode contract type names to specific API notations"""
 
     ADR = {Api.IB: 'ADR', Api.TV: ''}
     BOND = {Api.IB: 'BOND', Api.TV: ''}
@@ -99,7 +117,7 @@ class ContractType(Encoding):
 
 
 class Symbol():
-    """Doc"""
+    """Decode and encode symbol names to specific API notations"""
 
     @classmethod
     def encode(cls, name: str, to_api: Api) -> str:

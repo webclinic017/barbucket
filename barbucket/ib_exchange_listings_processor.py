@@ -23,7 +23,13 @@ class IbExchangeListingsProcessor():
         self.__database_contracts: List[Any] = []
 
     def sync_contracts_to_listing(self, ctype: str, exchange: str) -> None:
-        """Sync local exchange listings to the IB website"""
+        """Sync local exchange listings to the IB website
+
+        :param ctype: Contracts type to sync
+        :type ctype: str
+        :param exchange: Exchange to sync to
+        :type exchange: str
+        """
 
         self.__ctype = ctype
         self.__exchange = exchange
@@ -44,23 +50,16 @@ class IbExchangeListingsProcessor():
             self.__get_contracts_from_db()
             removed_count = self.__remove_deleted_contracts_from_db()
             added_count = self.__add_new_contracts_to_db()
-        except ExitSignalDetectedError as e:
-            self.__handle_exit_signal_detected_error(e)
-        except WebscrapingReturnedNoResultError as e:
-            self.__handle_query_returned_no_result_error(e)
+        except ExitSignalDetectedError:
+            logger.info("Stopped.")
+        except WebscrapingReturnedNoResultError:
+            logger.error(f"Webscraping for {self.__ctype} on "
+                         f"{self.__exchange} returned no results.")
         else:
             logger.info(
                 f"Master listing synced for '{ctype}' on '{exchange}'. "
                 f"{added_count} contracts were added, {removed_count} were "
                 f"removed.")
-
-    def __handle_exit_signal_detected_error(self, e):
-        logger.info("Stopped.")
-
-    def __handle_query_returned_no_result_error(self, e):
-        logger.error(
-            f"Webscraping for {self.__ctype} on {self.__exchange} returned "
-            f"no results.")
 
     def __get_contracts_from_db(self) -> None:
         filters = {

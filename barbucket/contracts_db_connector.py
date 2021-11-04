@@ -16,7 +16,21 @@ class ContractsDbConnector(DbConnector):
     def create_contract(self, contract_type_from_listing: str,
                         exchange_symbol: str, broker_symbol: str, name: str,
                         currency: str, exchange: str) -> None:
-        """Creates a new contract in the database."""
+        """Creates a new contract in the database
+
+        :param contract_type_from_listing: Type of contract from the listing
+        :type contract_type_from_listing: str
+        :param exchange_symbol: Contract symbol at exchange
+        :type exchange_symbol: str
+        :param broker_symbol: Contract symbol at broker
+        :type broker_symbol: str
+        :param name: Contract name
+        :type name: str
+        :param currency: Contract currency
+        :type currency: str
+        :param exchange: Contract exchange
+        :type exchange: str
+        """
         # Todo: what if already exits?
 
         conn = self.connect()
@@ -45,9 +59,18 @@ class ContractsDbConnector(DbConnector):
 
     def get_contracts(self, filters: Dict = {}, return_columns: List = []
                       ) -> List[sqlite3.Row]:
-        """
-        Returns the requsted columns of the contracts table, filtered by the
-        given filters
+        """Returns the requsted columns of the contracts table, filtered by 
+        the given filters
+
+        :param filters: Equality conditions for filtering, formatted as a 
+        dictionary: {'column_name': "value"}. Value can be int, float or 
+        string, defaults to {}
+        :type filters: Dict, optional
+        :param return_columns: List of column names to return, empty list 
+        returns all columns, defaults to []
+        :type return_columns: List, optional
+        :return: List of rows matching the given parameters
+        :rtype: List[sqlite3.Row]
         """
 
         # Prepare query
@@ -80,7 +103,15 @@ class ContractsDbConnector(DbConnector):
         return contracts
 
     def delete_contract(self, exchange: str, symbol: str, currency: str) -> None:
-        """Deletets a contract from the db."""
+        """Deletets a contract from the db.
+
+        :param exchange: Exchange of the contract to delete
+        :type exchange: str
+        :param symbol: Symbol of the contract to delete
+        :type symbol: str
+        :param currency: Currency of the contract to delete
+        :type currency: str
+        """
 
         conn = self.connect()
         cur = conn.cursor()
@@ -96,7 +127,11 @@ class ContractsDbConnector(DbConnector):
         logger.debug(f"Deleted contract: {exchange}_{symbol}_{currency}")
 
     def delete_contract_id(self, contract_id: int) -> None:
-        """Deletets a contract from the db."""
+        """Deletets a contract from the db.
+
+        :param contract_id: Contract ID of the contract to delete
+        :type contract_id: int
+        """
 
         conn = self.connect()
         cur = conn.cursor()

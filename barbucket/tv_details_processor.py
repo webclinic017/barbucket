@@ -142,7 +142,7 @@ class TvDetailsProcessor():
 
 
 class TvQueryResultError(Exception):
-    """[summary]"""
+    """Number of contracts matching TV file row is not 1"""
 
     def __init__(self, message) -> None:
         self.message = message

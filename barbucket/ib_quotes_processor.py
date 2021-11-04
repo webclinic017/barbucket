@@ -6,6 +6,7 @@ from sqlite3 import Row
 import numpy as np
 import enlighten
 from ib_insync.wrapper import RequestError
+from ib_insync.objects import BarDataList
 
 from .signal_handler import SignalHandler, ExitSignalDetectedError
 from .config_reader import ConfigReader
@@ -42,11 +43,15 @@ class IbQuotesProcessor():
             desc="Contracts", unit="contracts")
 
     def download_historical_quotes(self, universe: str) -> None:
-        """Download historical quotes from TWS"""
+        """Download historical quotes from TWS
+
+        :param universe: Universe to download quotes for
+        :type universe: str
+        """
 
         contract_ids = self.__get_contracts(universe)
         self.__pbar.total = len(contract_ids)
-        self.__connect_tws()
+        self.__tws_connector.connect()
         try:
             for self.__contract_id in contract_ids:
                 self.__signal_handler.is_exit_requested()
@@ -64,14 +69,15 @@ class IbQuotesProcessor():
                 except RequestError as e:
                     logger.info(e)
                     if e.reqId != -1:
-                        self.__update_quotes_status_error(
+                        self.__update_quotes_status(
+                            error=True,
                             status_code=e.code,
                             status_text=e.message)
                         self.__pbar.update(incr=1)
                     continue
                 else:
                     self.__write_quotes_to_db(bar_data)
-                    self.__update_quotes_status()
+                    self.__update_quotes_status(error=False)
                     self.__pbar.update(incr=1)
         except ExitSignalDetectedError:
             pass
@@ -80,14 +86,11 @@ class IbQuotesProcessor():
                 f"Finished downloading historical data for universe "
                 f"'{universe}'")
         finally:
-            self.__disconnect_tws()
+            self.__tws_connector.disconnect()
 
     def __get_contracts(self, universe: str) -> List[int]:
         return self.__universes_db_connector.get_universe_members(
             universe=universe)
-
-    def __connect_tws(self) -> None:
-        self.__tws_connector.connect()
 
     def __get_contract_data(self) -> None:
         filters = {'contract_id': self.__contract_id}
@@ -102,6 +105,8 @@ class IbQuotesProcessor():
             contract_id=self.__contract_id)
 
     def __calculate_dates(self) -> None:
+        """Calculate 'from' and 'to' dates for quotes to be downloaded"""
+
         if self.__quotes_status['status_code'] == 0:
             self.__calculate_dates_for_new_contract()
         elif self.__quotes_status['status_code'] == 1:
@@ -119,8 +124,6 @@ class IbQuotesProcessor():
         self.__quotes_till = date.today().strftime('%Y-%m-%d')
 
     def __calculate_dates_for_existing_contract(self) -> None:
-        """Calculate, how many days need to be downloaded"""
-
         # Get config constants
         REDOWNLOAD_DAYS = int(self.__config_reader.get_config_value_single(
             section="quotes",
@@ -154,9 +157,7 @@ class IbQuotesProcessor():
         logger.debug(message)
         raise ContractHasErrorStatusError(message)
 
-    def __get_quotes_from_tws(self) -> List[Any]:
-        """Download quotes for one contract from TWS"""
-
+    def __get_quotes_from_tws(self) -> BarDataList:
         quotes = self.__tws_connector.download_historical_quotes(
             symbol=self.__contract_data['broker_symbol'],
             exchange=self.__contract_data['exchange'],
@@ -164,25 +165,27 @@ class IbQuotesProcessor():
             duration=self.__duration)
         return quotes
 
-    def __update_quotes_status(self) -> None:
-        self.__quotes_status_db_connector.update_quotes_status(
-            contract_id=self.__contract_id,
-            status_code=1,
-            status_text="Successful",
-            daily_quotes_requested_from=self.__quotes_from,
-            daily_quotes_requested_till=self.__quotes_till)
-
-    def __update_quotes_status_error(
+    def __update_quotes_status(
             self,
-            status_code: int,
-            status_text: str) -> None:
+            error: bool,
+            status_code: int = 0,
+            status_text: str = "") -> None:
+        if error:
+            self.__quotes_status_db_connector.update_quotes_status(
+                contract_id=self.__contract_id,
+                status_code=status_code,
+                status_text=status_text,
+                daily_quotes_requested_from="NULL",
+                daily_quotes_requested_till="NULL")
+        else:
+            self.__quotes_status_db_connector.update_quotes_status(
+                contract_id=self.__contract_id,
+                status_code=1,
+                status_text="Successful",
+                daily_quotes_requested_from=self.__quotes_from,
+                daily_quotes_requested_till=self.__quotes_till)
 
-        self.__quotes_status_db_connector.update_quotes_status_error(
-            contract_id=self.__contract_id,
-            status_code=status_code,
-            status_text=status_text)
-
-    def __write_quotes_to_db(self, bar_data) -> None:
+    def __write_quotes_to_db(self, bar_data: BarDataList) -> None:
         quotes = []
         for bar in bar_data:
             quote = (
@@ -196,12 +199,9 @@ class IbQuotesProcessor():
             quotes.append(quote)
         self.__quotes_db_connector.insert_quotes(quotes=quotes)
 
-    def __disconnect_tws(self) -> None:
-        self.__tws_connector.disconnect()
-
 
 class QuotesDurationError(Exception):
-    """Docstring"""
+    """Problem occured with the 'from' and 'to' dates for downloading"""
 
     def __init__(self, message) -> None:
         self.message = message
@@ -209,7 +209,7 @@ class QuotesDurationError(Exception):
 
 
 class ContractHasErrorStatusError(Exception):
-    """Docstring"""
+    """Contract has had an error on previous quotes download attempt"""
 # TODO
 
     def __init__(self, message) -> None:
