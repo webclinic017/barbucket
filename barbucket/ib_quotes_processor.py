@@ -49,8 +49,7 @@ class IbQuotesProcessor():
         self.__connect_tws()
         try:
             for self.__contract_id in contract_ids:
-                if self.__signal_handler.exit_requested():
-                    raise ExitSignalDetectedError("Message")
+                self.__signal_handler.is_exit_requested()
                 self.__get_contract_data()
                 self.__get_contract_status()
                 try:

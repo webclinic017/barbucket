@@ -36,8 +36,7 @@ class IbDetailsProcessor():
         self.__connect_tws()
         try:
             for contract in self.__contracts:
-                if self.__signal_handler.exit_requested():
-                    raise ExitSignalDetectedError("Message")
+                self.__signal_handler.is_exit_requested()
                 logger.info(
                     f"{contract['broker_symbol']}_{contract['exchange']}_"
                     f"{contract['currency']}")

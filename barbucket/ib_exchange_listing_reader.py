@@ -122,7 +122,7 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             logger.debug(
                 f"Scraped IB exchange listing for {self.__exchange}, page "
                 f"{self.__current_page}.")
-            self.__check_abort_signal()
+            self.__signal_handler.is_exit_requested()  # raises ex to exit
             self.__pbar.update(incr=1)
             self.__current_page += 1
             if self.__current_page != self.__page_count:
@@ -179,10 +179,6 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             self.__website_data.append(row_dict)
         # todo: log ammount
         # todo: handle ammount == 0
-
-    def __check_abort_signal(self) -> None:
-        if self.__signal_handler.exit_requested():
-            raise ExitSignalDetectedError("Message")
 
 
 class WebscrapingReturnedNoResultError(Exception):

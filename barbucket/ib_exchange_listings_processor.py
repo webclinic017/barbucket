@@ -5,8 +5,8 @@ from .contracts_db_connector import ContractsDbConnector
 from .ib_exchange_listing_reader import (
     IbExchangeListingSinglepageReader,
     IbExchangeListingMultipageReader,
-    WebscrapingReturnedNoResultError,
-    ExitSignalDetectedError)
+    WebscrapingReturnedNoResultError)
+from .signal_handler import ExitSignalDetectedError
 
 
 logger = logging.getLogger(__name__)
