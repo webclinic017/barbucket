@@ -5,12 +5,15 @@ verify_ssl = true
 
 [dev-packages]
 autopep8 = "*"
+build = "*"
 mypy = "*"
 pylint = "*"
 pytest = "*"
 rope = "*"
+setuptools = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
+twine = "*"
 types-requests = "*"
 
 [packages]

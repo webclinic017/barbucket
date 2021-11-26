@@ -1,4 +1,4 @@
-# ide stuff
+# ide
 .ipynb_checkpoints/
 .vscode/
 
@@ -16,11 +16,15 @@ data/*
 # temp files
 *.html
 
-# ignore os stuff
+# os
 .DS_Store
 
-# Sphinx documentation
+# documentation
 docs/_build/
 
 # mypy
 .mypy_cache/
+
+# packaging
+dist/
+barbucket.egg-info/
