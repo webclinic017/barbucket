@@ -11,7 +11,8 @@ class ConfigInitializer():
     def __init__(self) -> None:
         pass
 
-    def initalize_config(self, filepath: Path) -> None:
+    @classmethod
+    def initalize_config(cls, filepath: Path) -> None:
         """Checks for the presence of a configuration file for the current 
         user. If not present, creates the folders and a default configuration 
         file
@@ -20,12 +21,13 @@ class ConfigInitializer():
         :type filepath: Path
         """
 
-        self.__create_directories()
-        self.__create_config_file(
+        cls.__create_directories()
+        cls.__create_config_file(
             source_path=Path("default_config.ini"),
             destination_path=filepath)
 
-    def __create_directories(self) -> None:
+    @classmethod
+    def __create_directories(cls) -> None:
         try:
             directories = (Path.home() / ".barbucket/tv_screener")
             Path.mkdir(directories, parents=True)
@@ -34,8 +36,9 @@ class ConfigInitializer():
         else:
             logger.info(f"Created directories '{directories}'")
 
+    @classmethod
     def __create_config_file(
-            self,
+            cls,
             source_path: Path,
             destination_path: Path) -> None:
         if Path.is_file(destination_path):
