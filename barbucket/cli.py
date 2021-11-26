@@ -4,12 +4,15 @@ from pathlib import Path
 
 import click
 
-from barbucket.universes_db_connector import UniversesDbConnector
-from barbucket.ib_exchange_listings_processor import IbExchangeListingsProcessor
-from barbucket.ib_details_processor import IbDetailsProcessor
-from barbucket.tv_details_processor import TvDetailsProcessor
-from barbucket.ib_quotes_processor import IbQuotesProcessor
-from barbucket.encodings import Exchange
+from .universes_db_connector import UniversesDbConnector
+from .ib_exchange_listings_processor import IbExchangeListingsProcessor
+from .ib_details_processor import IbDetailsProcessor
+from .tv_details_processor import TvDetailsProcessor
+from .ib_quotes_processor import IbQuotesProcessor
+from .encodings import Exchange
+
+
+logger = logging.getLogger(__name__)
 
 
 @click.group()
@@ -36,6 +39,7 @@ def sync_listing(contract_type: str, exchange: str) -> None:
         f"User requested to sync '{contract_type}' contracts on '{exchange}' "
         f"to master listing via the cli.")
     if validate_exchange(exchange.upper()):
+        ib_exchange_listings_processor = IbExchangeListingsProcessor()
         ib_exchange_listings_processor.sync_contracts_to_listing(
             ctype=contract_type.upper(),
             exchange=exchange.upper()
@@ -47,6 +51,7 @@ def download_ib_details() -> None:
     """Fetch details for all contracts from IB TWS"""
     logger.debug(
         f"User requested to download details from TWS via the cli.")
+    ib_details_processor = IbDetailsProcessor()
     ib_details_processor.update_ib_contract_details()
 
 
@@ -56,6 +61,7 @@ def read_tv_details() -> None:
 
     logger.debug(
         f"User requested to read and store details from tv files via the cli.")
+    tv_details_processor = TvDetailsProcessor()
     tv_details_processor.read_tv_data()
 
 
@@ -74,6 +80,7 @@ def fetch(universe: str) -> None:
     logger.debug(
         f"User requested to download quotes from TWS for universe "
         f"'{universe}' via the cli.")
+    ib_quotes_processor = IbQuotesProcessor()
     ib_quotes_processor.download_historical_quotes(
         universe=universe)
 
@@ -95,6 +102,7 @@ def create(name: str, contract_ids: str) -> None:
         f"User requested to create universe '{name}' with {len(contract_ids)} "
         f"members via the cli.")
     con_list = [int(n) for n in contract_ids.split(",")]
+    universes_db_connector = UniversesDbConnector()
     universes_db_connector.create_universe(
         name=name,
         contract_ids=con_list)
@@ -107,6 +115,7 @@ def list() -> None:
 
     logger.debug(
         f"User requested to list all existing universes via the cli.")
+    universes_db_connector = UniversesDbConnector()
     universes = universes_db_connector.get_universes()
     if universes:
         logger.info(f"Existing universes: {universes}")
@@ -122,6 +131,7 @@ def members(name: str) -> None:
     name = name.upper()
     logger.debug(
         f"User requested to list the members of universe '{name}' via the cli.")
+    universes_db_connector = UniversesDbConnector()
     members = universes_db_connector.get_universe_members(universe=name)
     if members:
         logger.info(f"Members of universe '{name}': {members}")
@@ -139,6 +149,7 @@ def delete(name: str) -> None:
     name = name.upper()
     logger.debug(
         f"User requested to delete the universe '{name}' via the cli.")
+    universes_db_connector = UniversesDbConnector()
     n_affeced_rows = universes_db_connector.delete_universe(universe=name)
     if n_affeced_rows > 0:
         logger.info(
@@ -154,44 +165,3 @@ def validate_exchange(exchange) -> bool:
                     f"are: {exchanges}")
         return False
     return True
-
-
-if __name__ == '__main__':
-    """Docstring"""
-
-    # Setup logging
-    def my_filenamer(filename):
-        new_name = filename.replace(".log.", "_") + ".log"
-        return new_name
-
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_formatter = logging.Formatter("%(message)s")
-    console_handler.setFormatter(console_formatter)
-    root_logger.addHandler(console_handler)
-
-    file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=Path.home() / ".barbucket/logfile.log",
-        when='midnight')
-    file_handler.namer = my_filenamer
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(asctime)s | %(name)s | %(levelname)s | %(message)s")
-    file_handler.setFormatter(file_formatter)
-    root_logger.addHandler(file_handler)
-
-    logger = logging.getLogger(__name__)
-    logger.debug("---------------------------------------")
-    logger.debug("Application started")
-
-    universes_db_connector = UniversesDbConnector()
-    ib_exchange_listings_processor = IbExchangeListingsProcessor()
-    ib_details_processor = IbDetailsProcessor()
-    tv_details_processor = TvDetailsProcessor()
-    ib_quotes_processor = IbQuotesProcessor()
-
-    # Run Cli
-    cli()
