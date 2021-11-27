@@ -19,12 +19,12 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-# project = 'Barbucket'  # set in setup.cfg
+project = 'Barbucket'
 copyright = 'Martin Creutzenberg'
 author = 'Martin Creutzenberg'
 
 # The full version, including alpha/beta/rc tags
-# release = '0.0.1'  # set in setup.cfg
+release = '0.0.133'
 
 
 # -- General configuration ---------------------------------------------------
