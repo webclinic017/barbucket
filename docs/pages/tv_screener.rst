@@ -27,7 +27,7 @@ Add to local database
 
 .. code-block:: console
 
-    python barbucket.py contracts fetch_tv_details
+    $ barbucket contracts download-ib-details
 
 * For each contract in each file the software will try to find a corresponding contract in your local database and add the screener details.
  

@@ -1,7 +1,7 @@
 License
 =======
 
-Copyright (c) 2020 Martin Creutzenberg
+Copyright (c) 2021 Martin Creutzenberg
 
 This software is provided under MIT License.
 

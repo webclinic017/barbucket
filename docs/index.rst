@@ -1,6 +1,5 @@
 Barbucket documentation
 =======================
-Loading and storing historical price data of financial contracts
 
 `Barbucket on Github <https://github.com/croidzen/barbucket>`_
 
