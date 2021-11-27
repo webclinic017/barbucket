@@ -26,5 +26,6 @@ docs/_build/
 .mypy_cache/
 
 # packaging
-dist/
 barbucket.egg-info/
+build/
+dist/
