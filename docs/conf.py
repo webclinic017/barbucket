@@ -24,7 +24,7 @@ copyright = 'Martin Creutzenberg'
 author = 'Martin Creutzenberg'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.133'
+release = '0.2'
 
 
 # -- General configuration ---------------------------------------------------
