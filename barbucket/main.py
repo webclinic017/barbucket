@@ -4,15 +4,18 @@ from pathlib import Path
 from .cli import cli
 
 
-def my_filenamer(filename):
+def create_directories():
+    Path.mkdir(Path.home() / ".barbucket/", exist_ok=True)
+    Path.mkdir(Path.home() / ".barbucket/tv_screener", exist_ok=True)
+    Path.mkdir(Path.home() / ".barbucket/logs", exist_ok=True)
+
+
+def my_file_namer(filename):
     new_name = filename.replace(".log.", "_") + ".log"
     return new_name
 
 
-def main():
-    """Docstring"""
-
-    # Setup logging
+def setup_logging():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
@@ -23,9 +26,9 @@ def main():
     root_logger.addHandler(console_handler)
 
     file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=Path.home() / ".barbucket/logfile.log",
+        filename=Path.home() / ".barbucket/logs/logfile.log",
         when='midnight')
-    file_handler.namer = my_filenamer
+    file_handler.namer = my_file_namer
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter(
         "%(asctime)s | %(name)s | %(levelname)s | %(message)s")
@@ -36,5 +39,10 @@ def main():
     logger.debug("---------------------------------------")
     logger.debug("Application started")
 
-    # Run Cli
-    cli()
+
+def main():
+    """Docstring"""
+
+    create_directories()
+    setup_logging()
+    cli()  # Run cli
