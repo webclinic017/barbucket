@@ -23,11 +23,11 @@ Download
 
 Add to local database
 ---------------------
-* Place all downloaded ``.csv`` files into the folder ``/your/local/user_path/.barbucket/tv_screener``. Then execute
+* Place all downloaded ``.csv`` files into the folder ``{your_local_user_directory}/.barbucket/tv_screener``. Then execute
 
 .. code-block:: console
 
-    $ barbucket contracts download-ib-details
+    $ barbucket contracts download-tv-details
 
 * For each contract in each file the software will try to find a corresponding contract in your local database and add the screener details.
  

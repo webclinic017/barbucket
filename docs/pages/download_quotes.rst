@@ -7,13 +7,13 @@ To download historical quotes, IB's TWS needs to be running and API access enabl
 
   $ barbucket quotes fetch --universe my_universe
 
---name             Name of the universe to download quotes for
+--universe             Name of the universe to download quotes for
 
 Restrictions
 ------------
 - Right now, only daily quotes are supported
-- Start-date will always be today
-- Duration will be 15 years or shorter, if latest existing quote is newer
+- End-date will always be today
+- Duration will be 15 years or shorter, if youngest existing quote is newer
 - IB is enforcing strict speedlimits, so downloading quotes on IB for many contracts will need some time.
 
 Configuration

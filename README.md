@@ -57,4 +57,4 @@ See results at:
 * Aimed at software developers. Knowlede about how to handle a database is necessary to use this software
 
 ## Full documentation
-* [barbucket.rtfd.io](http://barbucket.rtfd.io/)
+* [barbucket.readthedocs.io](https://barbucket.readthedocs.io/)

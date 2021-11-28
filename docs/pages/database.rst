@@ -5,4 +5,4 @@ All data is stored in a local SQLite database. The file will be automatically cr
 
 .. code-block:: console
 
-    {your_local_user_directory}/.barbucket/database.db
+    {your_local_user_directory}/.barbucket/database.sqlite
