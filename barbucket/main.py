@@ -46,3 +46,7 @@ def main():
     create_directories()
     setup_logging()
     cli()  # Run cli
+
+
+if __name__ == "__main__":
+    main()
