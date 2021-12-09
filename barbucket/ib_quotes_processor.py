@@ -89,6 +89,8 @@ class IbQuotesProcessor():
             self.__tws_connector.disconnect()
 
     def __get_contracts(self, universe: str) -> List[int]:
+        # Todo: if zero contracts returned, universe does not exist.
+
         return self.__universes_db_connector.get_universe_members(
             universe=universe)
 

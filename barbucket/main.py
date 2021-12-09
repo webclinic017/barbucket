@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from .cli import cli
+from barbucket.cli import cli
 
 
 def create_directories():
