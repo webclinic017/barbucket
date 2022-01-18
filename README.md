@@ -6,8 +6,8 @@
 ![license](https://img.shields.io/github/license/croidzen/barbucket.svg)
 ![issues_open](https://img.shields.io/github/issues/croidzen/barbucket.svg)
 ![issues_closed](https://img.shields.io/github/issues-closed/croidzen/barbucket.svg)
-![commits](https://badgen.net/github/commits/micromatch/micromatch)
-![last_commit](https://badgen.net/github/last-commit/micromatch/micromatch)
+![commits](https://badgen.net/github/commits/croidzen/barbucket)
+![last_commit](https://badgen.net/github/last-commit/croidzen/barbucket)
 ![pypi_version](https://badgen.net/pypi/v/barbucket)
 
 A local database for financial contracts and pricing data
