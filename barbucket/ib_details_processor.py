@@ -3,11 +3,11 @@ from typing import Any, List
 
 import enlighten
 from ib_insync.wrapper import RequestError
+import sqlite3
 
 from .signal_handler import SignalHandler, ExitSignalDetectedError
-from .contracts_db_connector import ContractsDbConnector
-from .ib_details_db_connector import IbDetailsDbConnector
 from .tws_connector import TwsConnector, IbDetailsInvalidError
+from .db_connector import DbConnector
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +16,8 @@ class IbDetailsProcessor():
     """Downloading of contract details from IB TWS and storing to db"""
 
     def __init__(self) -> None:
-        self.__contracts_db_connector = ContractsDbConnector()
-        self.__ib_details_db_connector = IbDetailsDbConnector()
         self.__tws_connector = TwsConnector()
+        self.__db_connector = DbConnector()
         self.__contracts: List[Any] = []
         self.__details: Any = None
         self.__pbar: Any = None
@@ -64,12 +63,19 @@ class IbDetailsProcessor():
     def __get_contracts(self) -> None:
         """Get contracts from db, where IB details are missing"""
 
-        return_columns = [
-            'contract_id', 'broker_symbol', 'exchange', 'currency']
-        filters = {'primary_exchange': "NULL"}
-        self.__contracts = self.__contracts_db_connector.get_contracts(
-            filters=filters,
-            return_columns=return_columns)
+        query = """
+            SELECT contract_id, broker_symbol, exchange, currency 
+                FROM all_contract_info
+                WHERE primary_exchange IS NULL"""
+
+        conn = self.__db_connector.connect()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(query)
+        self.__contracts = cur.fetchall()
+        conn.commit()
+        cur.close()
+        self.__db_connector.disconnect(conn)
         logger.info(f"Found {len(self.__contracts)} contracts with missing "
                     f"IB details in master listing.")
 
@@ -80,10 +86,33 @@ class IbDetailsProcessor():
             currency=contract['currency'])
 
     def __insert_ib_details_into_db(self, contract: Any) -> None:
-        self.__ib_details_db_connector.insert_ib_details(
-            contract_id=contract['contract_id'],
-            contract_type_from_details=self.__details.stockType,
-            primary_exchange=self.__details.contract.primaryExchange,
-            industry=self.__details.industry,
-            category=self.__details.category,
-            subcategory=self.__details.subcategory)
+        contract_id = contract['contract_id'],
+        contract_type_from_details = self.__details.stockType,
+        primary_exchange = self.__details.contract.primaryExchange,
+        industry = self.__details.industry,
+        category = self.__details.category,
+        subcategory = self.__details.subcategory
+
+        conn = self.__db_connector.connect()
+        cur = conn.cursor()
+        cur.execute("""
+            REPLACE INTO contract_details_ib (
+                contract_id,
+                contract_type_from_details,
+                primary_exchange,
+                industry,
+                category,
+                subcategory)
+                VALUES (?, ?, ?, ?, ?, ?)""", (
+                    contract_id,
+                    contract_type_from_details,
+                    primary_exchange,
+                    industry,
+                    category,
+                    subcategory))
+        conn.commit()
+        cur.close()
+        self.__db_connector.disconnect(conn)
+        logger.debug(f"Inserted IB details into db: {contract_id} "
+                     f"{contract_type_from_details} {primary_exchange} "
+                     f"{industry} {category} {subcategory}")
