@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class SignalHandler():
     """Handle 'Ctrl+C' commands from the user"""
-    __state = False
+    _state = False
 
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, SignalHandler.change_state)
@@ -24,10 +24,10 @@ class SignalHandler():
         """
 
         logger.warn(
-            f": Ctrl-C detected, gracefully stopping operation. Press again to "
-            f"stop immediately.")
+            f": Ctrl-C detected, gracefully stopping operation. Press Ctrl-C "
+            f"again to stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        cls.__state = True
+        cls._state = True
 
     @classmethod
     def is_exit_requested(cls) -> None:
@@ -36,7 +36,7 @@ class SignalHandler():
         :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
         """
 
-        if cls.__state:
+        if cls._state:
             raise ExitSignalDetectedError("Message")
 
 
