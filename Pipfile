@@ -24,6 +24,7 @@ ib-insync = "*"
 numpy = "*"
 pandas = "*"
 requests = "*"
+sqlalchemy = "*"
 trading-calendars = "*"
 
 [requires]
