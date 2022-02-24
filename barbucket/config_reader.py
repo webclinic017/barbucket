@@ -1,30 +1,29 @@
-import configparser
+from configparser import ConfigParser
 from pathlib import Path
 from typing import List
-import logging
+from logging import getLogger
 from shutil import copyfile
 from importlib import resources
 
 
-logger = logging.getLogger(__name__)
+_logger = getLogger(__name__)
 
 
 class ConfigReader():
-    """Read config values from existing configuration file."""
+    """Reads config values from a configuration file."""
 
-    __parser = configparser.ConfigParser(allow_no_value=True)
-    __CONFIG_FILE_PATH = Path.home() / ".barbucket/config.ini"
-    __is_initialized = False
+    _parser: ConfigParser
+    _CONFIG_FILE_NAME: str
+    _CONFIG_FILE_PATH: Path
 
     def __init__(self) -> None:
-        if not ConfigReader.__is_initialized:
-            ConfigReader.__initalize_config(
-                destination_path=ConfigReader.__CONFIG_FILE_PATH)
-            ConfigReader.__is_initialized = True
-        ConfigReader.__parser.read(self.__CONFIG_FILE_PATH)
+        ConfigReader._parser = ConfigParser(allow_no_value=True)
+        ConfigReader._CONFIG_FILE_NAME = ".barbucket/config.cfg"
+        ConfigReader._CONFIG_FILE_PATH = Path.home() / self._CONFIG_FILE_NAME
+        ConfigReader._initalize()
 
     @classmethod
-    def __initalize_config(cls, destination_path: Path) -> None:
+    def _initalize(cls) -> None:
         """Checks for the presence of a configuration file for the current 
         user. If not present, creates a default configuration file
 
@@ -32,16 +31,19 @@ class ConfigReader():
         :type destination_path: Path
         """
 
-        with resources.path('barbucket', 'default_config.ini') as pathreader:
-            source_path = pathreader
+        destination_path = cls._CONFIG_FILE_PATH
         if Path.is_file(destination_path):
-            logger.debug(f"Config file already exists.")
+            _logger.debug(f"Config file already exists.")
         else:
-            copyfile(source_path, destination_path)
-            logger.info(
-                f"Created config file {destination_path} from default file.")
+            with resources.path('barbucket', cls._CONFIG_FILE_NAME) as source_path:
+                copyfile(source_path, destination_path)
+                _logger.info(
+                    f"Created config file {destination_path} from default file.")
+        cls._parser.read(cls._CONFIG_FILE_PATH)
+        _logger.debug(f"Read config file.")
 
-    def get_config_value_single(self, section: str, option: str) -> str:
+    @classmethod
+    def get_config_value_single(cls, section: str, option: str) -> str:
         """Reads a single config value from the config file
 
         :param section: Section of the config file
@@ -51,9 +53,14 @@ class ConfigReader():
         :return: Value from the config file
         :rtype: str
         """
-        return ConfigReader.__parser.get(section, option)
 
-    def get_config_value_list(self, section: str, option: str) -> List[str]:
+        config_value = cls._parser.get(section, option)
+        _logger.debug(
+            f"Read single config value from '{section}'/'{option}' as '{config_value}'.")
+        return config_value
+
+    @classmethod
+    def get_config_value_list(cls, section: str, option: str) -> List[str]:
         """Reads a config value list from the config file
 
         :param section: Section of the config file
@@ -63,5 +70,10 @@ class ConfigReader():
         :return: Values from the config file
         :rtype: List[str]
         """
-        value = ConfigReader.__parser.get(section, option)
-        return value.split(",")  # split by comma and change to list
+
+        config_value = cls._parser.get(section, option)
+        # split by comma and change to list
+        list_config_value = config_value.split(",")
+        _logger.debug(
+            f"Read list config value from '{section}'/'{option}' as '{list_config_value}'.")
+        return list_config_value
