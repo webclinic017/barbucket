@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class Api(Enum):
@@ -137,7 +137,8 @@ class Symbol():
         elif to_api == Api.TV:
             name = name.replace("_", ".")
         else:
-            raise AttributeError("No encoding for {to_api} available.")
+            raise NotImplementedError(
+                "No logic to encode to {to_api} implemented yet.")
         return name  # logging
 
     @classmethod
@@ -149,5 +150,6 @@ class Symbol():
         elif from_api == Api.TV:
             name = name.replace(".", "_")
         else:
-            raise AttributeError("No encoding for {from_api} available.")
+            raise NotImplementedError(
+                "No logic to decode from {from_api} implemented yet.")
         return name  # logging
