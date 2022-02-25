@@ -13,13 +13,11 @@ class ConfigReader():
     """Reads config values from a configuration file."""
 
     _parser: ConfigParser
-    _CONFIG_FILE_NAME: str
     _CONFIG_FILE_PATH: Path
 
-    def __init__(self) -> None:
+    def __init__(self, filepath: Path) -> None:
         ConfigReader._parser = ConfigParser(allow_no_value=True)
-        ConfigReader._CONFIG_FILE_NAME = ".barbucket/config.cfg"
-        ConfigReader._CONFIG_FILE_PATH = Path.home() / self._CONFIG_FILE_NAME
+        ConfigReader._CONFIG_FILE_PATH = filepath
         ConfigReader._initalize()
 
     @classmethod
@@ -35,7 +33,8 @@ class ConfigReader():
         if Path.is_file(destination_path):
             _logger.debug(f"Config file already exists.")
         else:
-            with resources.path('barbucket', cls._CONFIG_FILE_NAME) as source_path:
+            filename = cls._CONFIG_FILE_PATH.name
+            with resources.path('barbucket', filename) as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
                     f"Created config file {destination_path} from default file.")
