@@ -139,8 +139,8 @@ class QuotesStatus(Base):
         primary_key=True)
     status_code = Column(Integer)
     status_text = Column(String(255))
-    latest_quote_requested = Column(Date)
     earliest_quote_requested = Column(Date)
+    latest_quote_requested = Column(Date)
 
     contract = relationship(
         "Contract", back_populates="quotes_status")
