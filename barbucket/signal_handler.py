@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class SignalHandler():
@@ -23,7 +23,7 @@ class SignalHandler():
         :type frame: Any
         """
 
-        logger.warn(
+        _logger.warn(
             f": Ctrl-C detected, gracefully stopping operation. Press Ctrl-C "
             f"again to stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
