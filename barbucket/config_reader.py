@@ -33,8 +33,7 @@ class ConfigReader():
         if Path.is_file(destination_path):
             _logger.debug(f"Config file already exists.")
         else:
-            filename = cls._CONFIG_FILE_PATH.name
-            with resources.path('barbucket', filename) as source_path:
+            with resources.path("barbucket", "default_config.cfg") as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
                     f"Created config file {destination_path} from default file.")
