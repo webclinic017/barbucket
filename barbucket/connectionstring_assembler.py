@@ -1,7 +1,7 @@
 from pathlib import Path
 from logging import getLogger
 
-from .config_reader import ConfigReader
+from barbucket.config.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)
@@ -12,7 +12,7 @@ class ConnectionStringAssembler():
 
     _config_reader: ConfigReader
 
-    def __init__(self, config_reader) -> None:
+    def __init__(self, config_reader: ConfigReader) -> None:
         ConnectionStringAssembler._config_reader = config_reader
 
     @classmethod
@@ -45,6 +45,6 @@ class ConnectionStringAssembler():
                 option="database_name")
             connection_string = f"{dbms}://{username}:{password}@{host}:{port}/{db_name}"
 
-        _logger.debug(f"Read database connection string fromn config: "
+        _logger.debug(f"Read database connection string from config: "
                       f"'{connection_string}'")
         return connection_string
