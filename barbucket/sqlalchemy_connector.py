@@ -7,7 +7,7 @@ from sqlalchemy.engine import Engine
 
 from .connectionstring_assembler import ConnectionStringAssembler
 from .orm_connector import OrmConnector
-from data_classes import Base
+from .data_classes import Base
 
 _logger = getLogger(__name__)
 
