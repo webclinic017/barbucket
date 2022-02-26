@@ -5,20 +5,22 @@ from logging import getLogger
 from shutil import copyfile
 from importlib import resources
 
+from .config_reader import ConfigReader
+
 
 _logger = getLogger(__name__)
 
 
-class ConfigReader():
+class ConfigFilereader(ConfigReader):
     """Reads config values from a configuration file."""
 
     _parser: ConfigParser
     _CONFIG_FILE_PATH: Path
 
     def __init__(self, filepath: Path) -> None:
-        ConfigReader._parser = ConfigParser(allow_no_value=True)
-        ConfigReader._CONFIG_FILE_PATH = filepath
-        ConfigReader._initalize()
+        ConfigFilereader._parser = ConfigParser(allow_no_value=True)
+        ConfigFilereader._CONFIG_FILE_PATH = filepath
+        ConfigFilereader._initalize()
 
     @classmethod
     def _initalize(cls) -> None:
@@ -33,7 +35,7 @@ class ConfigReader():
         if Path.is_file(destination_path):
             _logger.debug(f"Config file already exists.")
         else:
-            with resources.path("barbucket", "default_config.cfg") as source_path:
+            with resources.path("barbucket.config", "default_config.cfg") as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
                     f"Created config file {destination_path} from default file.")
