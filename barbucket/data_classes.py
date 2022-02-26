@@ -159,7 +159,8 @@ class Quote(Base):
 
     contract_id = Column(
         Integer,
-        ForeignKey('contracts.id', ondelete="CASCADE"))
+        ForeignKey('contracts.id', ondelete="CASCADE"),
+        primary_key=True)
     date = Column(Date)
     open = Column(Float)
     high = Column(Float)
