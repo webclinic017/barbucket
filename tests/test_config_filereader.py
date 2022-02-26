@@ -5,7 +5,7 @@ from logging import getLogger
 
 import pytest
 
-from barbucket.config.config_filereader import ConfigFilereader
+from barbucket.config.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)
@@ -28,7 +28,7 @@ def test_copy_default_file(filepath: Path) -> None:
     # Make sure, the default config file is copied, when no config file is present
     _logger.debug(f"---------- Test: test_copy_default_file")
     assert not filepath.is_file()
-    config_reader = ConfigFilereader(filepath=filepath)
+    config_reader = ConfigReader(filepath=filepath)
     assert filepath.is_file()
 
 
@@ -39,7 +39,7 @@ def test_file_already_existing(filepath: Path) -> None:
     with open(testfile, 'r') as reader:
         content_before = reader.readlines()
     copyfile(testfile, filepath)
-    config_reader = ConfigFilereader(filepath=filepath)
+    config_reader = ConfigReader(filepath=filepath)
     with open(filepath, 'r') as reader:
         content_after = reader.readlines()
     assert content_after == content_before
@@ -48,7 +48,7 @@ def test_file_already_existing(filepath: Path) -> None:
 def test_read_single_value(filepath: Path) -> None:
     _logger.debug(f"---------- Test: test_read_single_value")
     copyfile("tests/resources/config_dummy.cfg", filepath)
-    config_reader = ConfigFilereader(filepath=filepath)
+    config_reader = ConfigReader(filepath=filepath)
     value = config_reader.get_config_value_single(
         section="section_1",
         option="option_11")
@@ -58,7 +58,7 @@ def test_read_single_value(filepath: Path) -> None:
 def test_read_list_value(filepath: Path) -> None:
     _logger.debug(f"---------- Test: test_read_list_value")
     copyfile("tests/resources/config_dummy.cfg", filepath)
-    config_reader = ConfigFilereader(filepath=filepath)
+    config_reader = ConfigReader(filepath=filepath)
     value = config_reader.get_config_value_list(
         section="section_2",
         option="option_21")

@@ -24,7 +24,7 @@ def test_assemble_sqlite():
     filepath = Path.home() / ".barbucket/database/database.sqlite"
     correct_connstring = f"sqlite:///{filepath}"
 
-    config_reader = MockSqliteConfigReader()
+    config_reader = MockConfigReaderSqlite()
     connstring_assembler = ConnectionStringAssembler(
         config_reader=config_reader)
     connstring = connstring_assembler.get_connection_string()
@@ -37,14 +37,19 @@ def test_assemble_postgres():
 
     correct_connstring = "postgresql://username:password@192.168.0.100:5432/barbucket"
 
-    config_reader = MockPostgresConfigReader()
+    config_reader = MockConfigReaderPostgres()
     connstring_assembler = ConnectionStringAssembler(
         config_reader=config_reader)
     connstring = connstring_assembler.get_connection_string()
     assert connstring == correct_connstring
 
 
-class MockSqliteConfigReader(ConfigReader):
+class MockConfigReaderSqlite(ConfigReader):
+    # override
+    def __init__(self) -> None:
+        pass
+
+    # override
     @classmethod
     def get_config_value_single(cls, section: str, option: str) -> str:
         if (section == "database") and (option == "dbms"):
@@ -54,12 +59,18 @@ class MockSqliteConfigReader(ConfigReader):
         else:
             raise NotImplementedError
 
+    # override
     @classmethod
     def get_config_value_list(cls, section: str, option: str) -> List[str]:
         raise NotImplementedError
 
 
-class MockPostgresConfigReader(ConfigReader):
+class MockConfigReaderPostgres(ConfigReader):
+    # override
+    def __init__(self) -> None:
+        pass
+
+    # override
     @classmethod
     def get_config_value_single(cls, section: str, option: str) -> str:
         if (section == "database") and (option == "dbms"):
@@ -77,6 +88,7 @@ class MockPostgresConfigReader(ConfigReader):
         else:
             raise NotImplementedError
 
+    # override
     @classmethod
     def get_config_value_list(cls, section: str, option: str) -> List[str]:
         raise NotImplementedError
