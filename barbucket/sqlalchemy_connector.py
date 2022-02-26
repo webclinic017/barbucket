@@ -1,4 +1,3 @@
-from ast import Str
 from pathlib import Path
 from logging import getLogger
 
@@ -6,7 +5,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from sqlalchemy.engine import Engine
 
-from .config_reader import ConfigReader
+from .connectionstring_assembler import ConnectionStringAssembler
 from .orm_connector import OrmConnector
 from data_classes import Base
 
@@ -16,12 +15,12 @@ _logger = getLogger(__name__)
 class SqlAlchemyConnector(OrmConnector):
     """ """
 
-    _config_reader: ConfigReader
+    _connstring_assembler: ConnectionStringAssembler
     _engine: Engine
     _session: Session
 
-    def __init__(self, config_reader) -> None:
-        SqlAlchemyConnector._config_reader = config_reader
+    def __init__(self, connstring_assembler) -> None:
+        SqlAlchemyConnector._connstring_assembler = connstring_assembler
         SqlAlchemyConnector._initialize()
 
     @classmethod
@@ -37,45 +36,11 @@ class SqlAlchemyConnector(OrmConnector):
 
     @classmethod
     def _initialize(cls) -> None:
-        conn_string = cls._get_connection_string()
+        conn_string = cls._connstring_assembler.get_connection_string()
         cls._engine = create_engine(conn_string)
         cls._add_sqlite_pragma()
         cls._create_db_schema()
         cls._session = Session(cls._engine)
-
-    @classmethod
-    def _get_connection_string(cls) -> str:
-        dbms = cls._config_reader.get_config_value_single(
-            section="database",
-            option="dbms")
-        if dbms == "sqlite":
-            filename = cls._config_reader.get_config_value_single(
-                section="database",
-                option="sqlite_filename")
-            location = Path.home() / ".barbucket/database/"
-            filepath = location / filename
-            connection_string = f"{dbms}:///{filepath}"
-        else:
-            username = cls._config_reader.get_config_value_single(
-                section="database",
-                option="username")
-            password = cls._config_reader.get_config_value_single(
-                section="database",
-                option="password")
-            url = cls._config_reader.get_config_value_single(
-                section="database",
-                option="url")
-            port = cls._config_reader.get_config_value_single(
-                section="database",
-                option="port")
-            db_name = cls._config_reader.get_config_value_single(
-                section="database",
-                option="database_name")
-            connection_string = f"{dbms}://{username}:{password}@{url}:{port}/{db_name}"
-
-        _logger.debug(f"Read database connection string fromn config: "
-                      f"'{connection_string}'")
-        return connection_string
 
     @classmethod
     def _add_sqlite_pragma(cls) -> None:

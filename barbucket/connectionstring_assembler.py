@@ -1,0 +1,50 @@
+from pathlib import Path
+from logging import getLogger
+
+from .config_reader import ConfigReader
+
+
+_logger = getLogger(__name__)
+
+
+class ConnectionStringAssembler():
+    """ """
+
+    _config_reader: ConfigReader
+
+    def __init__(self, config_reader) -> None:
+        ConnectionStringAssembler._config_reader = config_reader
+
+    @classmethod
+    def get_connection_string(cls) -> str:
+        dbms = cls._config_reader.get_config_value_single(
+            section="database",
+            option="dbms")
+        if dbms == "sqlite":
+            filename = cls._config_reader.get_config_value_single(
+                section="database",
+                option="sqlite_filename")
+            location = Path.home() / ".barbucket/database/"
+            filepath = location / filename
+            connection_string = f"sqlite:///{filepath}"
+        else:
+            username = cls._config_reader.get_config_value_single(
+                section="database",
+                option="username")
+            password = cls._config_reader.get_config_value_single(
+                section="database",
+                option="password")
+            url = cls._config_reader.get_config_value_single(
+                section="database",
+                option="url")
+            port = cls._config_reader.get_config_value_single(
+                section="database",
+                option="port")
+            db_name = cls._config_reader.get_config_value_single(
+                section="database",
+                option="database_name")
+            connection_string = f"{dbms}://{username}:{password}@{url}:{port}/{db_name}"
+
+        _logger.debug(f"Read database connection string fromn config: "
+                      f"'{connection_string}'")
+        return connection_string
