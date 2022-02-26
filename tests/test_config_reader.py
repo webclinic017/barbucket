@@ -14,11 +14,14 @@ def filepath(tmp_path: Path) -> Generator:
 
 
 def test_copy_default_file(filepath) -> None:
+    # Make sure, the default config file is copied, when no config file is present
+    assert not filepath.is_file()
     config_reader = ConfigReader(filepath=filepath)
     assert filepath.is_file()
 
 
 def test_file_already_existing(filepath):
+    # Make sure, existing config file is not altered by ConfigReader initialization
     testfile = "tests/resources/config_dummy.cfg"
     with open(testfile, 'r') as reader:
         content_before = reader.readlines()
