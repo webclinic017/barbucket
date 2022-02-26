@@ -34,16 +34,16 @@ class ConnectionStringAssembler():
             password = cls._config_reader.get_config_value_single(
                 section="database",
                 option="password")
-            url = cls._config_reader.get_config_value_single(
+            host = cls._config_reader.get_config_value_single(
                 section="database",
-                option="url")
+                option="host")
             port = cls._config_reader.get_config_value_single(
                 section="database",
                 option="port")
             db_name = cls._config_reader.get_config_value_single(
                 section="database",
                 option="database_name")
-            connection_string = f"{dbms}://{username}:{password}@{url}:{port}/{db_name}"
+            connection_string = f"{dbms}://{username}:{password}@{host}:{port}/{db_name}"
 
         _logger.debug(f"Read database connection string fromn config: "
                       f"'{connection_string}'")
