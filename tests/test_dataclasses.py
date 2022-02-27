@@ -3,18 +3,38 @@ from logging import getLogger
 from datetime import date
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, create_engine, event
+from sqlalchemy.orm import Session
 
 from barbucket.data_classes import *
 from barbucket.orm_connector import OrmConnector
 
 
 _logger = getLogger(__name__)
+_logger.debug(f"--------- ---------- Testing DataClasses")
 
 
-@pytest.fixture(scope="module", autouse=True)
-def setup_module() -> None:
-    _logger.debug(f"--------- ---------- Testing DataClasses")
+@pytest.fixture
+def mock_orm_connector() -> Generator:
+    _logger.debug(f"---------- Fixture: mock_orm_connector")
+    yield MockOrmConnector()
+
+
+class MockOrmConnector(OrmConnector):
+    # override
+    def __init__(self) -> None:
+        pass
+
+    # override
+    @classmethod
+    def get_session(cls) -> Session:
+        def _fk_pragma_on_connect(dbapi_con, con_record):
+            dbapi_con.execute('PRAGMA foreign_keys = 1')
+
+        engine = create_engine("sqlite:///:memory:", future=True)
+        event.listen(engine, 'connect', _fk_pragma_on_connect)
+        Base.metadata.create_all(engine)
+        return Session(engine)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Contract ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,17 +53,21 @@ def dummy_contract() -> Generator:
     yield contract
 
 
-def test_write_contract(orm_connector: OrmConnector, dummy_contract: Contract) -> None:
-    _logger.debug(f"---------- Test: test_write_contract")
-    session = orm_connector.get_session()
+def test_insert_contract(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract: Contract) -> None:
+    _logger.debug(f"---------- Test: test_insert_contract")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract)
     session.commit()
     assert dummy_contract.id == 1
 
 
-def test_read_contract(orm_connector: OrmConnector, dummy_contract: Contract) -> None:
-    _logger.debug(f"---------- Test: test_read_contract")
-    session = orm_connector.get_session()
+def test_retrieve_contract(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract: Contract) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_contract")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract)
     session.commit()
     read_contract = session.execute(select(Contract)).scalar_one()
@@ -62,17 +86,23 @@ def dummy_univ_membership(dummy_contract) -> Generator:
     yield membership
 
 
-def test_write_universe_membership(orm_connector: OrmConnector, dummy_univ_membership: UniverseMembership) -> None:
-    _logger.debug(f"---------- Test: test_write_universe_membership")
-    session = orm_connector.get_session()
+def test_insert_universe_membership(
+        mock_orm_connector: MockOrmConnector,
+        dummy_univ_membership: UniverseMembership) -> None:
+    _logger.debug(f"---------- Test: test_insert_universe_membership")
+    session = mock_orm_connector.get_session()
     session.add(dummy_univ_membership)
     session.commit()
     assert dummy_univ_membership.id == 1
+    assert dummy_univ_membership.contract_id == 1
+    assert dummy_univ_membership.contract.id == 1
 
 
-def test_read_universe_membership(orm_connector: OrmConnector, dummy_univ_membership: UniverseMembership) -> None:
-    _logger.debug(f"---------- Test: test_read_universe_membership")
-    session = orm_connector.get_session()
+def test_retrieve_universe_membership(
+        mock_orm_connector: MockOrmConnector,
+        dummy_univ_membership: UniverseMembership) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_universe_membership")
+    session = mock_orm_connector.get_session()
     session.add(dummy_univ_membership)
     session.commit()
     read_membership = session.execute(select(UniverseMembership)).scalar_one()
@@ -96,17 +126,22 @@ def dummy_contract_details_ib(dummy_contract) -> Generator:
     yield details
 
 
-def test_write_contract_details_ib(orm_connector: OrmConnector, dummy_contract_details_ib: ContractDetailsIb) -> None:
-    _logger.debug(f"---------- Test: test_write_contract_details_ib")
-    session = orm_connector.get_session()
+def test_insert_contract_details_ib(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract_details_ib: ContractDetailsIb) -> None:
+    _logger.debug(f"---------- Test: test_insert_contract_details_ib")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract_details_ib)
     session.commit()
     assert dummy_contract_details_ib.contract_id == 1
+    assert dummy_contract_details_ib.contract.id == 1
 
 
-def test_read_contract_details_ib(orm_connector: OrmConnector, dummy_contract_details_ib: ContractDetailsIb) -> None:
-    _logger.debug(f"---------- Test: test_read_contract_details_ib")
-    session = orm_connector.get_session()
+def test_retrieve_contract_details_ib(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract_details_ib: ContractDetailsIb) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_contract_details_ib")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract_details_ib)
     session.commit()
     read_details = session.execute(select(ContractDetailsIb)).scalar_one()
@@ -131,17 +166,22 @@ def dummy_contract_details_tv(dummy_contract) -> Generator:
     yield details
 
 
-def test_write_contract_details_tv(orm_connector: OrmConnector, dummy_contract_details_tv: ContractDetailsTv) -> None:
-    _logger.debug(f"---------- Test: test_write_contract_details_tv")
-    session = orm_connector.get_session()
+def test_insert_contract_details_tv(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract_details_tv: ContractDetailsTv) -> None:
+    _logger.debug(f"---------- Test: test_insert_contract_details_tv")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract_details_tv)
     session.commit()
     assert dummy_contract_details_tv.contract_id == 1
+    assert dummy_contract_details_tv.contract.id == 1
 
 
-def test_read_contract_details_tv(orm_connector: OrmConnector, dummy_contract_details_tv: ContractDetailsTv) -> None:
-    _logger.debug(f"---------- Test: test_read_contract_details_tv")
-    session = orm_connector.get_session()
+def test_retrieve_contract_details_tv(
+        mock_orm_connector: MockOrmConnector,
+        dummy_contract_details_tv: ContractDetailsTv) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_contract_details_tv")
+    session = mock_orm_connector.get_session()
     session.add(dummy_contract_details_tv)
     session.commit()
     read_details = session.execute(select(ContractDetailsTv)).scalar_one()
@@ -155,26 +195,31 @@ def test_read_contract_details_tv(orm_connector: OrmConnector, dummy_contract_de
 @pytest.fixture
 def dummy_quotes_status(dummy_contract) -> Generator:
     _logger.debug(f"---------- Fixture: dummy_quotes_status")
-    details = QuotesStatus(
+    status = QuotesStatus(
         status_code=1111,
         status_text="test_status_text",
         earliest_quote_requested=date.today(),
         latest_quote_requested=date.today(),
         contract=dummy_contract)
-    yield details
+    yield status
 
 
-def test_write_quotes_status(orm_connector: OrmConnector, dummy_quotes_status: QuotesStatus) -> None:
-    _logger.debug(f"---------- Test: test_write_quotes_status")
-    session = orm_connector.get_session()
+def test_insert_quotes_status(
+        mock_orm_connector: MockOrmConnector,
+        dummy_quotes_status: QuotesStatus) -> None:
+    _logger.debug(f"---------- Test: test_insert_quotes_status")
+    session = mock_orm_connector.get_session()
     session.add(dummy_quotes_status)
     session.commit()
     assert dummy_quotes_status.contract_id == 1
+    assert dummy_quotes_status.contract.id == 1
 
 
-def test_read_quotes_status(orm_connector: OrmConnector, dummy_quotes_status: QuotesStatus) -> None:
-    _logger.debug(f"---------- Test: test_read_quotes_status")
-    session = orm_connector.get_session()
+def test_retrieve_quotes_status(
+        mock_orm_connector: MockOrmConnector,
+        dummy_quotes_status: QuotesStatus) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_quotes_status")
+    session = mock_orm_connector.get_session()
     session.add(dummy_quotes_status)
     session.commit()
     read_status = session.execute(select(QuotesStatus)).scalar_one()
@@ -188,7 +233,7 @@ def test_read_quotes_status(orm_connector: OrmConnector, dummy_quotes_status: Qu
 @pytest.fixture
 def dummy_quote(dummy_contract) -> Generator:
     _logger.debug(f"---------- Fixture: dummy_quote")
-    details = Quote(
+    quote = Quote(
         date=date.today(),
         open=222.22,
         high=333.33,
@@ -196,20 +241,25 @@ def dummy_quote(dummy_contract) -> Generator:
         close=555.55,
         volume=666.66,
         contract=dummy_contract)
-    yield details
+    yield quote
 
 
-def test_write_quote(orm_connector: OrmConnector, dummy_quote: Quote) -> None:
-    _logger.debug(f"---------- Test: test_write_quote")
-    session = orm_connector.get_session()
+def test_insert_quote(
+        mock_orm_connector: MockOrmConnector,
+        dummy_quote: Quote) -> None:
+    _logger.debug(f"---------- Test: test_insert_quote")
+    session = mock_orm_connector.get_session()
     session.add(dummy_quote)
     session.commit()
     assert dummy_quote.contract_id == 1
+    assert dummy_quote.contract.id == 1
 
 
-def test_read_quote(orm_connector: OrmConnector, dummy_quote: Quote) -> None:
-    _logger.debug(f"---------- Test: test_read_quote")
-    session = orm_connector.get_session()
+def test_retrieve_quote(
+        mock_orm_connector: MockOrmConnector,
+        dummy_quote: Quote) -> None:
+    _logger.debug(f"---------- Test: test_retrieve_quote")
+    session = mock_orm_connector.get_session()
     session.add(dummy_quote)
     session.commit()
     read_quote = session.execute(select(Quote)).scalar_one()
