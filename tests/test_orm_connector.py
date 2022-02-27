@@ -6,7 +6,6 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 from barbucket.orm_connector import OrmConnector
-from barbucket.connectionstring_assembler import ConnectionStringAssembler
 
 
 _logger = getLogger(__name__)
@@ -15,14 +14,6 @@ _logger = getLogger(__name__)
 @pytest.fixture(scope="module", autouse=True)
 def setup_module():
     _logger.debug(f"--------- ---------- Testing OrmConnector")
-
-
-@pytest.fixture
-def orm_connector() -> Generator:
-    _logger.debug(f"---------- Fixture: orm_connector")
-    mcsa = MockConnectionStringAssembler()
-    oc = OrmConnector(connstring_assembler=mcsa)
-    yield oc
 
 
 def test_get_session(orm_connector: OrmConnector) -> None:
@@ -44,14 +35,3 @@ def test_schema_present(orm_connector: OrmConnector) -> None:
 def test_pragma_present() -> None:
     # Is tested with test_cascade
     assert 1
-
-
-class MockConnectionStringAssembler(ConnectionStringAssembler):
-    # override
-    def __init__(self) -> None:
-        pass
-
-    # override
-    @classmethod
-    def get_connection_string(cls) -> str:
-        return "sqlite:///:memory:"
