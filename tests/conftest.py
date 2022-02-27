@@ -19,30 +19,6 @@ def setup_testing() -> None:
     _logger.debug("---------- ---------- ---------- Testing started")
 
 
-@pytest.fixture
-def mock_connstr_assembler() -> Generator:
-    _logger.debug(f"---------- Fixture: mock_connstr_assembler")
-    yield MockConnectionStringAssembler()
-
-
-class MockConnectionStringAssembler(ConnectionStringAssembler):
-    # override
-    def __init__(self) -> None:
-        pass
-
-    # override
-    @classmethod
-    def get_connection_string(cls) -> str:
-        return "sqlite:///:memory:"
-
-
-@pytest.fixture
-def orm_connector(mock_connstr_assembler: MockConnectionStringAssembler) -> Generator:
-    _logger.debug(f"---------- Fixture: orm_connector")
-    oc = OrmConnector(connstring_assembler=mock_connstr_assembler)
-    yield oc
-
-
 def _create_directories() -> None:
     Path.mkdir(Path.home() / ".barbucket/logs", exist_ok=True)
 
