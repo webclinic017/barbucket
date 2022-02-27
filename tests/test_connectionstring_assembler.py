@@ -18,30 +18,30 @@ def setup_module():
 
 
 def test_assemble_sqlite():
-    # Assemle a connection string for Sqlite
+    """Assemle a connection string for Sqlite"""
     _logger.debug(f"---------- Test: test_assemble_sqlite")
 
     filepath = Path.home() / ".barbucket/database/database.sqlite"
-    correct_connstring = f"sqlite:///{filepath}"
+    expected_connstring = f"sqlite:///{filepath}"
 
     config_reader = MockConfigReaderSqlite()
     connstring_assembler = ConnectionStringAssembler(
         config_reader=config_reader)
-    connstring = connstring_assembler.get_connection_string()
-    assert connstring == correct_connstring
+    actual_connstring = connstring_assembler.get_connection_string()
+    assert actual_connstring == expected_connstring
 
 
 def test_assemble_postgres():
-    # Assemle a connection string for PostgreSql
+    """Assemle a connection string for PostgreSql"""
     _logger.debug(f"---------- Test: test_assemble_postgres")
 
-    correct_connstring = "postgresql://username:password@192.168.0.100:5432/barbucket"
+    expected_connstring = "postgresql://username:password@192.168.0.100:5432/barbucket"
 
     config_reader = MockConfigReaderPostgres()
     connstring_assembler = ConnectionStringAssembler(
         config_reader=config_reader)
-    connstring = connstring_assembler.get_connection_string()
-    assert connstring == correct_connstring
+    actual_connstring = connstring_assembler.get_connection_string()
+    assert actual_connstring == expected_connstring
 
 
 class MockConfigReaderSqlite(ConfigReader):
