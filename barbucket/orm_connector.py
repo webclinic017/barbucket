@@ -2,10 +2,11 @@ from logging import getLogger
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.engine import Engine
 
 from .connectionstring_assembler import ConnectionStringAssembler
-from .data_classes import Base
+
 
 _logger = getLogger(__name__)
 
@@ -16,9 +17,14 @@ class OrmConnector():
     _connstring_assembler: ConnectionStringAssembler
     _engine: Engine
     _session: Session
+    _base_class: DeclarativeMeta
 
-    def __init__(self, connstring_assembler) -> None:
+    def __init__(
+            self,
+            connstring_assembler: ConnectionStringAssembler,
+            base_class: DeclarativeMeta) -> None:
         OrmConnector._connstring_assembler = connstring_assembler
+        OrmConnector._base_class = base_class
         OrmConnector._initialize()
 
     @classmethod
@@ -45,7 +51,6 @@ class OrmConnector():
         # Adding foreign key pragma on every connection for sqlite by event
         def _fk_pragma_on_connect(dbapi_con, con_record):
             dbapi_con.execute('PRAGMA foreign_keys = 1')
-        # can this be called in this scope?
 
         if cls._engine.url.drivername == 'sqlite':
             event.listen(cls._engine, 'connect', _fk_pragma_on_connect)
@@ -54,6 +59,6 @@ class OrmConnector():
 
     @classmethod
     def _create_db_schema(cls) -> None:
-        Base.metadata.create_all(cls._engine)
+        cls._base_class.metadata.create_all(cls._engine)
         _logger.debug(
             f"Created database schema within engine '{cls._engine}'.")
