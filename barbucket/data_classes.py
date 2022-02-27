@@ -73,7 +73,8 @@ class UniverseMembership(Base):
         return f"""UniverseMembership(
             id={self.id},
             contract_id={self.contract_id},
-            universe={self.universe})"""
+            universe={self.universe},
+            contract={self.contract})"""
 
 
 class ContractDetailsIb(Base):
@@ -99,7 +100,8 @@ class ContractDetailsIb(Base):
             primary_exchange={self.primary_exchange},
             industry={self.industry},
             category={self.category},
-            subcategory={self.subcategory})"""
+            subcategory={self.subcategory},
+            contract={self.contract})"""
 
 
 class ContractDetailsTv(Base):
@@ -127,7 +129,8 @@ class ContractDetailsTv(Base):
             country={self.country},
             employees={self.employees},
             profit={self.profit},
-            revenue={self.revenue})"""
+            revenue={self.revenue},
+            contract={self.contract})"""
 
 
 class QuotesStatus(Base):
@@ -151,7 +154,8 @@ class QuotesStatus(Base):
             status_code={self.status_code},
             status_text={self.status_text},
             latest_quote_requested={self.latest_quote_requested},
-            earliest_quote_requested={self.earliest_quote_requested})"""
+            earliest_quote_requested={self.earliest_quote_requested},
+            contract={self.contract})"""
 
 
 class Quote(Base):
@@ -181,4 +185,5 @@ class Quote(Base):
             high={self.high},
             low={self.low},
             close={self.close},
-            volume={self.volume})"""
+            volume={self.volume},
+            contract={self.contract})"""
