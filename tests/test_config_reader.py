@@ -18,7 +18,7 @@ def setup_module() -> None:
 
 @pytest.fixture
 def filepath(tmp_path: Path) -> Generator:
-    # Creating temp path for config file
+    """Creating temp path for config file"""
     _logger.debug(f"---------- Fixture: tmp_path")
     filepath = tmp_path / "config.cfg"
     yield filepath
@@ -33,7 +33,10 @@ def test_copy_default_file(filepath: Path) -> None:
 
 
 def test_file_already_existing(filepath: Path) -> None:
-    # Make sure, existing config file is not altered by ConfigReader initialization
+    """
+    Make sure, existing config file is not altered by ConfigReader 
+    initialization
+    """
     _logger.debug(f"---------- Test: test_file_already_existing")
     testfile = "tests/resources/config_dummy.cfg"
     with open(testfile, 'r') as reader:
