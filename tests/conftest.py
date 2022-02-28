@@ -14,13 +14,13 @@ _logger: logging.Logger
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_testing() -> None:
-    _create_directories()
+    _create_directory()
     _setup_logging()
     _logger.debug("---------- ---------- ---------- Testing started")
 
 
-def _create_directories() -> None:
-    Path.mkdir(Path.home() / ".barbucket/logs", exist_ok=True)
+def _create_directory() -> None:
+    Path.mkdir(Path.home() / ".barbucket/logs", parents=True, exist_ok=True)
 
 
 def _setup_logging() -> None:
