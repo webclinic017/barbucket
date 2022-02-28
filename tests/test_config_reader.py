@@ -9,59 +9,61 @@ from barbucket.config.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def setup_module() -> None:
-    _logger.debug(f"--------- ---------- Testing ConfigReader")
+_logger.debug(f"--------- ---------- Testing ConfigReader")
 
 
 @pytest.fixture
-def filepath(tmp_path: Path) -> Generator:
+def mock_filepath(tmp_path: Path) -> Generator:
     """Creating temp path for config file"""
-    _logger.debug(f"---------- Fixture: tmp_path")
-    filepath = tmp_path / "config.cfg"
+    _logger.debug(f"---------- Fixture: mock_filepath")
+    filepath = tmp_path / ".barbucket/config/config.cfg"
     yield filepath
 
 
-def test_copy_default_file(filepath: Path) -> None:
+@pytest.fixture
+def dummy_filepath(mock_filepath: Path) -> Generator:
+    """Creating mock config file"""
+    _logger.debug(f"---------- Fixture: dummy_file")
+    dummy_file = "tests/resources/config_dummy.cfg"
+    Path.mkdir(mock_filepath.parent, parents=True, exist_ok=True)
+    copyfile(dummy_file, mock_filepath)
+    yield mock_filepath
+
+
+def test_copy_default_file(mock_filepath: Path) -> None:
     # Make sure, the default config file is copied, when no config file is present
     _logger.debug(f"---------- Test: test_copy_default_file")
-    assert not filepath.is_file()
-    config_reader = ConfigReader(filepath=filepath)
-    assert filepath.is_file()
+    assert not mock_filepath.is_file()
+    config_reader = ConfigReader(filepath=mock_filepath)
+    assert mock_filepath.is_file()
 
 
-def test_file_already_existing(filepath: Path) -> None:
+def test_file_already_existing(dummy_filepath: Path) -> None:
     """
     Make sure, existing config file is not altered by ConfigReader 
     initialization
     """
     _logger.debug(f"---------- Test: test_file_already_existing")
-    testfile = "tests/resources/config_dummy.cfg"
-    with open(testfile, 'r') as reader:
+    with open(dummy_filepath, 'r') as reader:
         content_before = reader.readlines()
-    copyfile(testfile, filepath)
-    config_reader = ConfigReader(filepath=filepath)
-    with open(filepath, 'r') as reader:
+    config_reader = ConfigReader(filepath=dummy_filepath)
+    with open(dummy_filepath, 'r') as reader:
         content_after = reader.readlines()
     assert content_after == content_before
 
 
-def test_read_single_value(filepath: Path) -> None:
+def test_read_single_value(dummy_filepath: Path) -> None:
     _logger.debug(f"---------- Test: test_read_single_value")
-    copyfile("tests/resources/config_dummy.cfg", filepath)
-    config_reader = ConfigReader(filepath=filepath)
+    config_reader = ConfigReader(filepath=dummy_filepath)
     value = config_reader.get_config_value_single(
         section="section_1",
         option="option_11")
     assert value == "MyString"
 
 
-def test_read_list_value(filepath: Path) -> None:
+def test_read_list_value(dummy_filepath: Path) -> None:
     _logger.debug(f"---------- Test: test_read_list_value")
-    copyfile("tests/resources/config_dummy.cfg", filepath)
-    config_reader = ConfigReader(filepath=filepath)
+    config_reader = ConfigReader(filepath=dummy_filepath)
     value = config_reader.get_config_value_list(
         section="section_2",
         option="option_21")
