@@ -10,15 +10,11 @@ from barbucket.config.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def setup_module():
-    _logger.debug(f"--------- ---------- Testing ConnectionStringAssembler")
+_logger.debug(f"--------- ---------- Testing ConnectionStringAssembler")
 
 
 def test_assemble_sqlite():
-    """Assemle a connection string for Sqlite"""
+    """Assemble a connection string for 'Sqlite'"""
     _logger.debug(f"---------- Test: test_assemble_sqlite")
 
     filepath = Path.home() / ".barbucket/database/database.sqlite"
@@ -32,7 +28,7 @@ def test_assemble_sqlite():
 
 
 def test_assemble_postgres():
-    """Assemle a connection string for PostgreSql"""
+    """Assemle a connection string for 'PostgreSql'"""
     _logger.debug(f"---------- Test: test_assemble_postgres")
 
     expected_connstring = "postgresql://username:password@192.168.0.100:5432/barbucket"
