@@ -12,12 +12,12 @@ _logger = getLogger(__name__)
 class ConfigReader():
     """Reads config values from a configuration file."""
 
-    _parser: ConfigParser
     _CONFIG_FILE_PATH: Path
+    _parser: ConfigParser
 
     def __init__(self, filepath: Path) -> None:
-        ConfigReader._parser = ConfigParser(allow_no_value=True)
         ConfigReader._CONFIG_FILE_PATH = filepath
+        ConfigReader._parser = ConfigParser(allow_no_value=True)
         ConfigReader._initalize()
 
     @classmethod
@@ -33,7 +33,12 @@ class ConfigReader():
         if Path.is_file(destination_path):
             _logger.debug(f"Config file already exists.")
         else:
-            with resources.path("barbucket.config", "default_config.cfg") as source_path:
+            Path.mkdir(cls._CONFIG_FILE_PATH.parent,
+                       parents=True, exist_ok=True)
+            _logger.info(f"Created directory '{cls._CONFIG_FILE_PATH.parent}' "
+                         f"for config file.")
+            with resources.path("barbucket.config", "default_config.cfg") \
+                    as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
                     f"Created config file {destination_path} from default file.")
