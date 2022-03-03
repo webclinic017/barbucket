@@ -5,7 +5,7 @@ from typing import List
 
 import pytest
 
-from barbucket.connectionstring_assembler import ConnectionStringAssembler
+from barbucket.persistence.connectionstring_assembler import ConnectionStringAssembler
 from barbucket.config.config_reader import ConfigReader
 
 
@@ -28,7 +28,7 @@ def test_assemble_sqlite():
 
 
 def test_assemble_postgres():
-    """Assemle a connection string for 'PostgreSql'"""
+    """Assemble a connection string for 'PostgreSql'"""
     _logger.debug(f"---------- Test: test_assemble_postgres")
 
     expected_connstring = "postgresql://username:password@192.168.0.100:5432/barbucket"

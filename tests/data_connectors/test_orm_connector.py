@@ -5,8 +5,8 @@ import pytest
 from sqlalchemy import select, inspect, Column, Integer, String, Float, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Session, declarative_base, relationship
 
-from barbucket.orm_connector import OrmConnector
-from barbucket.connectionstring_assembler import ConnectionStringAssembler
+from barbucket.persistence.orm_connector import OrmConnector
+from barbucket.persistence.connectionstring_assembler import ConnectionStringAssembler
 
 
 _logger = getLogger(__name__)
