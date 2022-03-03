@@ -24,7 +24,7 @@ def mock_filepath(tmp_path: Path) -> Generator:
 def dummy_filepath(mock_filepath: Path) -> Generator:
     """Creating mock config file"""
     _logger.debug(f"---------- Fixture: dummy_file")
-    dummy_file = "tests/resources/config_dummy.cfg"
+    dummy_file = "tests/_resources/config/config_dummy.cfg"
     Path.mkdir(mock_filepath.parent, parents=True, exist_ok=True)
     copyfile(dummy_file, mock_filepath)
     yield mock_filepath
