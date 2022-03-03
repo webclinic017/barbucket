@@ -3,12 +3,12 @@ import logging
 from typing import Any
 
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SignalHandler():
     """Handle 'Ctrl+C' commands from the user"""
-    _state = False
+    __state = False
 
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, SignalHandler.change_state)
@@ -23,11 +23,11 @@ class SignalHandler():
         :type frame: Any
         """
 
-        _logger.warn(
+        logger.warn(
             f": Ctrl-C detected, gracefully stopping operation. Press Ctrl-C "
             f"again to stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        cls._state = True
+        cls.__state = True
 
     @classmethod
     def is_exit_requested(cls) -> None:
@@ -36,7 +36,7 @@ class SignalHandler():
         :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
         """
 
-        if cls._state:
+        if cls.__state:
             raise ExitSignalDetectedError("Message")
 
 

@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 from pathlib import Path
 
 from barbucket.cli import cli

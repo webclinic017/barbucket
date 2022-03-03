@@ -1,7 +1,4 @@
 from enum import Enum
-import logging
-
-_logger = logging.getLogger(__name__)
 
 
 class Api(Enum):
@@ -28,7 +25,6 @@ class EncodingBase(Enum):
 
         for element in cls:
             if element.name == name:
-                # logging
                 return element.value[to_api]
         raise AttributeError(f"Attribute '{name}' not found.")
 
@@ -47,7 +43,6 @@ class EncodingBase(Enum):
 
         for element in cls:
             if element.value[from_api] == name:
-                # logging
                 return element.name
         raise AttributeError(f"Attribute '{name}' not found.")
 
@@ -82,16 +77,12 @@ class Exchange(EncodingBase):
 
     @classmethod
     def decode(cls, name: str, from_api: Api) -> str:
-        """
-        Decode from specific api notation to Barbucket notation
-        Overrides baseclasses method
-        """
+        """Decode from specific api notation to Barbucket notation"""
 
         # IB inconsistently uses the names 'ISLAND' and 'NASDAQ'
         if (from_api == Api.IB) and (name == 'NASDAQ'):
             name = 'ISLAND'
         return super().decode(name=name, from_api=from_api)
-        # logging
 
 
 class ContractType(EncodingBase):
@@ -136,10 +127,7 @@ class Symbol():
             name = name.replace("_", " ")
         elif to_api == Api.TV:
             name = name.replace("_", ".")
-        else:
-            raise NotImplementedError(
-                "No logic to encode to {to_api} implemented yet.")
-        return name  # logging
+        return name
 
     @classmethod
     def decode(cls, name: str, from_api: Api) -> str:
@@ -149,7 +137,4 @@ class Symbol():
             name = name.replace(" ", "_")
         elif from_api == Api.TV:
             name = name.replace(".", "_")
-        else:
-            raise NotImplementedError(
-                "No logic to decode from {from_api} implemented yet.")
-        return name  # logging
+        return name
