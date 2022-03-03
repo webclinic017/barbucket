@@ -6,8 +6,8 @@ import pytest
 from sqlalchemy import select, create_engine, event
 from sqlalchemy.orm import Session
 
-from barbucket.data_classes import *
-from barbucket.orm_connector import OrmConnector
+from barbucket.domain_model.data_classes import *
+from barbucket.persistence.orm_connector import OrmConnector
 
 
 _logger = getLogger(__name__)
