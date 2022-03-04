@@ -4,7 +4,7 @@ from logging import getLogger
 
 import pytest
 
-from barbucket.data_connectors.tv_files_reader import TvFilesReader
+from barbucket.datasource_connectors.tv_files_reader import TvFilesReader
 
 
 _logger = getLogger(__name__)
@@ -14,7 +14,7 @@ _logger.debug(f"--------- ---------- Testing TvFilesReader")
 @pytest.fixture()
 def mock_tv_files_reader() -> Generator:
     _logger.debug(f"---------- Fixture: mock_tv_files_reader")
-    filespath = Path("tests/_resources/tv_screener/")
+    filespath = Path("tests/_resources/datasource_connectors/")
     reader = TvFilesReader(files_path=filespath)
     yield reader
 
