@@ -9,7 +9,9 @@ _logger.debug(f"--------- ---------- Testing HtmlCorrector")
 
 
 def test_correct_ib_error_singlepage() -> None:
-    with open("tests/_resources/datasource_connectors/dummy-listing_xetra_etf_singlepage.html", 'r') as filereader:
+    _logger.debug(f"---------- Test: test_correct_ib_error_singlepage")
+    dummy_file = "tests/_resources/datasource_connectors/dummy-listing_xetra_etfs_singlepage.html"
+    with open(dummy_file, 'r') as filereader:
         lines = filereader.readlines()
     dummy_html = "".join(lines)
     corrected_html = HtmlCorrector.correct_ib_error_singlepage(html=dummy_html)
@@ -17,3 +19,15 @@ def test_correct_ib_error_singlepage() -> None:
         if (('        <td align="left" valign="middle">' in line)
                 and ("href" not in line)):
             assert "</a>" not in line
+
+
+# def test_correct_ib_error_multipage() -> None:
+#     _logger.debug(f"---------- Test: test_correct_ib_error_multipage")
+#     with open("tests/_resources/datasource_connectors/dummy-listing_xetra_etfs_singlepage.html", 'r') as filereader:
+#         lines = filereader.readlines()
+#     dummy_html = "".join(lines)
+#     corrected_html = HtmlCorrector.correct_ib_error_singlepage(html=dummy_html)
+#     for line in corrected_html.splitlines():
+#         if (('        <td align="left" valign="middle">' in line)
+#                 and ("href" not in line)):
+#             assert "</a>" not in line
