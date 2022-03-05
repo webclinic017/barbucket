@@ -9,9 +9,9 @@ class Contract(Base):
     __tablename__ = 'contracts'
 
     id = Column(Integer, primary_key=True)
-    contract_type_from_listing = Column(String(30))
+    contract_type = Column(String(30))
     exchange_symbol = Column(String(30))
-    broker_sybmol = Column(String(30))
+    broker_symbol = Column(String(30))
     name = Column(String(100))
     currency = Column(String(30))
     exchange = Column(String(30))
@@ -47,9 +47,9 @@ class Contract(Base):
     def __repr__(self):
         return f"""Contract(
             id={self.id},
-            contract_type_from_listing={self.contract_type_from_listing},
+            contract_type={self.contract_type},
             exchange_symbol={self.exchange_symbol},
-            broker_sybmol={self.broker_sybmol},
+            broker_symbol={self.broker_symbol},
             name={self.name},
             currency={self.currency},
             exchange={self.exchange})"""
@@ -84,7 +84,7 @@ class ContractDetailsIb(Base):
         Integer,
         ForeignKey('contracts.id', ondelete="CASCADE"),
         primary_key=True)
-    contract_type_from_details = Column(String(30))
+    stock_type_from_details = Column(String(30))
     primary_exchange = Column(String(30))
     industry = Column(String(30))
     category = Column(String(30))
@@ -96,7 +96,7 @@ class ContractDetailsIb(Base):
     def __repr__(self):
         return f"""ContractDetailsIb(
             contract_id={self.contract_id},
-            contract_type_from_details={self.contract_type_from_details},
+            stock_type_from_details={self.stock_type_from_details},
             primary_exchange={self.primary_exchange},
             industry={self.industry},
             category={self.category},
