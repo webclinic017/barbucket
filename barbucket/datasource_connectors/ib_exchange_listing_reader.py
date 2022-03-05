@@ -1,18 +1,17 @@
 import time
 import logging
-from typing import Any, Dict, List
+from typing import List
 from abc import ABC, abstractmethod
 
-from bs4 import BeautifulSoup
-import requests
 import enlighten
 
 from barbucket.domain_model.data_classes import Contract
 from barbucket.util.signal_handler import SignalHandler
-from barbucket.domain_model.types import Api, Exchange, TickerSymbol, ContractType, ApiNotationTranslator
+from barbucket.domain_model.types import Exchange
 from barbucket.datasource_connectors.exchange_listing_downloader import ExchangeistingDownloader
 from barbucket.datasource_connectors.html_corrector import HtmlCorrector
 from barbucket.datasource_connectors.html_contract_extractor import HtmlContractExtractor
+from barbucket.datasource_connectors.pagecount_extractor import PageCountExtractor
 
 
 _logger = logging.getLogger(__name__)
@@ -24,12 +23,11 @@ class IbExchangeListingReader(ABC):
     def __init__(self,
                  downloader: ExchangeistingDownloader,
                  corrector: HtmlCorrector,
-                 extractro: HtmlContractExtractor) -> None:
+                 contract_extractor: HtmlContractExtractor) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def read_ib_exchange_listing(self, cont_type: ContractType,
-                                 exchange: Exchange) -> List[Contract]:
+    def read_ib_exchange_listing(self, exchange: Exchange) -> List[Contract]:
         raise NotImplementedError
 
 
@@ -37,98 +35,87 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
     """Exchange listings reader for singlepage listings"""
     _downloader: ExchangeistingDownloader
     _corrector: HtmlCorrector
-    _extractor: HtmlContractExtractor
-    _cont_type: ContractType
-    _exchange: Exchange
+    _contract_extractor: HtmlContractExtractor
 
     def __init__(self,
                  downloader: ExchangeistingDownloader,
                  corrector: HtmlCorrector,
-                 extractor: HtmlContractExtractor) -> None:
+                 contract_extractor: HtmlContractExtractor) -> None:
         IbExchangeListingSinglepageReader._downloader = downloader
         IbExchangeListingSinglepageReader._corrector = corrector
-        IbExchangeListingSinglepageReader._extractor = extractor
+        IbExchangeListingSinglepageReader._contract_extractor = contract_extractor
 
     @classmethod
-    def read_ib_exchange_listing(cls, cont_type: ContractType,
-                                 exchange: Exchange) -> List[Contract]:
+    def read_ib_exchange_listing(cls, exchange: Exchange) -> List[Contract]:
         """Read contracts from exchange listing website
 
         :param cont_type: Contracts type to read
-        :type cont_type: ContractType
         :param exchange: Exchange to read from
         :type exchange: Exchange
         :return: Contracts from website
         :rtype: List[Dict[str, Any]]
         """
 
-        cls._cont_type = cont_type
-        cls._exchange = exchange
         html = cls._downloader.get_weblisting_singlepage(
-            exchange=cls._exchange)
-        html = cls._corrector.correct_ib_error_singlepage(html=html)
-        contracts = cls._extractor.extract_contracts(
-            html, contract_type=cls._cont_type, exchange=cls._exchange)
-        return contracts
+            exchange=exchange)
+        # html = cls._corrector.correct_ib_error_singlepage(html=html)
+        web_contracts = cls._contract_extractor.extract_contracts(
+            html, exchange=exchange)
+        return web_contracts
 
 
-# class IbExchangeListingMultipageReader(IbExchangeListingReader):
-#     """Exchange listings reader for multipage listings"""
+class IbExchangeListingMultipageReader(IbExchangeListingReader):
+    """Exchange listings reader for multipage listings"""
+    _downloader: ExchangeistingDownloader
+    _corrector: HtmlCorrector
+    _pagecount_extractor: PageCountExtractor
+    _contract_extractor: HtmlContractExtractor
 
-#     def __init__(self) -> None:
-#         self._signal_handler = SignalHandler()
-#         self._current_page = 1
-#         self._page_count = 1
-#         self._html: str = ""
-#         self._website_data: Any = []
-#         self.cont_type: str = ""
-#         self._exchange: str = ""
-#         manager = enlighten.get_manager()
-#         self._pbar = manager.counter(
-#             total=0,
-#             desc="Pages", unit="pages")
+    def __init__(self,
+                 downloader: ExchangeistingDownloader,
+                 corrector: HtmlCorrector,
+                 pagecount_extractor: PageCountExtractor,
+                 contract_extractor: HtmlContractExtractor) -> None:
+        IbExchangeListingMultipageReader._downloader = downloader
+        IbExchangeListingMultipageReader._corrector = corrector
+        IbExchangeListingMultipageReader._pagecount_extractor = pagecount_extractor
+        IbExchangeListingMultipageReader._contract_extractor = contract_extractor
 
-#     def read_ib_exchange_listing(self, type_: str,
-#                                  exchange: str) -> List[Dict[str, Any]]:
-#         """Read contracts from exchange listing website
+    @classmethod
+    def read_ib_exchange_listing(cls, exchange: Exchange) -> List[Contract]:
+        """Read contracts from exchange listing website
 
-#         :param type_: Contracts type to read
-#         :type type_: str
-#         :param exchange: Exchange to read from
-#         :type exchange: str
-#         :return: Contracts from website
-#         :rtype: List[Dict[str, Any]]
-#         """
+        :param type_: Contracts type to read
+        :type type_: str
+        :param exchange: Exchange to read from
+        :type exchange: str
+        :return: Contracts from website
+        :rtype: List[Dict[str, Any]]
+        """
 
-#         self.cont_type = type_
-#         self._exchange = Exchange.encode(name=exchange, to_api=Api.IB)
+        web_contracts: List[Contract] = []
+        current_page = 1
+        page_count = 1
+        signal_handler = SignalHandler()
+        manager = enlighten.get_manager()
+        progress_bar = manager.counter(total=0, desc="Pages", unit="pages")
 
-#         while self._current_page <= self._page_count:
-#             self._get_html()
-#             if self._current_page == 1:
-#                 self._set_page_count()
-#             self._correct_ib_error()
-#             self._extract_data()
-#             _logger.debug(
-#                 f"Scraped IB exchange listing for {self._exchange}, page "
-#                 f"{self._current_page}.")
-#             self._signal_handler.is_exit_requested()  # raises ex to exit
-#             self._pbar.update(incr=1)
-#             self._current_page += 1
-#             if self._current_page != self._page_count:
-#                 time.sleep(3)  # show some mercy to IB webserver
-#         return self._website_data
-
-#     def _set_page_count(self) -> None:
-#         soup = BeautifulSoup(self._html, 'html.parser')
-#         pagination_tables = soup.find_all('ul', class_='pagination')
-#         page_buttons = pagination_tables[0].find_all('li')
-#         self._page_count = int(page_buttons[-2].text)
-#         self._pbar.total = self._page_count
-#         # todo: handle errors
-
-#     def _get_html(self) -> None:
-#         url = (f"https://www.interactivebrokers.com/en/index.php?f=2222"
-#                f"&exch={self._exchange}&showcategories=STK&p=&cc=&limit="
-#                f"100&page={self._current_page}")
-#         self._html = requests.get(url).text
+        while current_page <= page_count:
+            html = cls._downloader.get_weblisting_multipage(
+                exchange=exchange, page=current_page)
+            # html = cls._corrector.correct_ib_error_multipage(html=html)
+            if current_page == 1:
+                page_count = cls._pagecount_extractor.get_page_count(html)
+                progress_bar.total = page_count
+            page_contracts = cls._contract_extractor.extract_contracts(
+                html=html, exchange=exchange)
+            _logger.debug(f"Scraped IB exchange listing for '{exchange.name}', "
+                          f"page {current_page}.")
+            web_contracts += page_contracts
+            signal_handler.is_exit_requested()  # raises ex to exit
+            progress_bar.update(incr=1)
+            current_page += 1
+            if current_page != page_count:
+                # show some mercy to IB webserver and dont get banned
+                time.sleep(3)
+        return web_contracts
