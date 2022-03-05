@@ -36,18 +36,18 @@ def test_exchange_incorrect() -> None:
         test_exchange = Exchange.NON_EXIST  # type: ignore
 
 
-def test_contract_type_correct() -> None:
-    _logger.debug(f"---------- Test: test_contract_type_correct")
+def test_stock_type_correct() -> None:
+    _logger.debug(f"---------- Test: test_stock_type_correct")
     try:
-        test_contract_type = ContractType.ETF
+        test_contract_type = StockType.ETF
     except AttributeError as e:
         assert False, e
 
 
-def test_contract_type_incorrect() -> None:
-    _logger.debug(f"---------- Test: test_contract_type_incorrect")
+def test_stock_type_incorrect() -> None:
+    _logger.debug(f"---------- Test: test_stock_type_incorrect")
     with pytest.raises(AttributeError):
-        test_contract_type = ContractType.NON_EXIST  # type: ignore
+        test_contract_type = StockType.NON_EXIST  # type: ignore
 
 
 def test_get_api_notation_for_exchange() -> None:
@@ -74,8 +74,8 @@ def test_get_api_notation_for_contract_type() -> None:
     _logger.debug(f"---------- Test: test_get_api_notation_for_contract_type")
     trans = ApiNotationTranslator()
     expected = "COMMON"
-    actual = trans.get_api_notation_for_contract_type(
-        contract_type=ContractType.COMMON_STOCK,
+    actual = trans.get_api_notation_for_stock_type(
+        stock_type=StockType.COMMON_STOCK,
         api=Api.IB)
     assert actual == expected
 
@@ -83,8 +83,8 @@ def test_get_api_notation_for_contract_type() -> None:
 def test_get_contract_type_from_api_notation() -> None:
     _logger.debug(f"---------- Test: test_get_contract_type_from_api_notation")
     trans = ApiNotationTranslator()
-    expected = ContractType.COMMON_STOCK
-    actual = trans.get_contract_type_from_api_notation(
+    expected = StockType.COMMON_STOCK
+    actual = trans.get_stock_type_from_api_notation(
         name="COMMON",
         api=Api.IB)
     assert actual == expected
