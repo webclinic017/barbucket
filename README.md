@@ -37,7 +37,7 @@ See results at:
 * Linux or macOS; Windows is not tested yet
 * Python >= 3.7
 
-## Asset types
+## Contract types
 * Stocks
 * ETFs
 * Crypto currencies (planned)
