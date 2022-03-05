@@ -44,9 +44,9 @@ class MockOrmConnector(OrmConnector):
 def dummy_contract() -> Generator:
     _logger.debug(f"---------- Fixture: dummy_contract")
     contract = Contract(
-        contract_type_from_listing="test_contract_type_from_listing",
+        contract_type="test_contract_type",
         exchange_symbol="test_exchange_symbol",
-        broker_sybmol="test_broker_sybmol",
+        broker_symbol="test_broker_symbol",
         name="test_name",
         currency="test_currency",
         exchange="test_exchange")
@@ -117,7 +117,7 @@ def test_retrieve_universe_membership(
 def dummy_contract_details_ib(dummy_contract) -> Generator:
     _logger.debug(f"---------- Fixture: dummy_contract_details_ib")
     details = ContractDetailsIb(
-        contract_type_from_details="test_contract_type_from_details",
+        stock_type_from_details="test_stock_type_from_details",
         primary_exchange="test_primary_exchange",
         industry="test_industry",
         category="test_category",
