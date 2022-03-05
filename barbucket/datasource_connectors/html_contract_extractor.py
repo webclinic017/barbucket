@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import List
 
 from bs4 import BeautifulSoup
 
@@ -13,11 +13,10 @@ _logger = logging.getLogger(__name__)
 class HtmlContractExtractor():
 
     @classmethod
-    def extract_contracts(cls, html: str, contract_type: ContractType,
-                          exchange: Exchange) -> List[Contract]:
+    def extract_contracts(cls, html: str, exchange: Exchange) -> List[Contract]:
         soup = BeautifulSoup(html, 'html.parser')
-        tables = soup.find_all('table',
-                               class_='table table-striped table-bordered')
+        tables = soup.find_all(
+            'table', class_='table table-striped table-bordered')
         rows = tables[2].tbody.find_all('tr')
         website_contracts = []
         for row in rows:
@@ -29,13 +28,16 @@ class HtmlContractExtractor():
                 name=columns[0].text.strip(),
                 api=Api.IB)
             contract = Contract(
-                contract_type_from_listing=contract_type.name,
+                contract_type=ContractType.STOCK.name,
                 exchange_symbol=exchange_symbol.name,
                 broker_symbol=broker_symbol.name,
                 name=columns[1].text.strip(),
                 currency=columns[3].text.strip(),
                 exchange=exchange.name)
             website_contracts.append(contract)
+        if website_contracts == []:
+            # error
+            pass
         # todo: log amount
         return website_contracts
 
@@ -72,9 +74,9 @@ class HtmlContractExtractor():
     #         raise WebscrapingReturnedNoResultError
 
 
-# class WebscrapingReturnedNoResultError(Exception):
-#     """Obviously something went wrong."""
+class WebscrapingReturnedNoResultError(Exception):
+    """Obviously something went wrong."""
 
-#     def __init__(self, message) -> None:
-#         self.message = message
-#         super().__init__(message)
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
