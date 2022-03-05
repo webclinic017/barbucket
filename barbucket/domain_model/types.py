@@ -42,6 +42,14 @@ class Exchange(Enum):
 
 class ContractType(Enum):
     """Enumeration of available contract types"""
+    STOCK = auto()
+    FOREX = auto()
+    CRYPTO = auto()
+    INDEX = auto()
+
+
+class StockType(Enum):
+    """Enumeration of available stock types"""
     ADR = auto()
     BOND = auto()
     CLOSED_END_FUND = auto()
@@ -108,33 +116,33 @@ class ApiNotationTranslator():
         Exchange.XETRA: {Api.IB: 'IBIS', Api.TV: 'XETR'},
         Exchange.XETRA_2: {Api.IB: 'IBIS2'}}
 
-    contract_types = {
-        ContractType.ADR: {Api.IB: 'ADR'},
-        ContractType.BOND: {Api.IB: 'BOND'},
-        ContractType.CLOSED_END_FUND: {Api.IB: 'CLOSED-END FUND'},
-        ContractType.COMMON_STOCK: {Api.IB: 'COMMON'},
-        ContractType.CONV_PREFERRED: {Api.IB: 'CONVPREFERRED'},
-        ContractType.DUTCH_CERT: {Api.IB: 'DUTCH CERT'},
-        ContractType.ETC: {Api.IB: 'ETC'},
-        ContractType.ETF: {Api.IB: 'ETF'},
-        ContractType.ETN: {Api.IB: 'ETN'},
-        ContractType.ETP: {Api.IB: 'ETP'},
-        ContractType.FUND_OF_FUNDS: {Api.IB: 'FUND OF FUNDS'},
-        ContractType.GDR: {Api.IB: 'GDR'},
-        ContractType.GERMAN_CERT: {Api.IB: 'GERMAN CERT'},
-        ContractType.LTD_PART: {Api.IB: 'LTD PART'},
-        ContractType.MLP: {Api.IB: 'MLP'},
-        ContractType.NY_REG_SHRS: {Api.IB: 'NY REG SHRS'},
-        ContractType.OPEN_END_FUND: {Api.IB: 'OPEN-END FUND'},
-        ContractType.PREFERENCE: {Api.IB: 'PREFERENCE'},
-        ContractType.PREFERRED: {Api.IB: 'PREFERRED'},
-        ContractType.REIT: {Api.IB: 'REIT'},
-        ContractType.RIGHT: {Api.IB: 'RIGHT'},
-        ContractType.ROYALTY_TRUST: {Api.IB: 'ROYALTY TRST'},
-        ContractType.SAVINGS_SHARE: {Api.IB: 'SAVINGS SHARE'},
-        ContractType.TRACKING_STOCK: {Api.IB: 'TRACKING STK'},
-        ContractType.UNIT: {Api.IB: 'UNIT'},
-        ContractType.US_DOMESTIC: {Api.IB: 'US DOMESTIC'}}
+    stock_types = {
+        StockType.ADR: {Api.IB: 'ADR'},
+        StockType.BOND: {Api.IB: 'BOND'},
+        StockType.CLOSED_END_FUND: {Api.IB: 'CLOSED-END FUND'},
+        StockType.COMMON_STOCK: {Api.IB: 'COMMON'},
+        StockType.CONV_PREFERRED: {Api.IB: 'CONVPREFERRED'},
+        StockType.DUTCH_CERT: {Api.IB: 'DUTCH CERT'},
+        StockType.ETC: {Api.IB: 'ETC'},
+        StockType.ETF: {Api.IB: 'ETF'},
+        StockType.ETN: {Api.IB: 'ETN'},
+        StockType.ETP: {Api.IB: 'ETP'},
+        StockType.FUND_OF_FUNDS: {Api.IB: 'FUND OF FUNDS'},
+        StockType.GDR: {Api.IB: 'GDR'},
+        StockType.GERMAN_CERT: {Api.IB: 'GERMAN CERT'},
+        StockType.LTD_PART: {Api.IB: 'LTD PART'},
+        StockType.MLP: {Api.IB: 'MLP'},
+        StockType.NY_REG_SHRS: {Api.IB: 'NY REG SHRS'},
+        StockType.OPEN_END_FUND: {Api.IB: 'OPEN-END FUND'},
+        StockType.PREFERENCE: {Api.IB: 'PREFERENCE'},
+        StockType.PREFERRED: {Api.IB: 'PREFERRED'},
+        StockType.REIT: {Api.IB: 'REIT'},
+        StockType.RIGHT: {Api.IB: 'RIGHT'},
+        StockType.ROYALTY_TRUST: {Api.IB: 'ROYALTY TRST'},
+        StockType.SAVINGS_SHARE: {Api.IB: 'SAVINGS SHARE'},
+        StockType.TRACKING_STOCK: {Api.IB: 'TRACKING STK'},
+        StockType.UNIT: {Api.IB: 'UNIT'},
+        StockType.US_DOMESTIC: {Api.IB: 'US DOMESTIC'}}
 
     @classmethod
     def get_api_notation_for_exchange(cls, exchange: Exchange, api: Api) -> str:
@@ -157,16 +165,16 @@ class ApiNotationTranslator():
             name=name, api=api, elements=cls.exchanges)  # type: ignore
 
     @classmethod
-    def get_api_notation_for_contract_type(cls, contract_type: ContractType, api: Api) -> str:
+    def get_api_notation_for_stock_type(cls, stock_type: StockType, api: Api) -> str:
         """ """
         return cls._get_api_notation_for_element(
-            element=contract_type, api=api, elements=cls.contract_types)  # type: ignore
+            element=stock_type, api=api, elements=cls.stock_types)  # type: ignore
 
     @classmethod
-    def get_contract_type_from_api_notation(cls, name: str, api: Api) -> ContractType:
+    def get_stock_type_from_api_notation(cls, name: str, api: Api) -> StockType:
         """ """
         return cls._get_element_from_api_notation(
-            name=name, api=api, elements=cls.contract_types)  # type: ignore
+            name=name, api=api, elements=cls.stock_types)  # type: ignore
 
     @classmethod
     def get_api_notation_for_ticker_symbol(cls, ticker_symbol: TickerSymbol, api: Api) -> str:
@@ -202,7 +210,7 @@ class ApiNotationTranslator():
                 raise NotImplementedError(
                     f"A value for '{api}' is not yet implemented in '{elements}':'{element}'.")
         else:
-            # contract_type/exchange not found
+            # stock_type/exchange not found
             raise NotImplementedError(
                 f"'{element}' is not yet implemented in '{elements}'.")
 
