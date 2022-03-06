@@ -97,16 +97,16 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         current_page = 1
         page_count = 1
         signal_handler = SignalHandler()
-        manager = enlighten.get_manager()
-        progress_bar = manager.counter(total=0, desc="Pages", unit="pages")
+        pb_manager = enlighten.get_manager()
+        progress_bar = pb_manager.counter(total=0, desc="Pages", unit="pages")
 
         while current_page <= page_count:
             html = cls._downloader.get_weblisting_multipage(
                 exchange=exchange, page=current_page)
             # html = cls._corrector.correct_ib_error_multipage(html=html)
             if current_page == 1:
-                page_count = cls._pagecount_extractor.get_page_count(html)
-                progress_bar.total = page_count
+                progress_bar.total = cls._pagecount_extractor.get_page_count(
+                    html)
             page_contracts = cls._contract_extractor.extract_contracts(
                 html=html, exchange=exchange)
             _logger.debug(f"Scraped IB exchange listing for '{exchange.name}', "
@@ -116,6 +116,6 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             progress_bar.update(incr=1)
             current_page += 1
             if current_page != page_count:
-                # show some mercy to IB webserver and dont get banned
+                # show some mercy to IB webserver and dont get yourself banned
                 time.sleep(3)
         return web_contracts
