@@ -4,7 +4,7 @@ from typing import Optional
 
 @dataclass
 class TvScreenerRow():
-    ticker: str
+    ticker_symbol: str
     exchange: str
     country: str
     market_cap: Optional[int]
