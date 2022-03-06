@@ -45,14 +45,14 @@ class TvFilesReader():
 
     @classmethod
     def _create_tsr(cls, row: pd.Series) -> TvScreenerRow:
-        ticker = ApiNotationTranslator.get_ticker_symbol_from_api_notation(
+        ticker_symbol = ApiNotationTranslator.get_ticker_symbol_from_api_notation(
             name=row['Ticker'],
             api=Api.TV)
         exchange = ApiNotationTranslator.get_exchange_from_api_notation(
             name=row['Exchange'],
             api=Api.TV)
         tsr = TvScreenerRow(
-            ticker=ticker.name,
+            ticker_symbol=ticker_symbol.name,
             exchange=exchange.name,
             market_cap=(int(row['Market Capitalization']) if not pd.isna(
                 row["Number of Employees"]) else None),
