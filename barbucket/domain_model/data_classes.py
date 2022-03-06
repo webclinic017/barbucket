@@ -8,7 +8,7 @@ Base = declarative_base()
 class Contract(Base):
     __tablename__ = 'contracts'
     __table_args__ = (UniqueConstraint(
-        'contract_type', 'exchange', 'broker_sybmol', 'currency'),)
+        'contract_type', 'exchange', 'broker_symbol', 'currency'),)
 
     id = Column(Integer, primary_key=True)
     contract_type = Column(String(30))
@@ -48,7 +48,7 @@ class Contract(Base):
         return (
             (self.contract_type == other.contract_type) and
             (self.exchange == other.exchange) and
-            (self.broker_sybmol == other.broker_sybmol) and
+            (self.broker_symbol == other.broker_symbol) and
             (self.currency == other.currency))
 
     def __repr__(self):

@@ -36,7 +36,7 @@ class ContractsDbManager():
     @classmethod
     def is_existing(cls, contract: Contract) -> bool:
         statement = (select(Contract.id).where(
-            Contract.broker_sybmol == contract.broker_sybmol,
+            Contract.broker_symbol == contract.broker_symbol,
             Contract.currency == contract.currency,
             Contract.exchange == contract.exchange))
         count = cls._db_session.execute(statement).count()
