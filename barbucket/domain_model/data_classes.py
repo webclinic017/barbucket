@@ -7,16 +7,16 @@ Base = declarative_base()
 
 class Contract(Base):
     __tablename__ = 'contracts'
+    __table_args__ = (UniqueConstraint(
+        'contract_type', 'exchange', 'broker_sybmol', 'currency'),)
 
     id = Column(Integer, primary_key=True)
     contract_type = Column(String(30))
-    exchange_symbol = Column(String(30))
+    exchange = Column(String(30))
     broker_symbol = Column(String(30))
+    exchange_symbol = Column(String(30))
     name = Column(String(100))
     currency = Column(String(30))
-    exchange = Column(String(30))
-
-    UniqueConstraint('broker_sybmol', 'currency', 'exchange')
 
     universe_memberships = relationship(
         "UniverseMembership",
@@ -44,27 +44,33 @@ class Contract(Base):
         cascade="all, delete",
         passive_deletes=True)
 
+    def __eq__(self, other):
+        return (
+            (self.contract_type == other.contract_type) and
+            (self.exchange == other.exchange) and
+            (self.broker_sybmol == other.broker_sybmol) and
+            (self.currency == other.currency))
+
     def __repr__(self):
         return f"""Contract(
             id={self.id},
             contract_type={self.contract_type},
+            exchange={self.exchange}),
             exchange_symbol={self.exchange_symbol},
             broker_symbol={self.broker_symbol},
             name={self.name},
-            currency={self.currency},
-            exchange={self.exchange})"""
+            currency={self.currency}"""
 
 
 class UniverseMembership(Base):
     __tablename__ = 'universe_memberships'
+    __table_args__ = (UniqueConstraint('contract_id', 'universe'),)
 
     id = Column(Integer, primary_key=True)
     contract_id = Column(
         Integer,
         ForeignKey('contracts.id', ondelete="CASCADE"))
     universe = Column(String(100))
-
-    UniqueConstraint('contract_id', 'universe')
 
     contract = relationship(
         "Contract", back_populates="universe_memberships")
@@ -160,19 +166,18 @@ class QuotesStatus(Base):
 
 class Quote(Base):
     __tablename__ = 'quotes'
+    __table_args__ = (UniqueConstraint('contract_id', 'date'),)
 
     contract_id = Column(
         Integer,
         ForeignKey('contracts.id', ondelete="CASCADE"),
         primary_key=True)
-    date = Column(Date)
+    date = Column(Date, primary_key=True)
     open = Column(Float)
     high = Column(Float)
     low = Column(Float)
     close = Column(Float)
     volume = Column(Float)
-
-    UniqueConstraint('contract_id', 'date')
 
     contract = relationship(
         "Contract", back_populates="quote")
