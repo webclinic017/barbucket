@@ -1,10 +1,10 @@
 from typing import List, Dict
 import logging
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
-from data_classes import *
+from barbucket.domain_model.data_classes import *
 
 
 _logger = logging.getLogger(__name__)
@@ -53,21 +53,22 @@ class ContractsDbManager():
                       f"'{cls._db_session}'")
 
     @ classmethod
-    def read_one_from_db(cls, **kwargs) -> Contract:
-        statement = (select(Contract)
-                     .where(**kwargs))
+    def get_one_by_filters(cls, filters) -> Contract:
+        statement = (select(Contract).where(and_(*filters)))
         contract = cls._db_session.execute(statement).scalar_one()
-        _logger.debug(f"Read Contract '{contract}' from database for kwargs "
-                      f"'{kwargs}' with session '{cls._db_session}'.")
+        filters_string = ", ".join([str(f) for f in filters])
+        _logger.debug(f"Read Contract '{contract}' from database for filters "
+                      f"'{filters_string}' with session '{cls._db_session}'.")
         return contract
 
     @ classmethod
-    def get_without_ib_details(cls) -> List[Contract]:
-        statement = (select(Contract)
-                     .where(Contract.contract_details_ib == None))
+    def get_by_filters(cls, filters) -> List[Contract]:
+        statement = (select(Contract).where(and_(*filters)))
         contracts = cls._db_session.execute(statement).scalars().all()
-        _logger.debug(f"Read {len(contracts)} Contracts without IB-Details "
-                      f"from database with session '{cls._db_session}'.")
+        filters_string = ", ".join([str(f) for f in filters])
+        _logger.debug(f"Read {len(contracts)} contracts from database for "
+                      f"filters '{filters_string}' with session "
+                      f"'{cls._db_session}'.")
         return contracts
 
     @ classmethod
