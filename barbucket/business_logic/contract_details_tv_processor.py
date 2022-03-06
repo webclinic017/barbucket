@@ -39,6 +39,7 @@ class ContractDetailsTvProcessor():
 
     @classmethod
     def _handle_row(cls, row: TvScreenerRow) -> None:
+        # Check if matching contract exists in db
         contract_filters = (
             Contract.exchange == row.exchange,
             Contract.contract_type == ContractType.STOCK.name,
@@ -51,6 +52,7 @@ class ContractDetailsTvProcessor():
         except MultipleResultsFound:
             pass  # log
         else:
+            # Add screener data to db
             details = ContractDetailsTv(
                 contract=contract,
                 market_cap=row.market_cap,
