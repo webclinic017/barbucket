@@ -13,24 +13,19 @@ _logger = logging.getLogger(__name__)
 
 
 class ContractSyncProcessor():
-    _listing_reader: IbExchangeListingReader
-    _contracts_db_manager: ContractsDbManager
-    _session: Session
-
     def __init__(self,
                  listing_reader: IbExchangeListingReader,
                  contracts_db_manager: ContractsDbManager,
                  session: Session) -> None:
-        ContractSyncProcessor._listing_reader = listing_reader
-        ContractSyncProcessor._contracts_db_manager = contracts_db_manager
-        ContractSyncProcessor._session = session
+        self._listing_reader = listing_reader
+        self._contracts_db_manager = contracts_db_manager
+        self._session = session
 
-    @classmethod
-    def sync_contracts_to_listing(cls, exchange: Exchange) -> None:
+    def sync_contracts_to_listing(self, exchange: Exchange) -> None:
 
         # Get contracts
         try:
-            web_contracts = cls._listing_reader.read_ib_exchange_listing(
+            web_contracts = self._listing_reader.read_ib_exchange_listing(
                 exchange=exchange)
         except ExitSignalDetectedError as e:
             _logger.info(e.message)
@@ -38,26 +33,26 @@ class ContractSyncProcessor():
         contract_filters = (
             Contract.contract_type == ContractType.STOCK.name,
             Contract.exchange == exchange.name)
-        db_contracts = cls._contracts_db_manager.get_by_filters(
+        db_contracts = self._contracts_db_manager.get_by_filters(
             filters=contract_filters)
 
         # Find removed contracts
         removed_contracts = []
         for contract in db_contracts:
             if contract not in web_contracts:
-                cls._session.delete(contract)
+                self._session.delete(contract)
                 removed_contracts.append(contract)
 
         # Find addded contracts
         added_contracts = []
         for contract in web_contracts:
             if contract not in db_contracts:
-                cls._session.add(contract)
+                self._session.add(contract)
                 added_contracts.append(contract)
 
         # Execute
         if True:  # User acknowledge
-            cls._session.commit()
+            self._session.commit()
         else:
-            cls._session.rollback()
-        cls._session.close()
+            self._session.rollback()
+        self._session.close()
