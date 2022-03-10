@@ -4,9 +4,9 @@ import logging
 from ib_insync.ib import IB
 from ib_insync.contract import Stock, ContractDetails
 
-from barbucket.config.config_reader import ConfigReader
 from barbucket.domain_model.data_classes import Contract, Quote, ContractDetailsIb
 from barbucket.domain_model.types import Api, Exchange, TickerSymbol, ApiNotationTranslator, Api
+from barbucket.util.config_reader import ConfigReader
 from barbucket.util.custom_exceptions import InvalidDataReceivedError
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,6 @@ class TwsConnector():
         """Download historical quotes for a contract from IB TWS"""
 
         ib_contract = self._create_ib_contract(contract)
-
         # Download quotes
         ib_quotes = self._ib.reqHistoricalData(
             contract=ib_contract,
