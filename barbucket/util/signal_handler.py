@@ -8,13 +8,12 @@ _logger = logging.getLogger(__name__)
 
 class SignalHandler():
     """Handle 'Ctrl+C' commands from the user"""
-    _state = False
 
     def __init__(self) -> None:
-        signal.signal(signal.SIGINT, SignalHandler.change_state)
+        signal.signal(signal.SIGINT, self._change_state)
+        self._state = False
 
-    @classmethod
-    def change_state(cls, signum: Any, frame: Any) -> None:
+    def _change_state(self, signum: Any, frame: Any) -> None:
         """Interrupt method, called by system, when Ctrl+C is detected.
 
         :param signum: [description]
@@ -26,12 +25,11 @@ class SignalHandler():
         _logger.warn(f": Ctrl-C detected, gracefully stopping operation. "
                      f"Press Ctrl-C again to stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        cls._state = True
+        self._state = True
 
-    @classmethod
-    def is_exit_requested(cls) -> bool:
+    def is_exit_requested(self) -> bool:
         """Check if the user pressed Ctrl+C.
 
         :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
         """
-        return cls._state
+        return self._state
