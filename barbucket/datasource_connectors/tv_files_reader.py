@@ -1,6 +1,5 @@
 from typing import List
 from pathlib import Path
-from os import listdir
 from logging import getLogger
 
 import pandas as pd
@@ -14,41 +13,38 @@ _logger = getLogger(__name__)
 
 class TvFilesReader():
     """ """
-    _screener_rows: List[TvScreenerRow] = []
-    _files_path: Path
 
-    def __init__(self, files_path: Path) -> None:
-        TvFilesReader._files_path = files_path
+    def __init__(self, files_path: Path,
+                 api_notation_translator: ApiNotationTranslator) -> None:
+        self._screener_rows: List[TvScreenerRow] = []
+        self._files_path = files_path
+        self._api_notation_translator = api_notation_translator
 
-    @classmethod
-    def get_all_rows(cls) -> List[TvScreenerRow]:
-        files = cls._get_files(filespath=cls._files_path)
+    def get_all_rows(self) -> List[TvScreenerRow]:
+        files = self._get_files(filespath=self._files_path)
         for file in files:
-            tsr = cls._get_tsr(file)
-            cls._screener_rows += tsr
-        return cls._screener_rows
+            tsr = self._get_tsr(file)
+            self._screener_rows += tsr
+        return self._screener_rows
 
-    @classmethod
-    def _get_files(cls, filespath: Path) -> List[Path]:
+    def _get_files(self, filespath: Path) -> List[Path]:
         # This also excludes sub-directories
         files = [file for file in filespath.iterdir()
                  if str(file).endswith(".csv")]
         return files
 
-    @classmethod
-    def _get_tsr(cls, file: Path) -> List[TvScreenerRow]:
+    def _get_tsr(self, file: Path) -> List[TvScreenerRow]:
         tsr = []
         rows = pd.read_csv(file, sep=",")
         for _, row in rows.iterrows():
-            tsr.append(cls._create_tsr(row=row))
+            tsr.append(self._create_tsr(row=row))
         return tsr
 
-    @classmethod
-    def _create_tsr(cls, row: pd.Series) -> TvScreenerRow:
-        ticker_symbol = ApiNotationTranslator.get_ticker_symbol_from_api_notation(
+    def _create_tsr(self, row: pd.Series) -> TvScreenerRow:
+        ticker_symbol = self._api_notation_translator.get_ticker_symbol_from_api_notation(
             name=row['Ticker'],
             api=Api.TV)
-        exchange = ApiNotationTranslator.get_exchange_from_api_notation(
+        exchange = self._api_notation_translator.get_exchange_from_api_notation(
             name=row['Exchange'],
             api=Api.TV)
         tsr = TvScreenerRow(
