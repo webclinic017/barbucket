@@ -9,9 +9,9 @@ from barbucket.domain_model.data_classes import Contract
 from barbucket.util.signal_handler import SignalHandler
 from barbucket.util.custom_exceptions import ExitSignalDetectedError
 from barbucket.domain_model.types import Exchange
-from barbucket.datasource_connectors.exchange_listing_downloader import ExchangeistingDownloader
+from barbucket.datasource_connectors.html_downloader import HtmlDownloader
 from barbucket.datasource_connectors.html_corrector import HtmlCorrector
-from barbucket.datasource_connectors.html_contract_extractor import HtmlContractExtractor
+from barbucket.datasource_connectors.contract_extractor import ContractExtractor
 from barbucket.datasource_connectors.pagecount_extractor import PageCountExtractor
 
 
@@ -22,9 +22,9 @@ class IbExchangeListingReader(ABC):
     """Abstract baseclass for exchange listings readers"""
 
     def __init__(self,
-                 downloader: ExchangeistingDownloader,
+                 downloader: HtmlDownloader,
                  corrector: HtmlCorrector,
-                 contract_extractor: HtmlContractExtractor) -> None:
+                 contract_extractor: ContractExtractor) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -34,20 +34,16 @@ class IbExchangeListingReader(ABC):
 
 class IbExchangeListingSinglepageReader(IbExchangeListingReader):
     """Exchange listings reader for singlepage listings"""
-    _downloader: ExchangeistingDownloader
-    _corrector: HtmlCorrector
-    _contract_extractor: HtmlContractExtractor
 
     def __init__(self,
-                 downloader: ExchangeistingDownloader,
+                 downloader: HtmlDownloader,
                  corrector: HtmlCorrector,
-                 contract_extractor: HtmlContractExtractor) -> None:
-        IbExchangeListingSinglepageReader._downloader = downloader
-        IbExchangeListingSinglepageReader._corrector = corrector
-        IbExchangeListingSinglepageReader._contract_extractor = contract_extractor
+                 contract_extractor: ContractExtractor) -> None:
+        self._downloader = downloader
+        self._corrector = corrector
+        self._contract_extractor = contract_extractor
 
-    @classmethod
-    def read_ib_exchange_listing(cls, exchange: Exchange) -> List[Contract]:
+    def read_ib_exchange_listing(self, exchange: Exchange) -> List[Contract]:
         """Read contracts from exchange listing website
 
         :param cont_type: Contracts type to read
@@ -57,33 +53,28 @@ class IbExchangeListingSinglepageReader(IbExchangeListingReader):
         :rtype: List[Dict[str, Any]]
         """
 
-        html = cls._downloader.get_weblisting_singlepage(
+        html = self._downloader.get_weblisting_singlepage(
             exchange=exchange)
-        # html = cls._corrector.correct_ib_error_singlepage(html=html)
-        web_contracts = cls._contract_extractor.extract_contracts(
+        # html = self._corrector.correct_ib_error_singlepage(html=html)
+        web_contracts = self._contract_extractor.extract_contracts(
             html, exchange=exchange)
         return web_contracts
 
 
 class IbExchangeListingMultipageReader(IbExchangeListingReader):
     """Exchange listings reader for multipage listings"""
-    _downloader: ExchangeistingDownloader
-    _corrector: HtmlCorrector
-    _pagecount_extractor: PageCountExtractor
-    _contract_extractor: HtmlContractExtractor
 
     def __init__(self,
-                 downloader: ExchangeistingDownloader,
+                 downloader: HtmlDownloader,
                  corrector: HtmlCorrector,
                  pagecount_extractor: PageCountExtractor,
-                 contract_extractor: HtmlContractExtractor) -> None:
-        IbExchangeListingMultipageReader._downloader = downloader
-        IbExchangeListingMultipageReader._corrector = corrector
-        IbExchangeListingMultipageReader._pagecount_extractor = pagecount_extractor
-        IbExchangeListingMultipageReader._contract_extractor = contract_extractor
+                 contract_extractor: ContractExtractor) -> None:
+        self._downloader = downloader
+        self._corrector = corrector
+        self._pagecount_extractor = pagecount_extractor
+        self._contract_extractor = contract_extractor
 
-    @classmethod
-    def read_ib_exchange_listing(cls, exchange: Exchange) -> List[Contract]:
+    def read_ib_exchange_listing(self, exchange: Exchange) -> List[Contract]:
         """Read contracts from exchange listing website
 
         :param type_: Contracts type to read
@@ -102,13 +93,13 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
         progress_bar = pb_manager.counter(total=0, desc="Pages", unit="pages")
 
         while current_page <= page_count:
-            html = cls._downloader.get_weblisting_multipage(
+            html = self._downloader.get_weblisting_multipage(
                 exchange=exchange, page=current_page)
-            # html = cls._corrector.correct_ib_error_multipage(html=html)
+            # html = self._corrector.correct_ib_error_multipage(html=html)
             if current_page == 1:
-                progress_bar.total = cls._pagecount_extractor.get_page_count(
+                progress_bar.total = self._pagecount_extractor.get_page_count(
                     html)
-            page_contracts = cls._contract_extractor.extract_contracts(
+            page_contracts = self._contract_extractor.extract_contracts(
                 html=html, exchange=exchange)
             _logger.debug(f"Scraped IB exchange listing for '{exchange.name}', "
                           f"page {current_page}.")
