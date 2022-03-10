@@ -37,7 +37,7 @@ class ConfigReader():
                        parents=True, exist_ok=True)
             _logger.info(f"Created directory '{cls._CONFIG_FILE_PATH.parent}' "
                          f"for config file.")
-            with resources.path("barbucket.config", "default_config.cfg") \
+            with resources.path("barbucket.util", "default_config.cfg") \
                     as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
