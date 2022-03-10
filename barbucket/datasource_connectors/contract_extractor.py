@@ -10,10 +10,11 @@ from barbucket.domain_model.types import Api, Exchange, ContractType, ApiNotatio
 _logger = logging.getLogger(__name__)
 
 
-class HtmlContractExtractor():
+class ContractExtractor():
+    def __init__(self, api_notation_translator: ApiNotationTranslator) -> None:
+        self._api_notation_translator = api_notation_translator
 
-    @classmethod
-    def extract_contracts(cls, html: str, exchange: Exchange) -> List[Contract]:
+    def extract_contracts(self, html: str, exchange: Exchange) -> List[Contract]:
         soup = BeautifulSoup(html, 'html.parser')
         tables = soup.find_all(
             'table', class_='table table-striped table-bordered')
@@ -21,10 +22,10 @@ class HtmlContractExtractor():
         website_contracts = []
         for row in rows:
             columns = row.find_all('td')
-            exchange_symbol = ApiNotationTranslator.get_ticker_symbol_from_api_notation(
+            exchange_symbol = self._api_notation_translator.get_ticker_symbol_from_api_notation(
                 name=columns[2].text.strip(),
                 api=Api.IB)
-            broker_symbol = ApiNotationTranslator.get_ticker_symbol_from_api_notation(
+            broker_symbol = self._api_notation_translator.get_ticker_symbol_from_api_notation(
                 name=columns[0].text.strip(),
                 api=Api.IB)
             contract = Contract(
@@ -41,8 +42,7 @@ class HtmlContractExtractor():
         # todo: log amount
         return website_contracts
 
-    # @classmethod
-    # def extract_data_multipage(cls, html: str) -> List[Contract]:
+    # def extract_data_multipage(self, html: str) -> List[Contract]:
     #     soup = BeautifulSoup(html, 'html.parser')
     #     tables = soup.find_all(
     #         'table',
@@ -69,7 +69,7 @@ class HtmlContractExtractor():
     #     # todo: handle ammount == 0
 
     # @classmethod
-    # def _validate_result(cls, contracts):
+    # def _validate_result(self, contracts):
     #     if len(contracts) == 0:
     #         raise WebscrapingReturnedNoResultError
 
