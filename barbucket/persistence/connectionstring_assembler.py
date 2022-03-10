@@ -10,37 +10,34 @@ _logger = getLogger(__name__)
 class ConnectionStringAssembler():
     """ """
 
-    _config_reader: ConfigReader
-
     def __init__(self, config_reader: ConfigReader) -> None:
-        ConnectionStringAssembler._config_reader = config_reader
+        self._config_reader = config_reader
 
-    @classmethod
-    def get_connection_string(cls) -> str:
-        dbms = cls._config_reader.get_config_value_single(
+    def get_connection_string(self) -> str:
+        dbms = self._config_reader.get_config_value_single(
             section="database",
             option="dbms")
         if dbms == "sqlite":
-            filename = cls._config_reader.get_config_value_single(
+            filename = self._config_reader.get_config_value_single(
                 section="database",
                 option="sqlite_filename")
             location = Path.home() / ".barbucket/database/"
             filepath = location / filename
             connection_string = f"sqlite:///{filepath}"
         else:
-            username = cls._config_reader.get_config_value_single(
+            username = self._config_reader.get_config_value_single(
                 section="database",
                 option="username")
-            password = cls._config_reader.get_config_value_single(
+            password = self._config_reader.get_config_value_single(
                 section="database",
                 option="password")
-            host = cls._config_reader.get_config_value_single(
+            host = self._config_reader.get_config_value_single(
                 section="database",
                 option="host")
-            port = cls._config_reader.get_config_value_single(
+            port = self._config_reader.get_config_value_single(
                 section="database",
                 option="port")
-            db_name = cls._config_reader.get_config_value_single(
+            db_name = self._config_reader.get_config_value_single(
                 section="database",
                 option="database_name")
             connection_string = f"{dbms}://{username}:{password}@{host}:{port}/{db_name}"
