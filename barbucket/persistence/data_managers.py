@@ -1,10 +1,12 @@
-from typing import List, Dict
+from typing import List
 import logging
+from datetime import date
 
 from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
-from barbucket.domain_model.data_classes import *
+from barbucket.domain_model.data_classes import\
+    Contract, UniverseMembership, ContractDetailsIb, ContractDetailsTv, Quote
 
 
 _logger = logging.getLogger(__name__)
@@ -35,10 +37,10 @@ class ContractsDbManager():
 
     @classmethod
     def is_existing(cls, contract: Contract) -> bool:
-        statement = (select(Contract.id).where(
+        statement = (select(Contract.id).where(and_(
             Contract.broker_symbol == contract.broker_symbol,
             Contract.currency == contract.currency,
-            Contract.exchange == contract.exchange))
+            Contract.exchange == contract.exchange)))
         count = cls._db_session.execute(statement).count()
         _logger.debug(f"Found {count} entries for Contract '{contract}' with "
                       f"session '{cls._db_session}'")
@@ -120,7 +122,21 @@ class QuotesDbManager():
 
     @ classmethod
     def write_to_db(cls, quotes: List[Quote]) -> None:
+        # Needs to overwrite existing quotes
+        contract = quotes[0].contract
+        existing_quotes = cls._db_session.execute(
+            select(Quote).where(Quote.contract == contract)).scalars().all()
         for quote in quotes:
+            if quote in existing_quotes:
+                quote_to_update = cls._db_session.execute(select(Quote).
+                                                          where(and_(Quote.contract == contract,
+                                                                     Quote.date == quote.date)))
+                quote_to_update.open = quote.open
+                quote_to_update.high = quote.high
+                quote_to_update.low = quote.low
+                quote_to_update.close = quote.close
+                quote_to_update.volume = quote.volume
+            else:
             cls._db_session.add(quote)
         _logger.debug(f"Added {len(quotes)} quotes to session "
                       f"'{cls._db_session}'. Last quote is '{quotes[-1]}'")
