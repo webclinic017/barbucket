@@ -29,19 +29,9 @@ class SignalHandler():
         cls._state = True
 
     @classmethod
-    def is_exit_requested(cls) -> None:
+    def is_exit_requested(cls) -> bool:
         """Check if the user pressed Ctrl+C.
 
         :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
         """
-
-        if cls._state:
-            raise ExitSignalDetectedError("Message")
-
-
-class ExitSignalDetectedError(Exception):
-    """User has pressed 'Ctrl+C'"""
-
-    def __init__(self, message) -> None:
-        self.message = message
-        super().__init__(message)
+        return cls._state
