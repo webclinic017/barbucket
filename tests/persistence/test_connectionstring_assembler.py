@@ -6,7 +6,7 @@ from typing import List
 import pytest
 
 from barbucket.persistence.connectionstring_assembler import ConnectionStringAssembler
-from barbucket.config.config_reader import ConfigReader
+from barbucket.util.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)

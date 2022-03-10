@@ -1,7 +1,7 @@
 from pathlib import Path
 from logging import getLogger
 
-from barbucket.config.config_reader import ConfigReader
+from barbucket.util.config_reader import ConfigReader
 
 
 _logger = getLogger(__name__)
