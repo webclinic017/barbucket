@@ -141,6 +141,21 @@ class QuotesDbManager():
         _logger.debug(f"Added {len(quotes)} quotes to session "
                       f"'{cls._db_session}'. Last quote is '{quotes[-1]}'")
 
+    @classmethod
+    def contract_has_quotes(cls, contract: Contract) -> bool:
+        statement = (select(Quote.contract_id).where(
+            Quote.contract == contract))
+        count = cls._db_session.execute(statement).count()
+        return bool(count)
+
+    @classmethod
+    def get_latest_quote_date(cls, contract: Contract) -> date:
+        statement = select(Quote.date).\
+            where(Quote.contract == contract).\
+            order_by(Quote.date.desc())
+        quote = cls._db_session.execute(statement).first().scalar()
+        return quote.date
+
 
 class ContractDetailsIbDbManager():
     _db_session: Session
