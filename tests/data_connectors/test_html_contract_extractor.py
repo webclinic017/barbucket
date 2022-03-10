@@ -2,8 +2,8 @@ from logging import getLogger
 
 import requests
 
-from barbucket.datasource_connectors.html_contract_extractor import HtmlContractExtractor
-from barbucket.domain_model.types import Exchange, ContractType
+from barbucket.datasource_connectors.contract_extractor import ContractExtractor
+from barbucket.domain_model.types import Exchange, ContractType, ApiNotationTranslator
 from barbucket.domain_model.data_classes import Contract
 
 _logger = getLogger(__name__)
@@ -15,7 +15,9 @@ def test_extract_contracts() -> None:
     with open(dummy_file, 'r') as filereader:
         lines = filereader.readlines()
     dummy_html = "".join(lines)
-    actual_contracts = HtmlContractExtractor.extract_contracts(
+    ce = ContractExtractor(
+        api_notation_translator=ApiNotationTranslator())
+    actual_contracts = ce.extract_contracts(
         html=dummy_html, exchange=Exchange.XETRA)
 
     assert len(actual_contracts) == 1098

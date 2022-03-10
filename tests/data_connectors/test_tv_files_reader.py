@@ -5,6 +5,7 @@ from logging import getLogger
 import pytest
 
 from barbucket.datasource_connectors.tv_files_reader import TvFilesReader
+from barbucket.domain_model.types import ApiNotationTranslator
 
 
 _logger = getLogger(__name__)
@@ -15,7 +16,8 @@ _logger.debug(f"--------- ---------- Testing TvFilesReader")
 def mock_tv_files_reader() -> Generator:
     _logger.debug(f"---------- Fixture: mock_tv_files_reader")
     filespath = Path("tests/_resources/datasource_connectors/")
-    reader = TvFilesReader(files_path=filespath)
+    reader = TvFilesReader(
+        files_path=filespath, api_notation_translator=ApiNotationTranslator())
     yield reader
 
 

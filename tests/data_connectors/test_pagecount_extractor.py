@@ -13,5 +13,6 @@ def test_get_page_count() -> None:
     with open(dummy_file, 'r') as filereader:
         lines = filereader.readlines()
     dummy_html = "".join(lines)
-    actual_page_count = PageCountExtractor.get_page_count(html=dummy_html)
+    pce = PageCountExtractor()
+    actual_page_count = pce.get_page_count(html=dummy_html)
     assert actual_page_count == 22

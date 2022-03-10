@@ -14,7 +14,8 @@ def test_correct_ib_error_singlepage() -> None:
     with open(dummy_file, 'r') as filereader:
         lines = filereader.readlines()
     dummy_html = "".join(lines)
-    corrected_html = HtmlCorrector.correct_ib_error_singlepage(html=dummy_html)
+    hc = HtmlCorrector()
+    corrected_html = hc.correct_ib_error_singlepage(html=dummy_html)
     for line in corrected_html.splitlines():
         if (('        <td align="left" valign="middle">' in line)
                 and ("href" not in line)):
