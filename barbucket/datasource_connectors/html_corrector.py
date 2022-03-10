@@ -5,9 +5,7 @@ _logger = logging.getLogger(__name__)
 
 
 class HtmlCorrector():
-
-    @classmethod
-    def correct_ib_error_singlepage(cls, html: str) -> str:
+    def correct_ib_error_singlepage(self, html: str) -> str:
         """Website HTML contains structural errors that prevent parsing."""
 
         old_lines = html.splitlines()
@@ -29,7 +27,7 @@ class HtmlCorrector():
             pass
         return html
 
-    def correct_ib_error_multipage(cls, html: str) -> str:
+    def correct_ib_error_multipage(self, html: str) -> str:
         """Website HTML contains structural errors that prevent parsing."""
 
         if ("(click link for more details)</span></th>\n                       </th>"
