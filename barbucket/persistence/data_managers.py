@@ -80,38 +80,38 @@ class ContractsDbManager():
                       f"'{cls._db_session}'")
 
 
-class QuotesStatusDbManager():
-    _db_session: Session
+# class QuotesStatusDbManager():
+#     _db_session: Session
 
-    def __init__(self, db_session: Session) -> None:
-        QuotesStatusDbManager._db_session = db_session
+#     def __init__(self, db_session: Session) -> None:
+#         QuotesStatusDbManager._db_session = db_session
 
-    @ classmethod
-    def read_from_db(cls, contract: Contract) -> QuotesStatus:
-        statement = (select(QuotesStatus)
-                     .where(QuotesStatus.contract == contract))
-        count = cls._db_session.execute(statement).count()
-        if count == 0:
-            cls._create_new_status(contract)
-        status = cls._db_session.execute(statement).scalar_one()
-        _logger.debug(f"Read QuoteStatus '{status}' from database with session "
-                      f"'{cls._db_session}'.")
-        return status
+#     @ classmethod
+#     def read_from_db(cls, contract: Contract) -> QuotesStatus:
+#         statement = (select(QuotesStatus)
+#                      .where(QuotesStatus.contract == contract))
+#         count = cls._db_session.execute(statement).count()
+#         if count == 0:
+#             cls._create_new_status(contract)
+#         status = cls._db_session.execute(statement).scalar_one()
+#         _logger.debug(f"Read QuoteStatus '{status}' from database with session "
+#                       f"'{cls._db_session}'.")
+#         return status
 
-    @ classmethod
-    def write_to_db(cls, status: QuotesStatus) -> None:
-        cls._db_session.add(status)
-        _logger.debug(f"Added QuotesStatus '{status}' to session "
-                      f"'{cls._db_session}'")
+#     @ classmethod
+#     def write_to_db(cls, status: QuotesStatus) -> None:
+#         cls._db_session.add(status)
+#         _logger.debug(f"Added QuotesStatus '{status}' to session "
+#                       f"'{cls._db_session}'")
 
-    @ classmethod
-    def _create_new_status(cls, contract: Contract) -> None:
-        new_status = QuotesStatus(
-            status_code=0,
-            status_text="No quotes downloaded yet.")
-        cls._db_session.add(new_status)
-        _logger.debug(f"Created new QuotesStatus '{new_status}' for contract "
-                      f"'{contract}' in session '{cls._db_session}'.")
+#     @ classmethod
+#     def _create_new_status(cls, contract: Contract) -> None:
+#         new_status = QuotesStatus(
+#             status_code=0,
+#             status_text="No quotes downloaded yet.")
+#         cls._db_session.add(new_status)
+#         _logger.debug(f"Created new QuotesStatus '{new_status}' for contract "
+#                       f"'{contract}' in session '{cls._db_session}'.")
 
 
 class QuotesDbManager():
@@ -137,7 +137,7 @@ class QuotesDbManager():
                 quote_to_update.close = quote.close
                 quote_to_update.volume = quote.volume
             else:
-            cls._db_session.add(quote)
+                cls._db_session.add(quote)
         _logger.debug(f"Added {len(quotes)} quotes to session "
                       f"'{cls._db_session}'. Last quote is '{quotes[-1]}'")
 

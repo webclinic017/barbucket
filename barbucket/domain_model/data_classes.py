@@ -33,11 +33,11 @@ class Contract(Base):
         back_populates="contract",
         cascade="all, delete",
         passive_deletes=True)
-    quotes_status = relationship(
-        "QuotesStatus",
-        back_populates="contract",
-        cascade="all, delete",
-        passive_deletes=True)
+    # quotes_status = relationship(
+    #     "QuotesStatus",
+    #     back_populates="contract",
+    #     cascade="all, delete",
+    #     passive_deletes=True)
     quote = relationship(
         "Quote",
         back_populates="contract",
@@ -139,29 +139,29 @@ class ContractDetailsTv(Base):
             contract={self.contract})"""
 
 
-class QuotesStatus(Base):
-    __tablename__ = 'quotes_status'
+# class QuotesStatus(Base):
+#     __tablename__ = 'quotes_status'
 
-    contract_id = Column(
-        Integer,
-        ForeignKey('contracts.id', ondelete="CASCADE"),
-        primary_key=True)
-    status_code = Column(Integer)
-    status_text = Column(String(255))
-    earliest_quote_requested = Column(Date)
-    latest_quote_requested = Column(Date)
+#     contract_id = Column(
+#         Integer,
+#         ForeignKey('contracts.id', ondelete="CASCADE"),
+#         primary_key=True)
+#     status_code = Column(Integer)
+#     status_text = Column(String(255))
+#     earliest_quote_requested = Column(Date)
+#     latest_quote_requested = Column(Date)
 
-    contract = relationship(
-        "Contract", back_populates="quotes_status")
+#     contract = relationship(
+#         "Contract", back_populates="quotes_status")
 
-    def __repr__(self):
-        return f"""QuotesStatus(
-            contract_id={self.contract_id},
-            status_code={self.status_code},
-            status_text={self.status_text},
-            latest_quote_requested={self.latest_quote_requested},
-            earliest_quote_requested={self.earliest_quote_requested},
-            contract={self.contract})"""
+#     def __repr__(self):
+#         return f"""QuotesStatus(
+#             contract_id={self.contract_id},
+#             status_code={self.status_code},
+#             status_text={self.status_text},
+#             latest_quote_requested={self.latest_quote_requested},
+#             earliest_quote_requested={self.earliest_quote_requested},
+#             contract={self.contract})"""
 
 
 class Quote(Base):

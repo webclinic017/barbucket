@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select, create_engine, event
 from sqlalchemy.orm import Session
 
-from barbucket.domain_model.data_classes import *
+from barbucket.domain_model.data_classes import Base, Contract, ContractDetailsIb, ContractDetailsTv, Quote, UniverseMembership
 from barbucket.persistence.orm_connector import OrmConnector
 
 
@@ -192,39 +192,39 @@ def test_retrieve_contract_details_tv(
 # ~~~~~~~~~~~~~~~~~~~~~~~~ QuotesStatus ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-@pytest.fixture
-def dummy_quotes_status(dummy_contract) -> Generator:
-    _logger.debug(f"---------- Fixture: dummy_quotes_status")
-    status = QuotesStatus(
-        status_code=1111,
-        status_text="test_status_text",
-        earliest_quote_requested=date.today(),
-        latest_quote_requested=date.today(),
-        contract=dummy_contract)
-    yield status
+# @pytest.fixture
+# def dummy_quotes_status(dummy_contract) -> Generator:
+#     _logger.debug(f"---------- Fixture: dummy_quotes_status")
+#     status = QuotesStatus(
+#         status_code=1111,
+#         status_text="test_status_text",
+#         earliest_quote_requested=date.today(),
+#         latest_quote_requested=date.today(),
+#         contract=dummy_contract)
+#     yield status
 
 
-def test_insert_quotes_status(
-        mock_orm_connector: MockOrmConnector,
-        dummy_quotes_status: QuotesStatus) -> None:
-    _logger.debug(f"---------- Test: test_insert_quotes_status")
-    session = mock_orm_connector.get_session()
-    session.add(dummy_quotes_status)
-    session.commit()
-    assert dummy_quotes_status.contract_id == 1
-    assert dummy_quotes_status.contract.id == 1
+# def test_insert_quotes_status(
+#         mock_orm_connector: MockOrmConnector,
+#         dummy_quotes_status: QuotesStatus) -> None:
+#     _logger.debug(f"---------- Test: test_insert_quotes_status")
+#     session = mock_orm_connector.get_session()
+#     session.add(dummy_quotes_status)
+#     session.commit()
+#     assert dummy_quotes_status.contract_id == 1
+#     assert dummy_quotes_status.contract.id == 1
 
 
-def test_retrieve_quotes_status(
-        mock_orm_connector: MockOrmConnector,
-        dummy_quotes_status: QuotesStatus) -> None:
-    _logger.debug(f"---------- Test: test_retrieve_quotes_status")
-    session = mock_orm_connector.get_session()
-    session.add(dummy_quotes_status)
-    session.commit()
-    read_status = session.execute(select(QuotesStatus)).scalar_one()
-    assert read_status is dummy_quotes_status
-    assert read_status.contract is dummy_quotes_status.contract
+# def test_retrieve_quotes_status(
+#         mock_orm_connector: MockOrmConnector,
+#         dummy_quotes_status: QuotesStatus) -> None:
+#     _logger.debug(f"---------- Test: test_retrieve_quotes_status")
+#     session = mock_orm_connector.get_session()
+#     session.add(dummy_quotes_status)
+#     session.commit()
+#     read_status = session.execute(select(QuotesStatus)).scalar_one()
+#     assert read_status is dummy_quotes_status
+#     assert read_status.contract is dummy_quotes_status.contract
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Quote ~~~~~~~~~~~~~~~~~~~~~~~~
