@@ -28,7 +28,7 @@ def test_get_all_rows_count(mock_tv_files_reader: TvFilesReader) -> None:
 def test_get_all_rows_values(mock_tv_files_reader: TvFilesReader) -> None:
     _logger.debug(f"---------- Test: test_get_all_rows_values")
     rows = mock_tv_files_reader.get_all_rows()
-    assert rows[3].ticker == "TL0"
+    assert rows[3].ticker_symbol == "TL0"
     assert rows[3].exchange == "FWB"
     assert rows[3].country == "United States"
     assert rows[3].market_cap == 735636132073
