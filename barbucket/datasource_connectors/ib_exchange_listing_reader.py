@@ -7,6 +7,7 @@ import enlighten
 
 from barbucket.domain_model.data_classes import Contract
 from barbucket.util.signal_handler import SignalHandler
+from barbucket.util.custom_exceptions import ExitSignalDetectedError
 from barbucket.domain_model.types import Exchange
 from barbucket.datasource_connectors.exchange_listing_downloader import ExchangeistingDownloader
 from barbucket.datasource_connectors.html_corrector import HtmlCorrector
@@ -112,7 +113,9 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
             _logger.debug(f"Scraped IB exchange listing for '{exchange.name}', "
                           f"page {current_page}.")
             web_contracts += page_contracts
-            signal_handler.is_exit_requested()  # raises ex to exit
+            if signal_handler.is_exit_requested():
+                raise ExitSignalDetectedError(
+                    "User pressed 'Ctrl+C'.")  # is handled above
             progress_bar.update(incr=1)
             current_page += 1
             if current_page != page_count:

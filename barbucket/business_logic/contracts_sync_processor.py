@@ -1,9 +1,15 @@
+import logging
+
 from sqlalchemy.orm import Session
 
 from barbucket.datasource_connectors.ib_exchange_listing_reader import IbExchangeListingReader
 from barbucket.persistence.data_managers import ContractsDbManager
 from barbucket.domain_model.data_classes import Contract
 from barbucket.domain_model.types import ContractType, Exchange
+from barbucket.util.custom_exceptions import ExitSignalDetectedError
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ContractSyncProcessor():
@@ -23,8 +29,12 @@ class ContractSyncProcessor():
     def sync_contracts_to_listing(cls, exchange: Exchange) -> None:
 
         # Get contracts
-        web_contracts = cls._listing_reader.read_ib_exchange_listing(
-            exchange=exchange)
+        try:
+            web_contracts = cls._listing_reader.read_ib_exchange_listing(
+                exchange=exchange)
+        except ExitSignalDetectedError as e:
+            _logger.info(e.message)
+            return
         contract_filters = (
             Contract.contract_type == ContractType.STOCK.name,
             Contract.exchange == exchange.name)
