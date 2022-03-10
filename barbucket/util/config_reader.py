@@ -12,16 +12,12 @@ _logger = getLogger(__name__)
 class ConfigReader():
     """Reads config values from a configuration file."""
 
-    _CONFIG_FILE_PATH: Path
-    _parser: ConfigParser
-
     def __init__(self, filepath: Path) -> None:
-        ConfigReader._CONFIG_FILE_PATH = filepath
-        ConfigReader._parser = ConfigParser(allow_no_value=True)
-        ConfigReader._initalize()
+        self._CONFIG_FILE_PATH = filepath
+        self._parser = ConfigParser(allow_no_value=True)
+        self._initalize()
 
-    @classmethod
-    def _initalize(cls) -> None:
+    def _initalize(self) -> None:
         """Checks for the presence of a configuration file for the current 
         user. If not present, creates a default configuration file
 
@@ -29,24 +25,23 @@ class ConfigReader():
         :type destination_path: Path
         """
 
-        destination_path = cls._CONFIG_FILE_PATH
+        destination_path = self._CONFIG_FILE_PATH
         if Path.is_file(destination_path):
             _logger.debug(f"Config file already exists.")
         else:
-            Path.mkdir(cls._CONFIG_FILE_PATH.parent,
+            Path.mkdir(self._CONFIG_FILE_PATH.parent,
                        parents=True, exist_ok=True)
-            _logger.info(f"Created directory '{cls._CONFIG_FILE_PATH.parent}' "
+            _logger.info(f"Created directory '{self._CONFIG_FILE_PATH.parent}' "
                          f"for config file.")
-            with resources.path("barbucket.util", "default_config.cfg") \
+            with resources.path("barbucket._resources", "default_config.cfg") \
                     as source_path:
                 copyfile(source_path, destination_path)
                 _logger.info(
                     f"Created config file {destination_path} from default file.")
-        cls._parser.read(cls._CONFIG_FILE_PATH)
+        self._parser.read(self._CONFIG_FILE_PATH)
         _logger.debug(f"Read config file.")
 
-    @classmethod
-    def get_config_value_single(cls, section: str, option: str) -> str:
+    def get_config_value_single(self, section: str, option: str) -> str:
         """Reads a single config value from the config file
 
         :param section: Section of the config file
@@ -57,13 +52,12 @@ class ConfigReader():
         :rtype: str
         """
 
-        config_value = cls._parser.get(section, option)
+        config_value = self._parser.get(section, option)
         _logger.debug(
             f"Read single config value from '{section}'/'{option}' as '{config_value}'.")
         return config_value
 
-    @classmethod
-    def get_config_value_list(cls, section: str, option: str) -> List[str]:
+    def get_config_value_list(self, section: str, option: str) -> List[str]:
         """Reads a config value list from the config file
 
         :param section: Section of the config file
@@ -74,7 +68,7 @@ class ConfigReader():
         :rtype: List[str]
         """
 
-        config_value = cls._parser.get(section, option)
+        config_value = self._parser.get(section, option)
         # split by comma and change to list
         list_config_value = config_value.split(",")
         _logger.debug(
