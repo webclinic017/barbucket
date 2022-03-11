@@ -5,7 +5,7 @@ from barbucket.business_logic.quotes_processor import QuotesProcessor
 from barbucket.domain_model.data_classes import Base
 from barbucket.domain_model.types import ApiNotationTranslator
 from barbucket.persistence.connectionstring_assembler import ConnectionStringAssembler
-from barbucket.persistence.data_managers import QuotesDbManager, UniverseMembershipsDbManager
+from barbucket.persistence.data_managers import QuotesDbManager, UniverseDbManager
 from barbucket.persistence.orm_connector import OrmConnector
 from barbucket.util.config_reader import ConfigReader
 from barbucket.util.signal_handler import SignalHandler

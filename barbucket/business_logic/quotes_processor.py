@@ -7,8 +7,7 @@ import enlighten
 from ib_insync.wrapper import RequestError
 
 from barbucket.domain_model.data_classes import Contract
-from barbucket.persistence.data_managers import \
-    UniverseMembershipsDbManager, QuotesDbManager
+from barbucket.persistence.data_managers import UniverseDbManager, QuotesDbManager
 from barbucket.api.tws_connector import TwsConnector
 from barbucket.util.signal_handler import SignalHandler
 from barbucket.util.config_reader import ConfigReader
@@ -22,7 +21,7 @@ class QuotesProcessor():
 
     def __init__(
             self,
-            universe_db_manager: UniverseMembershipsDbManager,
+            universe_db_manager: UniverseDbManager,
             quotes_db_manager: QuotesDbManager,
             tws_connector: TwsConnector,
             # status_hadler: QuotesStatusHandler,
