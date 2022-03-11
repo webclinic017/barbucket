@@ -25,11 +25,11 @@ def build_quotes_processor():
     orm_connector = OrmConnector(
         connstring_assembler=connstring_assembler,
         base_class=Base)
-    session = orm_connector.get_session()
+    orm_session = orm_connector.get_session()
 
-    universe_db_manager = UniverseMembershipsDbManager(db_session=session)
+    universe_db_manager = UniverseDbManager(orm_session=orm_session)
 
-    quotes_db_manager = QuotesDbManager(db_session=session)
+    quotes_db_manager = QuotesDbManager(orm_session=orm_session)
 
     tws_connector = TwsConnector(
         config_reader=config_reader,
@@ -39,7 +39,6 @@ def build_quotes_processor():
         universe_db_manager=universe_db_manager,
         quotes_db_manager=quotes_db_manager,
         tws_connector=tws_connector,
-        signal_handler=signal_handler,
-        config_reader=config_reader)
+        orm_session=orm_session)
 
     return quotes_processor

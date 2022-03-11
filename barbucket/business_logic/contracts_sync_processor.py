@@ -16,10 +16,10 @@ class ContractSyncProcessor():
     def __init__(self,
                  listing_reader: IbExchangeListingReader,
                  contracts_db_manager: ContractsDbManager,
-                 session: Session) -> None:
+                 orm_session: Session) -> None:
         self._listing_reader = listing_reader
         self._contracts_db_manager = contracts_db_manager
-        self._session = session
+        self._orm_session = orm_session
 
     def sync_contracts_to_listing(self, exchange: Exchange) -> None:
 
@@ -40,19 +40,19 @@ class ContractSyncProcessor():
         removed_contracts = []
         for contract in db_contracts:
             if contract not in web_contracts:
-                self._session.delete(contract)
+                self._orm_session.delete(contract)
                 removed_contracts.append(contract)
 
         # Find addded contracts
         added_contracts = []
         for contract in web_contracts:
             if contract not in db_contracts:
-                self._session.add(contract)
+                self._orm_session.add(contract)
                 added_contracts.append(contract)
 
         # Execute
         if True:  # User acknowledge
-            self._session.commit()
+            self._orm_session.commit()
         else:
-            self._session.rollback()
-        self._session.close()
+            self._orm_session.rollback()
+        self._orm_session.close()

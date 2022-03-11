@@ -22,21 +22,21 @@ def build_contract_details_tv_processor():
     orm_connector = OrmConnector(
         connstring_assembler=connstring_assembler,
         base_class=Base)
-    session = orm_connector.get_session()
+    orm_session = orm_connector.get_session()
 
     files_reader = TvFilesReader(
         files_path=Path.home() / ".barbucket/tv_screener/",
         api_notation_translator=api_notation_translator)
 
     contract_details_tv_db_manager = ContractDetailsTvDbManager(
-        session=session)
+        orm_session=orm_session)
 
-    contracts_db_manager = ContractsDbManager(db_session=session)
+    contracts_db_manager = ContractsDbManager(orm_session=orm_session)
 
     contract_details_tv_processor = ContractDetailsTvProcessor(
         files_reader=files_reader,
         details_db_manager=contract_details_tv_db_manager,
         contracts_db_manager=contracts_db_manager,
-        session=session)
+        orm_session=orm_session)
 
     return contract_details_tv_processor

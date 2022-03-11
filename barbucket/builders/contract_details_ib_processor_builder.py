@@ -22,21 +22,21 @@ def build_contract_details_ib_processor():
     orm_connector = OrmConnector(
         connstring_assembler=connstring_assembler,
         base_class=Base)
-    session = orm_connector.get_session()
+    orm_session = orm_connector.get_session()
 
     tws_connector = TwsConnector(
         config_reader=config_reader,
         api_notation_translator=api_notation_translator)
 
     contract_details_ib_db_manager = ContractDetailsIbDbManager(
-        session=session)
+        orm_session=orm_session)
 
-    contracts_db_manager = ContractsDbManager(db_session=session)
+    contracts_db_manager = ContractsDbManager(orm_session=orm_session)
 
     contract_details_ib_processor = ContractDetailsIbProcessor(
         tws_connector=tws_connector,
         details_db_manager=contract_details_ib_db_manager,
         contracts_db_manager=contracts_db_manager,
-        session=session)
+        orm_session=orm_session)
 
     return contract_details_ib_processor

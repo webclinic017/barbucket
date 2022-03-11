@@ -13,11 +13,11 @@ class ContractDetailsIbProcessor():
                  tws_connector: TwsConnector,
                  details_db_manager: ContractDetailsIbDbManager,
                  contracts_db_manager: ContractsDbManager,
-                 session: Session) -> None:
+                 orm_session: Session) -> None:
         self._tws_connector = tws_connector
         self._details_db_manager = details_db_manager
         self._contracts_db_manager = contracts_db_manager
-        self._session = session
+        self._orm_session = orm_session
 
     def update_ib_contract_details(self) -> None:
         pb_manager = enlighten.get_manager()  # Setup progress bar
@@ -31,15 +31,15 @@ class ContractDetailsIbProcessor():
         for contract in contracts:
             self._handle_contract(contract=contract)
             progress_bar.update(inc=1)
-        self._session.close()
+        self._orm_session.close()
         self._tws_connector.disconnect()
 
     def _handle_contract(self, contract: Contract) -> None:
         try:
             details = self._tws_connector.download_contract_details(
                 contract=contract)
-        except RequestError as e:
-            pass  # log, does this handle no and multiple results?
+        except (RequestError, InvalidDataReceivedError):
+            pass
         else:
             self._details_db_manager.write_to_db(details=details)
-            self._session.commit()
+            self._orm_session.commit()

@@ -26,7 +26,7 @@ def build_contracts_sync_processor():
     orm_connector = OrmConnector(
         connstring_assembler=connstring_assembler,
         base_class=Base)
-    session = orm_connector.get_session()
+    orm_session = orm_connector.get_session()
 
     downloader = HtmlDownloader(
         api_notation_translator=api_notation_translator)
@@ -42,11 +42,11 @@ def build_contracts_sync_processor():
         pagecount_extractor=pagecount_extractor,
         contract_extractor=contract_extractor,)
 
-    contracts_db_manager = ContractsDbManager(db_session=session)
+    contracts_db_manager = ContractsDbManager(orm_session=orm_session)
 
     contracts_sync_processor = ContractSyncProcessor(
         listing_reader=listing_reader,
         contracts_db_manager=contracts_db_manager,
-        session=session)
+        orm_session=orm_session)
 
     return contracts_sync_processor
