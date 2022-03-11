@@ -9,7 +9,7 @@ from barbucket.domain_model.types import Api, Exchange, TickerSymbol, ApiNotatio
 from barbucket.util.config_reader import ConfigReader
 from barbucket.util.custom_exceptions import InvalidDataReceivedError
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class TwsConnector():
@@ -34,13 +34,13 @@ class TwsConnector():
             section="tws_connector",
             option="port"))
         self._ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-        logger.debug(f"Connected to TWS on '{IP}:{PORT}'.")
+        _logger.debug(f"Connected to TWS on '{IP}:{PORT}'.")
 
     def disconnect(self) -> None:
         """Disconnect from TWS"""
 
         self._ib.disconnect()
-        logger.debug("Disconnected from TWS.")
+        _logger.debug("Disconnected from TWS.")
 
     def download_historical_quotes(
             self, contract: Contract, duration: str) -> List[Quote]:
@@ -55,7 +55,7 @@ class TwsConnector():
             barSizeSetting='1 day',
             whatToShow='ADJUSTED_LAST',
             useRTH=True)
-        logger.debug(
+        _logger.debug(
             f"Received {len(ib_quotes)} quotes for '{contract}' with "
             f"timeframe '{duration.replace(' ', '')}' from TWS.")
 
@@ -80,7 +80,7 @@ class TwsConnector():
         ib_contract = self._create_ib_contract(contract)
         ib_details = self._ib.reqContractDetails(ib_contract)
         self._validate_details(contract=contract, details=ib_details)
-        logger.debug(
+        _logger.debug(
             f"Received contract_details for '{contract}' from TWS")
         stock_type_from_details = self._api_notation_translator.get_stock_type_from_api_notation(
             name=ib_details[0].stockType, api=Api.IB)
@@ -112,11 +112,10 @@ class TwsConnector():
 
     def _validate_details(self, contract: Contract, details: List[ContractDetails]) -> None:
         if details is None:
-            raise InvalidDataReceivedError(
-                f"Ib cont result for '{contract}' is None")
+            message = f"Ib cont result for '{contract}' is None"
         elif len(details) == 0:
-            raise InvalidDataReceivedError(
-                f"Result for '{contract}' is []")
+            message = f"Result for '{contract}' is []"
         elif len(details) > 1:
-            raise InvalidDataReceivedError(
-                f"Multiple results for '{contract}'")
+            message = f"Multiple results for '{contract}'"
+        _logger.info(message)
+        raise InvalidDataReceivedError(message)
