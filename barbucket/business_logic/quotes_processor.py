@@ -17,7 +17,7 @@ from barbucket.util.config_reader import ConfigReader
 _logger = logging.getLogger(__name__)
 
 
-class IbQuotesProcessor():
+class QuotesProcessor():
     """Provides methods to download historical quotes from TWS."""
 
     def __init__(
