@@ -4,17 +4,17 @@ from pathlib import Path
 
 
 class LoggingPreparator():
-    def _create_directories(self) -> None:
-        Path.mkdir(Path.home() / ".barbucket/tv_screener",
-                   parents=True, exist_ok=True)
-        Path.mkdir(Path.home() / ".barbucket/logs",
-                   parents=True, exist_ok=True)
 
     def setup_logging(self) -> None:
 
         def my_file_namer(filename):
             new_name = filename.replace(".log.", "_") + ".log"
             return new_name
+
+        Path.mkdir(Path.home() / ".barbucket/tv_screener",
+                   parents=True, exist_ok=True)
+        Path.mkdir(Path.home() / ".barbucket/logs",
+                   parents=True, exist_ok=True)
 
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
