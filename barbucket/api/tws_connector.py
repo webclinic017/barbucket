@@ -15,8 +15,10 @@ logger = logging.getLogger(__name__)
 class TwsConnector():
     """Provides methods to download data from IB TWS"""
 
-    def __init__(self, config_reader: ConfigReader) -> None:
+    def __init__(self, config_reader: ConfigReader,
+                 api_notation_translator: ApiNotationTranslator) -> None:
         self._config_reader = config_reader
+        self._api_notation_translator = api_notation_translator
         self._ib = IB()  # Create connection objec
         self._ib.RaiseRequestErrors = True  # Enable exceptions
         logging.getLogger("ib_insync").setLevel(
@@ -80,9 +82,9 @@ class TwsConnector():
         self._validate_details(contract=contract, details=ib_details)
         logger.debug(
             f"Received contract_details for '{contract}' from TWS")
-        stock_type_from_details = ApiNotationTranslator.get_stock_type_from_api_notation(
+        stock_type_from_details = self._api_notation_translator.get_stock_type_from_api_notation(
             name=ib_details[0].stockType, api=Api.IB)
-        primary_exchange = ApiNotationTranslator.get_exchange_from_api_notation(
+        primary_exchange = self._api_notation_translator.get_exchange_from_api_notation(
             name=ib_details[0].contract.primaryExchange, api=Api.IB)
         details = ContractDetailsIb(
             contract=contract,
