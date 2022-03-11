@@ -2,6 +2,8 @@ import signal
 import logging
 from typing import Any
 
+from barbucket.util.custom_exceptions import ExitSignalDetectedError
+
 
 _logger = logging.getLogger(__name__)
 
@@ -27,9 +29,11 @@ class SignalHandler():
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self._state = True
 
-    def is_exit_requested(self) -> bool:
+    def is_exit_requested(self, throw: bool = False) -> bool:
         """Check if the user pressed Ctrl+C.
 
         :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
         """
+        if self._state and throw:
+            raise ExitSignalDetectedError("User pressed 'Ctrl+C'.")
         return self._state
