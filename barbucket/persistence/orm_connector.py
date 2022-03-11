@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
-from .connectionstring_assembler import ConnectionStringAssembler
+from barbucket.persistence.connectionstring_assembler import ConnectionStringAssembler
 
 
 _logger = getLogger(__name__)
