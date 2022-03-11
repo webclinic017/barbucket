@@ -5,6 +5,7 @@ from math import ceil
 import numpy as np
 import enlighten
 from ib_insync.wrapper import RequestError
+from sqlalchemy.orm import Session
 
 from barbucket.domain_model.data_classes import Contract
 from barbucket.persistence.data_managers import UniverseDbManager, QuotesDbManager
@@ -25,14 +26,14 @@ class QuotesProcessor():
             quotes_db_manager: QuotesDbManager,
             tws_connector: TwsConnector,
             # status_hadler: QuotesStatusHandler,
-            signal_handler: SignalHandler,
-            config_reader: ConfigReader) -> None:
+            config_reader: ConfigReader,
+            orm_session: Session) -> None:
         self._universes_db_manager = universe_db_manager
         self._quotes_db_manager = quotes_db_manager
         self._tws_connector = tws_connector
         # self._status_handler = status_hadler
-        self._signal_handler = signal_handler
         self._config_reader = config_reader
+        self._orm_session = orm_session
 
     def download_historical_quotes(self, universe: str) -> None:
         """Download historical quotes from TWS
@@ -41,6 +42,7 @@ class QuotesProcessor():
         :type universe: str
         """
 
+        signal_handler = SignalHandler()
         manager = enlighten.get_manager()  # Setup progress bar
         progress_bar = manager.counter(
             total=0, desc="Contracts", unit="contracts")
@@ -48,7 +50,7 @@ class QuotesProcessor():
         progress_bar.total = len(contracts)
         self._tws_connector.connect()  # todo catch exceptioin if tws is not available
         for contract in contracts:
-            if self._signal_handler.is_exit_requested():
+            if signal_handler.is_exit_requested():
                 self._tws_connector.disconnect()
                 return
             if self._is_quotes_recent(contract=contract):
@@ -68,11 +70,13 @@ class QuotesProcessor():
                 continue
             else:
                 self._quotes_db_manager.write_to_db(quotes=quotes)
+                self._orm_session.commit()
                 progress_bar.update(incr=1)
         _logger.info(
             f"Finished downloading historical data for universe "
             f"'{universe}'")
         self._tws_connector.disconnect()
+        self._orm_session.close()
 
     def _is_quotes_recent(self, contract: Contract) -> bool:
         redownload_days = self._config_reader.get_config_value_single(
