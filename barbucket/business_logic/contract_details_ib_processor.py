@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.orm import Session
 import enlighten
 from ib_insync.wrapper import RequestError
@@ -5,6 +6,11 @@ from ib_insync.wrapper import RequestError
 from barbucket.api.tws_connector import TwsConnector
 from barbucket.persistence.data_managers import ContractDetailsIbDbManager, ContractsDbManager
 from barbucket.domain_model.data_classes import Contract
+from barbucket.util.custom_exceptions import InvalidDataReceivedError
+from barbucket.util.signal_handler import SignalHandler
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ContractDetailsIbProcessor():
@@ -20,6 +26,7 @@ class ContractDetailsIbProcessor():
         self._orm_session = orm_session
 
     def update_ib_contract_details(self) -> None:
+        signal_handler = SignalHandler()
         pb_manager = enlighten.get_manager()  # Setup progress bar
         progress_bar = pb_manager.counter(
             total=0, desc="Contracts", unit="contracts")
@@ -29,6 +36,8 @@ class ContractDetailsIbProcessor():
         progress_bar.total = len(contracts)
         self._tws_connector.connect()
         for contract in contracts:
+            if signal_handler.is_exit_requested():
+                break
             self._handle_contract(contract=contract)
             progress_bar.update(inc=1)
         self._orm_session.close()
