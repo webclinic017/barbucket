@@ -8,14 +8,11 @@ from barbucket.persistence.connectionstring_assembler import ConnectionStringAss
 from barbucket.persistence.data_managers import QuotesDbManager, UniverseDbManager
 from barbucket.persistence.orm_connector import OrmConnector
 from barbucket.util.config_reader import ConfigReader
-from barbucket.util.signal_handler import SignalHandler
 
 
 def build_quotes_processor():
     config_reader = ConfigReader(
         filepath=Path.home() / ".barbucket/config/config.cfg")
-
-    signal_handler = SignalHandler()
 
     api_notation_translator = ApiNotationTranslator()
 
@@ -39,6 +36,7 @@ def build_quotes_processor():
         universe_db_manager=universe_db_manager,
         quotes_db_manager=quotes_db_manager,
         tws_connector=tws_connector,
+        config_reader=config_reader,
         orm_session=orm_session)
 
     return quotes_processor
