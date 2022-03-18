@@ -11,11 +11,6 @@ class LoggingPreparator():
             new_name = filename.replace(".log.", "_") + ".log"
             return new_name
 
-        Path.mkdir(Path.home() / ".barbucket/tv_screener",
-                   parents=True, exist_ok=True)
-        Path.mkdir(Path.home() / ".barbucket/logs",
-                   parents=True, exist_ok=True)
-
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
 
