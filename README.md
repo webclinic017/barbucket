@@ -1,7 +1,6 @@
 # Barbucket
 
 ![python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![sqlite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 ![maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 ![license](https://img.shields.io/github/license/croidzen/barbucket.svg)
 ![issues_open](https://img.shields.io/github/issues/croidzen/barbucket.svg)
@@ -42,13 +41,17 @@ See results at:
 * ETFs
 * Crypto currencies (planned)
 
-## DBMS
+## Supported DBMS
+* PostgreSQL
 * SQLite
-* PostgreSQL (planned)
+* MySQL / MariaDB
+* MS SQL Server
+* Oracle
+* [even more](https://docs.sqlalchemy.org/en/14/dialects/)
 
 ## APIs
 * [Intercative Brokers](http://interactivebrokers.com) TWS API
-* [Tradingview](https://tradingview.com) screener .csv files
+* [Tradingview](https://tradingview.com)-Screener .csv files
 * [EOD Historical Data](https://eodhistoricaldata.com) (planned)
 * [CCXT](https://github.com/ccxt/ccxt) (planned)
 
