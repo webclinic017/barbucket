@@ -97,8 +97,9 @@ class IbExchangeListingMultipageReader(IbExchangeListingReader):
                 exchange=exchange, page=current_page)
             # html = self._corrector.correct_ib_error_multipage(html=html)
             if current_page == 1:
-                progress_bar.total = self._pagecount_extractor.get_page_count(
+                page_count = self._pagecount_extractor.get_page_count(
                     html)
+                progress_bar.total = page_count
             page_contracts = self._contract_extractor.extract_contracts(
                 html=html, exchange=exchange)
             _logger.debug(f"Scraped IB exchange listing for '{exchange.name}', "
