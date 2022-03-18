@@ -14,11 +14,11 @@ class LoggingPreparator():
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
 
-        # console_handler = logging.StreamHandler()
-        # console_handler.setLevel(logging.INFO)
-        # console_formatter = logging.Formatter("%(message)s")
-        # console_handler.setFormatter(console_formatter)
-        # root_logger.addHandler(console_handler)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_formatter = logging.Formatter("%(message)s")
+        console_handler.setFormatter(console_formatter)
+        root_logger.addHandler(console_handler)
 
         file_handler = logging.handlers.TimedRotatingFileHandler(
             filename=Path.home() / ".barbucket/logs/logfile.log",
