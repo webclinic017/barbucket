@@ -23,9 +23,10 @@ enlighten = "*"
 ib-insync = "*"
 numpy = "*"
 pandas = "*"
+psycopg2-binary = "*"
 requests = "*"
 sqlalchemy = "*"
 trading-calendars = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"
