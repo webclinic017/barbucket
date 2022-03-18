@@ -5,13 +5,13 @@
 ## Documentation
 ### Build
 * Is done by readthedocs after receiving webhook request.
-* Can be done locally with: `$ docs/make html` but result is excluded from git.
+* Can be done locally with: `$ docs/make html`, result is excluded from git.
 
 ### Upload
 * https://readthedocs.org/projects/barbucket/
-* Github webhook is triggered on certain events. RTD receives the request and pulls the pre-built documentation files.
+* Github webhook is triggered on certain events. RTD receives the request and builds the docs itself.
 
-## Package
+## Python package
 ### Local pre-build testing
 * `$ pip install <barbucket_project_directory> -e`
 
