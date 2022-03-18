@@ -58,5 +58,5 @@ class ContractDetailsTvProcessor():
                 employees=row.employees,
                 profit=row.profit,
                 revenue=row.revenue)
-            self._details_db_manager.write_to_db(details=details)
+            self._details_db_manager.add_to_db(details=details)
             self._orm_session.commit()
