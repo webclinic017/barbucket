@@ -45,8 +45,7 @@ def sync_listing(contract_type: str, exchange: str) -> None:
     ex = _create_exchange(exchange.upper())
     ct = _create_contract_type(contract_type.upper())
     contracts_sync_processor = build_contracts_sync_processor()
-    contracts_sync_processor.sync_contracts_to_listing(
-        ctype=ct, exchange=ex)
+    contracts_sync_processor.sync_contracts_to_listing(exchange=ex)
 
 
 @contracts.command()
