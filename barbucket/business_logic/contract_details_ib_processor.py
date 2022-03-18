@@ -1,4 +1,5 @@
 import logging
+
 from sqlalchemy.orm import Session
 import enlighten
 from ib_insync.wrapper import RequestError
@@ -50,5 +51,5 @@ class ContractDetailsIbProcessor():
         except (RequestError, InvalidDataReceivedError):
             pass
         else:
-            self._details_db_manager.write_to_db(details=details)
+            self._details_db_manager.add_to_db(details=details)
             self._orm_session.commit()
