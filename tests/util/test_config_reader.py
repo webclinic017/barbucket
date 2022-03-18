@@ -16,7 +16,7 @@ _logger.debug(f"--------- ---------- Testing ConfigReader")
 def mock_filepath(tmp_path: Path) -> Generator:
     """Creating temp path for config file"""
     _logger.debug(f"---------- Fixture: mock_filepath")
-    filepath = tmp_path / ".barbucket/config/config.cfg"
+    filepath = tmp_path / ".barbucket/config.cfg"
     yield filepath
 
 
@@ -24,7 +24,7 @@ def mock_filepath(tmp_path: Path) -> Generator:
 def dummy_filepath(mock_filepath: Path) -> Generator:
     """Creating mock config file"""
     _logger.debug(f"---------- Fixture: dummy_file")
-    dummy_file = "tests/_resources/config/config_dummy.cfg"
+    dummy_file = "tests/_resources/config_dummy.cfg"
     Path.mkdir(mock_filepath.parent, parents=True, exist_ok=True)
     copyfile(dummy_file, mock_filepath)
     yield mock_filepath

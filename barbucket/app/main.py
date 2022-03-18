@@ -15,10 +15,6 @@ def main():
 def _make_dirs() -> None:
     Path.mkdir(Path.home() / ".barbucket/tv_screener",
                parents=True, exist_ok=True)
-    Path.mkdir(Path.home() / ".barbucket/config",
-               parents=True, exist_ok=True)
-    Path.mkdir(Path.home() / ".barbucket/database",
-               parents=True, exist_ok=True)
     Path.mkdir(Path.home() / ".barbucket/logs",
                parents=True, exist_ok=True)
 

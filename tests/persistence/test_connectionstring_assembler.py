@@ -17,7 +17,7 @@ def test_assemble_sqlite():
     """Assemble a connection string for 'Sqlite'"""
     _logger.debug(f"---------- Test: test_assemble_sqlite")
 
-    filepath = Path.home() / ".barbucket/database/database.sqlite"
+    filepath = Path.home() / ".barbucket/database.sqlite"
     expected_connstring = f"sqlite:///{filepath}"
 
     config_reader = MockConfigReaderSqlite()

@@ -16,7 +16,7 @@ from barbucket.util.config_reader import ConfigReader
 
 def build_contracts_sync_processor():
     config_reader = ConfigReader(
-        filepath=Path.home() / ".barbucket/config/config.cfg")
+        filepath=Path.home() / ".barbucket/config.cfg")
 
     api_notation_translator = ApiNotationTranslator()
 

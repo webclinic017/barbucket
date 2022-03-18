@@ -21,7 +21,7 @@ class ConnectionStringAssembler():
             filename = self._config_reader.get_config_value_single(
                 section="database",
                 option="sqlite_filename")
-            location = Path.home() / ".barbucket/database/"
+            location = Path.home() / ".barbucket/"
             filepath = location / filename
             connection_string = f"sqlite:///{filepath}"
         else:

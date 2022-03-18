@@ -9,7 +9,7 @@ from barbucket.util.config_reader import ConfigReader
 
 def build_universe_db_manager():
     config_reader = ConfigReader(
-        filepath=Path.home() / ".barbucket/config/config.cfg")
+        filepath=Path.home() / ".barbucket/config.cfg")
 
     connstring_assembler = ConnectionStringAssembler(
         config_reader=config_reader)
