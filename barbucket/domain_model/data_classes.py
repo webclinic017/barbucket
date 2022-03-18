@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, UniqueConstraint, Identity
 from sqlalchemy.orm import declarative_base, relationship
 
 
@@ -7,16 +7,16 @@ Base = declarative_base()
 
 class Contract(Base):
     __tablename__ = 'contracts'
-    __table_args__ = (UniqueConstraint(
-        'contract_type', 'exchange', 'broker_symbol', 'currency'),)
+    __table_args__ = (UniqueConstraint('contract_type', 'exchange',
+                                       'broker_symbol', 'currency'), )
 
     id = Column(Integer, primary_key=True)
     contract_type = Column(String(30))
     exchange = Column(String(30))
     broker_symbol = Column(String(30))
+    currency = Column(String(30))
     exchange_symbol = Column(String(30))
     name = Column(String(100))
-    currency = Column(String(30))
 
     universe_memberships = relationship(
         "UniverseMembership",
@@ -50,6 +50,9 @@ class Contract(Base):
             (self.exchange == other.exchange) and
             (self.broker_symbol == other.broker_symbol) and
             (self.currency == other.currency))
+
+    def __hash__(self):
+        return hash((self.contract_type, self.exchange, self.broker_symbol, self.currency))
 
     def __repr__(self):
         return f"""Contract(
@@ -166,7 +169,7 @@ class ContractDetailsTv(Base):
 
 class Quote(Base):
     __tablename__ = 'quotes'
-    __table_args__ = (UniqueConstraint('contract_id', 'date'),)
+    # __table_args__ = (UniqueConstraint('contract_id', 'date'),)
 
     contract_id = Column(
         Integer,
