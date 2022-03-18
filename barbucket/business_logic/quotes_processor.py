@@ -69,7 +69,7 @@ class QuotesProcessor():
                     progress_bar.update(incr=1)
                 continue
             else:
-                self._quotes_db_manager.write_to_db(quotes=quotes)
+                self._quotes_db_manager.upsert_to_db(quotes=quotes)
                 self._orm_session.commit()
                 progress_bar.update(incr=1)
         _logger.info(
