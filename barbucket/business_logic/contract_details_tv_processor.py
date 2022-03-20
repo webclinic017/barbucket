@@ -57,12 +57,13 @@ class ContractDetailsTvProcessor():
         else:
             # Add screener data to db
             details = ContractDetailsTv(
-                contract=contract,
+                contract_id=contract.id,
                 market_cap=row.market_cap,
                 avg_vol_30_in_curr=row.avg_vol_30_in_curr,
                 country=row.country,
                 employees=row.employees,
                 profit=row.profit,
                 revenue=row.revenue)
+            self._orm_session.expunge_all()
             self._details_db_manager.add_to_db(details=details)
             self._orm_session.commit()
