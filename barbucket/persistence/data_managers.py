@@ -2,7 +2,7 @@ from typing import List
 import logging
 from datetime import date
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, delete, and_
 from sqlalchemy.orm import Session
 
 from barbucket.domain_model.data_classes import\
@@ -16,14 +16,37 @@ class UniverseDbManager():
     def __init__(self, orm_session: Session) -> None:
         self._orm_session = orm_session
 
-    def get_members(self, universe: str) -> List[Contract]:
+    def create_universe(self, name: str, contracts: List[Contract]) -> None:
+        for contract in contracts:
+            um = UniverseMembership(universe=name, contract=contract)
+            self._orm_session.add(um)
+        _logger.debug(f"Created universe '{name}' with {len(contracts)} "
+                      f"members with session '{self._orm_session}'.")
+
+    def is_existing(self, name: str) -> bool:
+        universes = self.get_universes()
+        return name in universes
+
+    def get_universes(self) -> List[str]:
+        statement = (select(UniverseMembership.universe).distinct())
+        universes = self._orm_session.execute(statement).scalars().all()
+        _logger.debug(f"Read {len(universes)} universes from database with "
+                      f"session '{self._orm_session}'.")
+        return universes
+
+    def get_members(self, name: str) -> List[Contract]:
         statement = (select(UniverseMembership)
-                     .where(UniverseMembership.universe == universe))
-        result = self._orm_session.execute(statement).scalars()
+                     .where(UniverseMembership.universe == name))
+        result = self._orm_session.execute(statement).scalars().all()
         members = [row.contract for row in result]
-        _logger.debug(f"Read {len(members)} members for universe '{universe}' "
+        _logger.debug(f"Read {len(members)} members for universe '{name}' "
                       f"from database with session '{self._orm_session}'.")
         return members
+
+    def delete_universe(self, name: str) -> None:
+        statement = (delete(UniverseMembership)
+                     .where(UniverseMembership.universe == name))
+        self._orm_session.execute(statement)
 
 
 class ContractsDbManager():
@@ -106,33 +129,38 @@ class QuotesDbManager():
 
     def upsert_to_db(self, quotes: List[Quote]) -> None:
         # Needs to overwrite existing quotes
-        contract = quotes[0].contract
+        contract_id = quotes[0].contract_id
         dates = [quote.date for quote in quotes]
         conflicted_quotes = self._orm_session.execute(
-            select(Quote).where(
-                and_(Quote.contract == contract, Quote.date.in_(dates)))
+            select(Quote)
+            .where(and_(Quote.contract_id == contract_id, Quote.date.in_(dates)))
+            .execution_options(autoflush=False)
         ).scalars().all()
-        self._orm_session.add(conflicted_quotes)
+        # self._orm_session.add_all(conflicted_quotes)  # unnecessary?
+        n_added = 0
+        n_replaced = 0
         for quote in quotes:
             if quote in conflicted_quotes:
                 self._orm_session.merge(quote)
+                n_replaced += 1
             else:
                 self._orm_session.add(quote)
-        _logger.debug(f"Added {len(quotes)} quotes to session "
-                      f"'{self._orm_session}'. Last quote is '{quotes[-1]}'")
+                n_added += 1
+        _logger.debug(f"{n_added} quotes added and {n_replaced} replaced "
+                      f"within session '{self._orm_session}'.")
 
     def contract_has_quotes(self, contract: Contract) -> bool:
         statement = (select(Quote.contract_id).where(
             Quote.contract == contract))
-        count = self._orm_session.execute(statement).count()
-        return bool(count)
+        result = self._orm_session.execute(statement).scalars().all()
+        return bool(len(result))
 
     def get_latest_quote_date(self, contract: Contract) -> date:
         statement = select(Quote.date).\
             where(Quote.contract == contract).\
             order_by(Quote.date.desc())
-        quote = self._orm_session.execute(statement).first().scalar()
-        return quote.date
+        date_ = self._orm_session.execute(statement).scalars().first()
+        return date_
 
 
 class ContractDetailsIbDbManager():
