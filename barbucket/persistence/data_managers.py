@@ -181,6 +181,6 @@ class ContractDetailsTvDbManager():
         self._orm_session = orm_session
 
     def add_to_db(self, details: ContractDetailsTv) -> None:
-        self._orm_session.add(details)
+        self._orm_session.merge(details)
         _logger.debug(f"Added ContractDetailsTv '{details}' to session "
                       f"'{self._orm_session}'")
