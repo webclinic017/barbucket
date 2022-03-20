@@ -169,13 +169,14 @@ class ContractDetailsTv(Base):
 
 class Quote(Base):
     __tablename__ = 'quotes'
-    __table_args__ = (UniqueConstraint('contract_id', 'date'),)
+    # __table_args__ = (UniqueConstraint('contract_id', 'date'),)
 
-    id = Column(Integer, primary_key=True)
+    # id = Column(Integer, primary_key=True)
     contract_id = Column(
         Integer,
-        ForeignKey('contracts.id', ondelete="CASCADE"))
-    date = Column(Date)
+        ForeignKey('contracts.id', ondelete="CASCADE"),
+        primary_key=True)
+    date = Column(Date, primary_key=True)
     open = Column(Float)
     high = Column(Float)
     low = Column(Float)
@@ -187,7 +188,7 @@ class Quote(Base):
 
     def __eq__(self, other):
         return (
-            (self.contract == other.contract) and
+            (self.contract_id == other.contract_id) and
             (self.date == other.date))
 
     def __repr__(self):
