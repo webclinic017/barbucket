@@ -83,14 +83,14 @@ class TwsConnector():
         self._validate_details(contract=contract, details=ib_details)
         _logger.debug(
             f"Received contract_details for '{contract}' from TWS")
-        stock_type_from_details = self._api_notation_translator.get_stock_type_from_api_notation(
+        stock_type = self._api_notation_translator.get_stock_type_from_api_notation(
             name=ib_details[0].stockType, api=Api.IB)
         primary_exchange = self._api_notation_translator.get_exchange_from_api_notation(
             name=ib_details[0].contract.primaryExchange, api=Api.IB)
         details = ContractDetailsIb(
             contract=contract,
-            stock_type_from_details=stock_type_from_details,
-            primary_exchange=primary_exchange,
+            stock_type=stock_type.name,
+            primary_exchange=primary_exchange.name,
             industry=ib_details[0].industry,
             category=ib_details[0].category,
             subcategory=ib_details[0].subcategory)
