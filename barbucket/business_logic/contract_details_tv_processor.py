@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 import enlighten
@@ -8,6 +10,9 @@ from barbucket.domain_model.data_classes import ContractDetailsTv, Contract
 from barbucket.domain_model.tv_screener_row import TvScreenerRow
 from barbucket.domain_model.types import ContractType
 from barbucket.util.signal_handler import SignalHandler
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ContractDetailsTvProcessor():
@@ -45,9 +50,10 @@ class ContractDetailsTvProcessor():
             contract = self._contracts_db_manager.get_one_by_filters(
                 filters=contract_filters)
         except NoResultFound:
-            pass  # log
+            _logger.debug(f"No contract found for screener row '{row}'.")
         except MultipleResultsFound:
-            pass  # log
+            _logger.error(
+                f"Multiple contracts found for screener row '{row}'.")
         else:
             # Add screener data to db
             details = ContractDetailsTv(
