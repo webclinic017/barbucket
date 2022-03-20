@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Date, BigInteger, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
 
@@ -120,12 +120,12 @@ class ContractDetailsTv(Base):
         Integer,
         ForeignKey('contracts.id', ondelete="CASCADE"),
         primary_key=True)
-    market_cap = Column(Integer)
-    avg_vol_30_in_curr = Column(Integer)
+    market_cap = Column(BigInteger)
+    avg_vol_30_in_curr = Column(BigInteger)
     country = Column(String(30))
     employees = Column(Integer)
-    profit = Column(Integer)
-    revenue = Column(Integer)
+    profit = Column(BigInteger)
+    revenue = Column(BigInteger)
 
     contract = relationship(
         "Contract", back_populates="contract_details_tv")
