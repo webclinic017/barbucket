@@ -35,6 +35,7 @@ class ContractDetailsIbProcessor():
         contracts = self._contracts_db_manager.get_by_filters(
             filters=contract_filters)
         progress_bar.total = len(contracts)
+        _logger.info(f"Found {len(contracts)} contracts without IB-details.")
         self._tws_connector.connect()
         for contract in contracts:
             if signal_handler.is_exit_requested():
