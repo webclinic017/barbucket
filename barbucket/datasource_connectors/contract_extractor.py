@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 from barbucket.domain_model.data_classes import Contract
 from barbucket.domain_model.types import Api, Exchange, ContractType, ApiNotationTranslator
+import barbucket.util.custom_exceptions as custom_exceptions
 
 
 _logger = logging.getLogger(__name__)
@@ -37,46 +38,7 @@ class ContractExtractor():
                 exchange=exchange.name)
             website_contracts.append(contract)
         if website_contracts == []:
-            # error
-            pass
-        # todo: log amount
+            raise custom_exceptions.InvalidDataReceivedError(
+                "No contracts in webpage found.")
+        _logger.debug(f"Found {len(website_contracts)} contracts in webpage.")
         return website_contracts
-
-    # def extract_data_multipage(self, html: str) -> List[Contract]:
-    #     soup = BeautifulSoup(html, 'html.parser')
-    #     tables = soup.find_all(
-    #         'table',
-    #         class_='table table-striped table-bordered')
-    #     rows = tables[2].tbody.find_all('tr')
-
-    #     for row in rows:
-    #         cols = row.find_all('td')
-    #         row_dict = {
-    #             'type': self.cont_type,
-    #             'broker_symbol': Symbol.decode(
-    #                 name=cols[0].text.strip(),
-    #                 from_api=Api.IB),
-    #             'name': cols[1].text.strip(),
-    #             'exchange_symbol': Symbol.decode(
-    #                 name=cols[2].text.strip(),
-    #                 from_api=Api.IB),
-    #             'currency': cols[3].text.strip(),
-    #             'exchange': Exchange.decode(
-    #                 name=self._exchange,
-    #                 from_api=Api.IB)}
-    #         self._website_data.append(row_dict)
-    #     # todo: log ammount
-    #     # todo: handle ammount == 0
-
-    # @classmethod
-    # def _validate_result(self, contracts):
-    #     if len(contracts) == 0:
-    #         raise WebscrapingReturnedNoResultError
-
-
-class WebscrapingReturnedNoResultError(Exception):
-    """Obviously something went wrong."""
-
-    def __init__(self, message) -> None:
-        self.message = message
-        super().__init__(message)
