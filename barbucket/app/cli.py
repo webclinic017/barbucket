@@ -7,7 +7,7 @@ from barbucket.builders.contracts_sync_processor_builder import build_contracts_
 from barbucket.builders.contract_details_ib_processor_builder import build_contract_details_ib_processor
 from barbucket.builders.contract_details_tv_processor_builder import build_contract_details_tv_processor
 from barbucket.builders.quotes_processor_builder import build_quotes_processor
-from barbucket.builders.universe_db_manager_builder import build_universe_db_manager
+from barbucket.builders.universe_processor_builder import build_universe_processor
 from barbucket.domain_model.types import Exchange, ContractType
 
 _logger = logging.getLogger(__name__)
@@ -42,10 +42,14 @@ def sync_listing(contract_type: str, exchange: str) -> None:
     _logger.debug(
         f"User requested to sync '{contract_type}' contracts on '{exchange}' "
         f"to master listing via the cli.")
-    ex = _create_exchange(exchange.upper())
-    ct = _create_contract_type(contract_type.upper())
-    contracts_sync_processor = build_contracts_sync_processor()
-    contracts_sync_processor.sync_contracts_to_listing(exchange=ex)
+    try:
+        ex = _create_exchange(exchange.upper())
+        ct = _create_contract_type(contract_type.upper())
+    except KeyError:
+        pass
+    else:
+        contracts_sync_processor = build_contracts_sync_processor()
+        contracts_sync_processor.sync_contracts_to_listing(exchange=ex)
 
 
 @contracts.command()
@@ -93,71 +97,53 @@ def universes() -> None:
     """Universes commands"""
 
 
+@universes.command()
+@click.option("-n", "--name", "name", required=True, type=str)
+@click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
+def create(name: str, contract_ids: str) -> None:
+    """Create new universe"""
+
+    _logger.debug(f"User requested to create universe '{name}' with "
+                  f"{len(contract_ids)} members via the cli.")
+    universes_processor = build_universe_processor()
+    universes_processor.create_universe(name=name, contract_ids=contract_ids)
+
+
+@universes.command(name="list")
+def list_() -> None:
+    """List existing universes"""
+
+    _logger.debug(
+        f"User requested to list all existing universes via the cli.")
+    universes_processor = build_universe_processor()
+    universes_processor.get_universes()
+
+
 # @universes.command()
 # @click.option("-n", "--name", "name", required=True, type=str)
-# @click.option("-c", "--contract_ids", "contract_ids", required=True, type=str)
-# def create(name: str, contract_ids: str) -> None:
-#     """Create new universe"""
+# def members(name: str) -> None:
+#     """List universes members"""
 
 #     name = name.upper()
 #     _logger.debug(
-#         f"User requested to create universe '{name}' with {len(contract_ids)} "
-#         f"members via the cli.")
-#     con_list = [int(n) for n in contract_ids.split(",")]
+#         f"User requested to list the members of universe '{name}' via the cli.")
 #     universes_db_connector = build_universe_db_manager()
-#     universes_db_connector.create_universe(
-#         name=name,
-#         contract_ids=con_list)
-#     _logger.info(f"Created universe '{name}' with {len(con_list)} contracts.")
-
-
-# @universes.command()
-# def list() -> None:
-#     """List all universes"""
-
-#     _logger.debug(
-#         f"User requested to list all existing universes via the cli.")
-#     universes_db_connector = build_universe_db_manager()
-#     universes = universes_db_connector.get_universes()
-#     if universes:
-#         _logger.info(f"Existing universes: {universes}")
+#     members = universes_db_connector.get_members(universe=name)
+#     if members:
+#         _logger.info(f"Members of universe '{name}': {members}")
 #     else:
-#         _logger.info(f"No existing universes")
+#         _logger.info(f"Universe '{name}' does not exist.")
 
 
 @universes.command()
 @click.option("-n", "--name", "name", required=True, type=str)
-def members(name: str) -> None:
-    """List universes members"""
+def delete(name: str) -> None:
+    """Delete universe"""
 
-    name = name.upper()
     _logger.debug(
-        f"User requested to list the members of universe '{name}' via the cli.")
-    universes_db_connector = build_universe_db_manager()
-    members = universes_db_connector.get_members(universe=name)
-    if members:
-        _logger.info(f"Members of universe '{name}': {members}")
-    else:
-        _logger.info(f"Universe '{name}' does not exist.")
-
-
-# @universes.command()
-# @click.option("-n", "--name", "name", required=True, type=str)
-# @click.confirmation_option(
-#     prompt=("Are you sure you want to delete this universe?"))
-# def delete(name: str) -> None:
-#     """Delete universe"""
-
-#     name = name.upper()
-#     _logger.debug(
-#         f"User requested to delete the universe '{name}' via the cli.")
-#     universes_db_connector = build_universe_db_manager()
-#     n_affeced_rows = universes_db_connector.delete_universe(universe=name)
-#     if n_affeced_rows > 0:
-#         _logger.info(
-#             f"Deleted universe '{name}' with {n_affeced_rows} members.")
-#     else:
-#         _logger.info(f"Universe '{name}' did not exist.")
+        f"User requested to delete the universe '{name}' via the cli.")
+    universes_processor = build_universe_processor()
+    universes_processor.delete_universe(name=name)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~ private functions ~~~~~~~~~~~~~~~~~~~~~
