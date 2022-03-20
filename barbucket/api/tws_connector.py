@@ -27,14 +27,14 @@ class TwsConnector():
     def connect(self) -> None:
         """Connect to TWS"""
 
-        IP = self._config_reader.get_config_value_single(
+        HOST = self._config_reader.get_config_value_single(
             section="tws_connector",
-            option="ip")
+            option="host")
         PORT = int(self._config_reader.get_config_value_single(
             section="tws_connector",
             option="port"))
-        self._ib.connect(host=IP, port=PORT, clientId=1, readonly=True)
-        _logger.debug(f"Connected to TWS on '{IP}:{PORT}'.")
+        self._ib.connect(host=HOST, port=PORT, clientId=1, readonly=True)
+        _logger.debug(f"Connected to TWS on '{HOST}:{PORT}'.")
 
     def disconnect(self) -> None:
         """Disconnect from TWS"""
@@ -60,18 +60,18 @@ class TwsConnector():
             f"timeframe '{duration.replace(' ', '')}' from TWS.")
 
         # Reformat recieved data
-        quotes_list = []
+        quotes = []
         for ib_quote in ib_quotes:
             quote = Quote(
-                contract=contract,
+                # contract=contract,
                 date=ib_quote.date,
                 open=ib_quote.open,
                 high=ib_quote.high,
                 low=ib_quote.low,
                 close=ib_quote.close,
                 volume=ib_quote.volume)
-            quotes_list.append(quote)
-        return quotes_list
+            quotes.append(quote)
+        return quotes
 
     def download_contract_details(self, contract: Contract) -> ContractDetailsIb:
         """Download details for a contract from IB TWS
