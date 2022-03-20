@@ -47,7 +47,7 @@ See results at:
 * MySQL / MariaDB
 * MS SQL Server
 * Oracle
-* [even more](https://docs.sqlalchemy.org/en/14/dialects/)
+* [and even more](https://docs.sqlalchemy.org/en/14/dialects/)
 
 ## APIs
 * [Intercative Brokers](http://interactivebrokers.com) TWS API
