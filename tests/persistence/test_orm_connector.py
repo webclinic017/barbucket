@@ -180,6 +180,7 @@ def test_delete_one(
     session.commit()
     assert dummy_one.id == 1
     session.delete(dummy_one)
+    session.commit()
     returned_one = session.execute(select(DummyClassOne)).scalars().all()
     assert len(returned_one) == 0
 
@@ -194,6 +195,7 @@ def test_delete_both(
     session.commit()
     assert dummy_two.dummy_one.id == 1
     session.delete(dummy_one)
+    session.commit()
     returned_one = session.execute(select(DummyClassOne)).scalars().all()
     assert len(returned_one) == 0
     returned_two = session.execute(select(DummyClassTwo)).scalars().all()
