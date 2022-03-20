@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, UniqueConstraint, Identity
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
 
@@ -169,13 +169,13 @@ class ContractDetailsTv(Base):
 
 class Quote(Base):
     __tablename__ = 'quotes'
-    # __table_args__ = (UniqueConstraint('contract_id', 'date'),)
+    __table_args__ = (UniqueConstraint('contract_id', 'date'),)
 
+    id = Column(Integer, primary_key=True)
     contract_id = Column(
         Integer,
-        ForeignKey('contracts.id', ondelete="CASCADE"),
-        primary_key=True)
-    date = Column(Date, primary_key=True)
+        ForeignKey('contracts.id', ondelete="CASCADE"))
+    date = Column(Date)
     open = Column(Float)
     high = Column(Float)
     low = Column(Float)
@@ -184,6 +184,11 @@ class Quote(Base):
 
     contract = relationship(
         "Contract", back_populates="quote")
+
+    def __eq__(self, other):
+        return (
+            (self.contract == other.contract) and
+            (self.date == other.date))
 
     def __repr__(self):
         return f"""QuotesStatus(
