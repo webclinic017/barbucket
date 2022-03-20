@@ -93,7 +93,7 @@ class ContractDetailsIb(Base):
         Integer,
         ForeignKey('contracts.id', ondelete="CASCADE"),
         primary_key=True)
-    stock_type_from_details = Column(String(30))
+    stock_type = Column(String(30))
     primary_exchange = Column(String(30))
     industry = Column(String(30))
     category = Column(String(30))
@@ -105,7 +105,7 @@ class ContractDetailsIb(Base):
     def __repr__(self):
         return f"""ContractDetailsIb(
             contract_id={self.contract_id},
-            stock_type_from_details={self.stock_type_from_details},
+            stock_type={self.stock_type},
             primary_exchange={self.primary_exchange},
             industry={self.industry},
             category={self.category},

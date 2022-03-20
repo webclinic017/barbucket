@@ -117,7 +117,7 @@ def test_retrieve_universe_membership(
 def dummy_contract_details_ib(dummy_contract) -> Generator:
     _logger.debug(f"---------- Fixture: dummy_contract_details_ib")
     details = ContractDetailsIb(
-        stock_type_from_details="test_stock_type_from_details",
+        stock_type="test_stock_type",
         primary_exchange="test_primary_exchange",
         industry="test_industry",
         category="test_category",
