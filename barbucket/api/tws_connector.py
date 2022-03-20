@@ -63,7 +63,7 @@ class TwsConnector():
         quotes = []
         for ib_quote in ib_quotes:
             quote = Quote(
-                # contract=contract,
+                contract=contract,
                 date=ib_quote.date,
                 open=ib_quote.open,
                 high=ib_quote.high,
