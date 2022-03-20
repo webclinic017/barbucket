@@ -26,7 +26,7 @@ class LoggingPreparator():
         file_handler.namer = my_file_namer
         file_handler.setLevel(logging.DEBUG)
         file_formatter = logging.Formatter(
-            "%(asctime)s | %(name)s | %(levelname)s | %(message)s")
+            "%(asctime)s | %(name)s | %(funcName)s | %(levelname)s | %(message)s")
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
 
