@@ -113,12 +113,10 @@ class TwsConnector():
 
     def _validate_details(self, contract: Contract, details: List[ContractDetails]) -> None:
         if details is None:
-            message = f"Ib cont result for '{contract}' is None"
-            _logger.debug(message)
+            raise InvalidDataReceivedError(
+                f"Ib cont result for '{contract}' is None")
         elif len(details) == 0:
-            message = f"Result for '{contract}' is []"
-            _logger.debug(message)
+            raise InvalidDataReceivedError(f"Result for '{contract}' is []")
         elif len(details) > 1:
-            message = f"Multiple results for '{contract}'"
-            _logger.error(message)
-        raise InvalidDataReceivedError(message)
+            raise InvalidDataReceivedError(
+                f"Multiple results for '{contract}'")

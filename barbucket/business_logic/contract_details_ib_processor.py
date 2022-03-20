@@ -49,8 +49,8 @@ class ContractDetailsIbProcessor():
         try:
             details = self._tws_connector.download_contract_details(
                 contract=contract)
-        except (RequestError, InvalidDataReceivedError):
-            pass
+        except (RequestError, InvalidDataReceivedError) as e:
+            _logger.debug(e.message)  # todo
         else:
             self._details_db_manager.add_to_db(details=details)
             self._orm_session.commit()
