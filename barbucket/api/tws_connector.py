@@ -63,7 +63,8 @@ class TwsConnector():
         quotes = []
         for ib_quote in ib_quotes:
             quote = Quote(
-                contract=contract,
+                # setting ‘contract' would cause a conflict within identity map, so we set 'contract_id'
+                contract_id=contract.id,
                 date=ib_quote.date,
                 open=ib_quote.open,
                 high=ib_quote.high,
