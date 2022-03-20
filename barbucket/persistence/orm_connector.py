@@ -36,7 +36,7 @@ class OrmConnector():
         self._engine = create_engine(conn_string, future=True)
         self._add_sqlite_pragma()
         self._create_db_schema()
-        self._session = Session(bind=self._engine)
+        self._session = Session(bind=self._engine, autoflush=False)
 
     def _add_sqlite_pragma(self) -> None:
         # Adding foreign key pragma on every connection for sqlite by event
