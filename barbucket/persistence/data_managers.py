@@ -137,6 +137,7 @@ class QuotesDbManager():
             .execution_options(autoflush=False)
         ).scalars().all()
         # self._orm_session.add_all(conflicted_quotes)  # unnecessary?
+        self._orm_session.expunge_all()  # to prevent conflicts in identity map
         n_added = 0
         n_replaced = 0
         for quote in quotes:
