@@ -46,7 +46,7 @@ class QuotesProcessor():
         manager = enlighten.get_manager()  # Setup progress bar
         progress_bar = manager.counter(
             total=0, desc="Contracts", unit="contracts")
-        contracts = self._universes_db_manager.get_members(universe=universe)
+        contracts = self._universes_db_manager.get_members(name=universe)
         progress_bar.total = len(contracts)
         self._tws_connector.connect()  # todo catch exceptioin if tws is not available
         for contract in contracts:
@@ -79,8 +79,10 @@ class QuotesProcessor():
         self._orm_session.close()
 
     def _is_quotes_recent(self, contract: Contract) -> bool:
-        redownload_days = self._config_reader.get_config_value_single(
-            section='quotes', option='redownload_days')
+        if not self._quotes_db_manager.contract_has_quotes(contract=contract):
+            return False
+        redownload_days = int(self._config_reader.get_config_value_single(
+            section='quotes', option='redownload_days'))
         last_quote_date = self._quotes_db_manager.get_latest_quote_date(
             contract=contract)
         missing_quotes = np.busday_count(
@@ -88,7 +90,7 @@ class QuotesProcessor():
         return (missing_quotes < redownload_days)
 
     def _get_download_duration(self, contract: Contract) -> str:
-        if self._quotes_db_manager.contract_has_quotes(contract=contract):
+        if not self._quotes_db_manager.contract_has_quotes(contract=contract):
             initial_duration = self._config_reader.get_config_value_single(
                 section="quotes", option="initial_duration")
             return initial_duration
