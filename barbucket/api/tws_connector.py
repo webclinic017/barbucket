@@ -99,10 +99,10 @@ class TwsConnector():
 
     def _create_ib_contract(self, contract: Contract) -> Stock:
         exchange = Exchange[contract.exchange]
-        ib_exchange = ApiNotationTranslator.get_api_notation_for_exchange(
+        ib_exchange = self._api_notation_translator.get_api_notation_for_exchange(
             exchange=exchange, api=Api.IB)
         symbol = TickerSymbol(name=contract.broker_symbol)
-        ib_symbol = ApiNotationTranslator.get_api_notation_for_ticker_symbol(
+        ib_symbol = self._api_notation_translator.get_api_notation_for_ticker_symbol(
             ticker_symbol=symbol, api=Api.IB)
         ib_contract = Stock(
             symbol=ib_symbol,
