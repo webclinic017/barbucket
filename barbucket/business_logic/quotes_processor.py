@@ -34,6 +34,9 @@ class QuotesProcessor():
         # self._status_handler = status_hadler
         self._config_reader = config_reader
         self._orm_session = orm_session
+        self._pb_manager = enlighten.get_manager()  # Setup progress bar
+        self._progress_bar = self._pb_manager.counter(
+            total=0, desc="Contracts", unit="contracts")
 
     def download_historical_quotes(self, universe: str) -> None:
         """Download historical quotes from TWS
@@ -43,40 +46,42 @@ class QuotesProcessor():
         """
 
         signal_handler = SignalHandler()
-        manager = enlighten.get_manager()  # Setup progress bar
-        progress_bar = manager.counter(
-            total=0, desc="Contracts", unit="contracts")
+
         contracts = self._universes_db_manager.get_members(name=universe)
-        progress_bar.total = len(contracts)
+        self._progress_bar.total = len(contracts)
         self._tws_connector.connect()  # todo catch exceptioin if tws is not available
         for contract in contracts:
             if signal_handler.is_exit_requested():
                 self._tws_connector.disconnect()
                 return
-            if self._is_quotes_recent(contract=contract):
-                # log
-                progress_bar.total -= 1
-                progress_bar.update(incr=0)
-                continue
-            duration = self._get_download_duration(contract=contract)
-            try:
-                quotes = self._tws_connector.download_historical_quotes(
-                    contract=contract, duration=duration)
-            except RequestError as e:
-                _logger.info(f"Problem downloading quotes for contract "
-                             f"'{contract}': {e.message}")
-                if e.reqId != -1:  # -1 are system errors
-                    progress_bar.update(incr=1)
-                continue
-            else:
-                self._quotes_db_manager.upsert_to_db(quotes=quotes)
-                self._orm_session.commit()
-                progress_bar.update(incr=1)
+            self._handle_contract(contract=contract)
         _logger.info(
             f"Finished downloading historical data for universe "
             f"'{universe}'")
         self._tws_connector.disconnect()
         self._orm_session.close()
+
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
+    def _handle_contract(self, contract: Contract) -> None:
+        if self._is_quotes_recent(contract=contract):
+            self._progress_bar.total -= 1
+            self._progress_bar.update(incr=0)
+            return
+        duration = self._get_download_duration(contract=contract)
+        try:
+            quotes = self._tws_connector.download_historical_quotes(
+                contract=contract, duration=duration)
+        except RequestError as e:
+            _logger.info(f"Problem downloading quotes for contract "
+                         f"'{contract}': {e.message}")
+            if e.reqId != -1:  # -1 are system errors
+                self._progress_bar.update(incr=1)
+            return
+        else:
+            self._quotes_db_manager.upsert_to_db(quotes=quotes)
+            self._orm_session.commit()
+            self._progress_bar.update(incr=1)
 
     def _is_quotes_recent(self, contract: Contract) -> bool:
         if not self._quotes_db_manager.contract_has_quotes(contract=contract):
@@ -87,7 +92,7 @@ class QuotesProcessor():
             contract=contract)
         missing_quotes = np.busday_count(
             begindates=last_quote_date, enddates=date.today())
-        return (missing_quotes < redownload_days)
+        return (missing_quotes < redownload_days)  # log
 
     def _get_download_duration(self, contract: Contract) -> str:
         if not self._quotes_db_manager.contract_has_quotes(contract=contract):
