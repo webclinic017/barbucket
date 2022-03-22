@@ -45,6 +45,8 @@ class ContractDetailsIbProcessor():
         self._orm_session.close()
         self._tws_connector.disconnect()
 
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
     def _handle_contract(self, contract: Contract) -> None:
         try:
             details = self._tws_connector.download_contract_details(
