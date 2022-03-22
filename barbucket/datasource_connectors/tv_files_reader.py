@@ -27,6 +27,8 @@ class TvFilesReader():
             self._screener_rows += tsr
         return self._screener_rows
 
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
     def _get_files(self, filespath: Path) -> List[Path]:
         # This also excludes sub-directories
         files = [file for file in filespath.iterdir()

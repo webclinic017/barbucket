@@ -40,6 +40,8 @@ class ContractDetailsTvProcessor():
             progress_bar.update(inc=1)
         self._orm_session.close()
 
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
     def _handle_row(self, row: TvScreenerRow) -> None:
         # Check if matching contract exists in db
         contract_filters = (

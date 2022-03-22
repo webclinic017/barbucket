@@ -17,30 +17,6 @@ class ConfigReader():
         self._parser = ConfigParser(allow_no_value=True)
         self._initalize()
 
-    def _initalize(self) -> None:
-        """Checks for the presence of a configuration file for the current 
-        user. If not present, creates a default configuration file
-
-        :param destination_path: Path to the configuration file
-        :type destination_path: Path
-        """
-
-        destination_path = self._CONFIG_FILE_PATH
-        if Path.is_file(destination_path):
-            _logger.debug(f"Config file already exists.")
-        else:
-            Path.mkdir(self._CONFIG_FILE_PATH.parent,
-                       parents=True, exist_ok=True)
-            _logger.info(f"Created directory '{self._CONFIG_FILE_PATH.parent}' "
-                         f"for config file.")
-            with resources.path("barbucket._resources", "default_config.cfg") \
-                    as source_path:
-                copyfile(source_path, destination_path)
-                _logger.info(
-                    f"Created config file {destination_path} from default file.")
-        self._parser.read(self._CONFIG_FILE_PATH)
-        _logger.debug(f"Read config file.")
-
     def get_config_value_single(self, section: str, option: str) -> str:
         """Reads a single config value from the config file
 
@@ -74,3 +50,29 @@ class ConfigReader():
         _logger.debug(
             f"Read list config value from '{section}'/'{option}' as '{list_config_value}'.")
         return list_config_value
+
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
+    def _initalize(self) -> None:
+        """Checks for the presence of a configuration file for the current 
+        user. If not present, creates a default configuration file
+
+        :param destination_path: Path to the configuration file
+        :type destination_path: Path
+        """
+
+        destination_path = self._CONFIG_FILE_PATH
+        if Path.is_file(destination_path):
+            _logger.debug(f"Config file already exists.")
+        else:
+            Path.mkdir(self._CONFIG_FILE_PATH.parent,
+                       parents=True, exist_ok=True)
+            _logger.info(f"Created directory '{self._CONFIG_FILE_PATH.parent}' "
+                         f"for config file.")
+            with resources.path("barbucket._resources", "default_config.cfg") \
+                    as source_path:
+                copyfile(source_path, destination_path)
+                _logger.info(
+                    f"Created config file {destination_path} from default file.")
+        self._parser.read(self._CONFIG_FILE_PATH)
+        _logger.debug(f"Read config file.")

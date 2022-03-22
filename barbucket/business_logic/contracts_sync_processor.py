@@ -24,7 +24,6 @@ class ContractSyncProcessor():
         self.override_user_acknowledge = False
 
     def sync_contracts_to_listing(self, exchange: Exchange) -> None:
-
         # Get contracts
         try:
             web_contracts = self._listing_reader.read_ib_exchange_listing(
@@ -56,12 +55,11 @@ class ContractSyncProcessor():
             _logger.info("Aborted.")
         self._orm_session.close()
 
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
     def _user_acknowledge(self, n_remove: int, n_add: int) -> bool:
         print(f"{n_add} new contracts will be added and {n_remove} deprecated "
               f"contracts will be removed. Do you want to continue? (Y/N): ",
               end="")
         message = input()
-        if message.upper() == "Y":
-            return True
-        else:
-            return False
+        return message.upper() == "Y"

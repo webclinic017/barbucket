@@ -15,6 +15,17 @@ class SignalHandler():
         signal.signal(signal.SIGINT, self._change_state)
         self._state = False
 
+    def is_exit_requested(self, throw: bool = False) -> bool:
+        """Check if the user pressed Ctrl+C.
+
+        :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
+        """
+        if self._state and throw:
+            raise ExitSignalDetectedError("User pressed 'Ctrl+C'.")
+        return self._state
+
+    # ~~~~~~~~~~~~~~~~~~~~ private methods ~~~~~~~~~~~~~~~~~~~~
+
     def _change_state(self, signum: Any, frame: Any) -> None:
         """Interrupt method, called by system, when Ctrl+C is detected.
 
@@ -28,12 +39,3 @@ class SignalHandler():
                      f"Press Ctrl-C again to stop immediately.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self._state = True
-
-    def is_exit_requested(self, throw: bool = False) -> bool:
-        """Check if the user pressed Ctrl+C.
-
-        :raises ExitSignalDetectedError: User has pressed 'Ctrl+C'
-        """
-        if self._state and throw:
-            raise ExitSignalDetectedError("User pressed 'Ctrl+C'.")
-        return self._state
