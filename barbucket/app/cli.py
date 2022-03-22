@@ -13,19 +13,19 @@ from barbucket.domain_model.types import Exchange, ContractType
 _logger = logging.getLogger(__name__)
 
 
-# @click.group()
-# Initial group. This method is called to run the cli.
-# @click.option("-v", "--verbose", count=True, default=0, help="-v for DEBUG")
-# def cli(verbose) -> None:
-#     if verbose > 0:  # -v -> 1, -vv -> 2, etc.
-#         root_logger = logging.getLogger()
-#         root_logger.handlers[0].level = logging.DEBUG  # Dirty
-
-
 @click.group()
 # Initial group. This method is called to run the cli.
-def cli() -> None:
-    pass
+@click.option("-v", "--verbose", count=True, default=0, help="-v for DEBUG")
+def cli(verbose) -> None:
+    if verbose > 0:  # -v -> 1, -vv -> 2, etc.
+        root_logger = logging.getLogger()
+        root_logger.handlers[0].level = logging.DEBUG  # Dirty
+
+
+# @click.group()
+# # Initial group. This method is called to run the cli.
+# def cli() -> None:
+#     pass
 
 
 # Group contracts
