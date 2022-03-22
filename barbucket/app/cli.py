@@ -79,8 +79,8 @@ def quotes() -> None:
 
 @quotes.command()
 @click.option("-u", "--universe", "universe", required=True, type=str)
-def fetch(universe: str) -> None:
-    """Fetch quotes from IB TWS"""
+def download(universe: str) -> None:
+    """Download quotes from IB TWS"""
 
     universe = universe.upper()
     _logger.debug(
@@ -117,22 +117,6 @@ def list_() -> None:
         f"User requested to list all existing universes via the cli.")
     universes_processor = build_universe_processor()
     universes_processor.get_universes()
-
-
-# @universes.command()
-# @click.option("-n", "--name", "name", required=True, type=str)
-# def members(name: str) -> None:
-#     """List universes members"""
-
-#     name = name.upper()
-#     _logger.debug(
-#         f"User requested to list the members of universe '{name}' via the cli.")
-#     universes_db_connector = build_universe_db_manager()
-#     members = universes_db_connector.get_members(universe=name)
-#     if members:
-#         _logger.info(f"Members of universe '{name}': {members}")
-#     else:
-#         _logger.info(f"Universe '{name}' does not exist.")
 
 
 @universes.command()
