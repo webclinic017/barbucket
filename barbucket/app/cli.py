@@ -136,11 +136,11 @@ def delete(name: str) -> None:
 def _create_exchange(name: str) -> Exchange:
     try:
         exchange = Exchange[name]
-    except KeyError:
+    except KeyError as e:
         exchanges = [ex.name for ex in Exchange]
-        click.echo(f"Unknown exchange '{name}'. Known exchanges are: "
-                   f"{exchanges}")
-        raise KeyError
+        _logger.info(f"Unknown exchange '{name}'. Known exchanges are: "
+                     f"{exchanges}")
+        raise e
     else:
         return exchange
 
@@ -148,10 +148,10 @@ def _create_exchange(name: str) -> Exchange:
 def _create_contract_type(name: str) -> ContractType:
     try:
         contract_type = ContractType[name]
-    except KeyError:
+    except KeyError as e:
         contract_types = [ct.name for ct in ContractType]
-        click.echo(f"Unknown contract type '{name}'. Known contract types "
-                   f"are: {contract_types}")
-        raise KeyError
+        _logger.info(f"Unknown contract type '{name}'. Known contract types "
+                     f"are: {contract_types}")
+        raise e
     else:
         return contract_type
