@@ -7,13 +7,14 @@ nav:
   - Overview: 'index.md'
   - Quickstart: 'quickstart.md'
   - Installation: 'installation.md'
+  - CLI: 'cli.md'
   - Database: 'database.md'
-  - Syncronize exchange listings: 'sync_exchange_listings.md'
-  - contract details:
+  - Contracts:
+    - Syncronize contracts: 'sync_contracts.md'
     - IB contract details: 'ib_contract_details.md'
     - TV screener: 'tv_screener.md'
   - Universes: 'universes.md'
-  - Download quotes: 'download_quotes.md'
+  - Quotes: 'quotes.md'
 
 # mkdocs-material configuration
 theme:

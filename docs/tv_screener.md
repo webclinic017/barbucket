@@ -17,10 +17,10 @@ Additional details to the existing contracts can be added from the free [Trading
     * `Total Revenue (FY)`
 * Save the coulmn set for convenience
 * Download the screener results as `.csv` file
-* Repeat for other countries if you like
+* Repeat for other countries
 
 ## Add to local database
-* Place all downloaded `.csv` files into the folder `{your_local_user_directory}/.barbucket/tv_screener`
+* Place all downloaded `.csv` files into the folder `~/.barbucket/tv_screener`
 * Then execute
 ```console
 $ barbucket contracts download-tv-details
