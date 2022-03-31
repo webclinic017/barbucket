@@ -1,55 +1,38 @@
 # Contributing
-
 🎉 Thank you for considering to contribute to Barbucket. All contributions are welcome! ❤️
 
-## Project information
-class diagram
+## Class diagram
+A [UML class diagram](https://github.com/croidzen/barbucket/blob/master/resources/class_diagram.png) is available within the repository.
+
+## Task management
+See [Issues](https://github.com/croidzen/barbucket/issuesv) on Github project page.
+
+## Python
+- Virtual environments with `Pipenv` or `venv`
+- Package manament with `Pipenv` or `Pip`
+
 ## Codestyle
-type hints
-formatting
+- Pep8 formatting, checked by `Autopep8`
+- Using Python type hints, checked by `Mypy`
 
-## Setup dev environment
-
-## Contributions workflow
-issues
-branches
-tests
-pr
-versioning
-build
-deploy
+## Unittests
+- Framework: `Pytest`
+- Located at: `tests/`
+- Running tests: `$ pytest`
+- Code coverage: `$ pytest --cov=barbucket`
 
 ## Documentation
-### Build
-* Is done by readthedocs after receiving webhook request.
-* Can be done locally with: `$ docs/make html`, result is excluded from git.
-## Upload
-* https://readthedocs.org/projects/barbucket/
-* Github webhook is triggered on certain events. RTD receives the request and builds the docs itself.
+- Framework: `Mkdocs`
+- Located at `docs/`
+- Local testing with: `mkdocs serve`
+- Building and uploading to [readthedocs](https://barbucket.readthedocs.io/) is automated with Github webhook on push to `master` branch.
 
-## CI/CD
-    deployment
-    documentation
-    format, lint
-    test
+## PyPI package
+- Build package with: `$ python -m build`
+- Upload with: `$ twine upload dist/*` (Username and password will be prompted)
 
-## Python package
-### Build
-* `$ python -m build`
-deployment
-### Upload
-* `$ twine upload dist/*`
-* Username and password will be prompted
-
-## Testing
-### Unittests
-location
-execution
-man: pytest
-cicd
-coverage
-
-### Integration tests
-Not automated yet, is done manually
-* `$ pip install <barbucket_project_directory> -e`
-
+## Setting up a dev environment
+- Clone the repo: `$ git clone https://github.com/croidzen/barbucket .`
+- Change dir to repo: `$ cd barbucket`
+- Create a virtual environment: `$ pipenv shell`
+- Install dependencies: `$ pipenv install`
