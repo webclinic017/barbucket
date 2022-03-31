@@ -4,7 +4,20 @@ Additional db queries for manual use
 
 
 /* ##########
-Change data type of column in table without dependencies 
+Change view for all contract data 
+########## */
+create view contracts_all_data as
+select 
+	contracts.*, 
+	contract_details_ib.stock_type, contract_details_ib.primary_exchange, contract_details_ib.industry, contract_details_ib.category, contract_details_ib.subcategory,
+	contract_details_tv.market_cap, contract_details_tv.avg_vol_30_in_curr, contract_details_tv.country, contract_details_tv.employees, contract_details_tv.profit, contract_details_tv.revenue 
+from contracts
+left OUTER JOIN contract_details_ib ON contracts.id = contract_details_ib.contract_id
+left OUTER JOIN contract_details_tv ON contracts.id = contract_details_tv.contract_id
+
+
+/* ##########
+SQLite: Change data type of column in table without dependencies 
 ########## */
 CREATE TABLE contract_details_tw_temp AS
     SELECT
@@ -41,19 +54,19 @@ DROP TABLE contract_details_tw_temp;
 Create a new universe
 ########## */
 INSERT INTO universe_memberships (contract_id, universe)
-	SELECT contract_id, 'COMMON_STOCKS_ON_GERMAN_EXCHANGES'
-		FROM all_contract_info
+	SELECT id, 'US_COMMON_STOCKS_TOP_3000'
+		FROM contracts_all_data
 		WHERE (
-			(contract_type_from_details IN ('COMMON_STOCK'))
+			(stock_type IN ('COMMON_STOCK'))
 			AND
-			(exchange IN ('XETRA', 'FWB'))
+			(exchange IN ('NASDAQ', 'NYSE', 'ARCA'))
+			--AND
+			--(exchange = primary_exchange)
 			AND
-			(exchange = primary_exchange)
-			AND
-			(country = 'Germany')
+			(country IN ('United States'))
 		)
 		ORDER BY market_cap DESC 
-		--LIMIT 1000
+		LIMIT 3000
 		;
 
 
