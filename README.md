@@ -1,4 +1,4 @@
-# Barbucket
+# Barbucket 🪣
 
 ![python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
@@ -10,7 +10,7 @@
 ![pypi_version](https://badgen.net/pypi/v/barbucket)
 ![documentation](https://readthedocs.org/projects/barbucket/badge/)
       
-_A local database for financial contracts and pricing data_
+_A database for financial contracts and pricing data_
 
 ## Features
 * Syncing contracts of IB's exchange listings to a local database
@@ -18,6 +18,31 @@ _A local database for financial contracts and pricing data_
 * Creating groups of contracts (universes)
 * Downloading daily historical quotes using IB's TWS API (paid market data subscriptions on IB are necessary)
 * Storage of downloaded quotes into a local database for fast access
+
+## Supported contract types
+* Stocks
+* ETFs
+* Crypto currencies (planned)
+
+## Supported DBMS
+* PostgreSQL
+* SQLite
+* MySQL / MariaDB
+* MS SQL Server
+* Oracle
+* [and even more](https://docs.sqlalchemy.org/en/14/dialects/)
+
+## Supported APIs
+* [Intercative Brokers](http://interactivebrokers.com) TWS API
+* [Tradingview](https://tradingview.com)-Screener .csv files
+* [EOD Historical Data](https://eodhistoricaldata.com) (planned)
+* [CCXT](https://github.com/ccxt/ccxt) (planned)
+
+## Tech stack
+For an overview of how this project is realized, please see the [contribution](https://github.com/croidzen/barbucket/blob/master/CONTRIBUTION.md) document.
+
+## Full documentation
+[https://barbucket.readthedocs.io](https://barbucket.readthedocs.io/)
 
 ## Quickstart
 Installation:
@@ -32,33 +57,10 @@ See results at:
 ```console
 ~/.barbucket/database.sqlite
 ```
-
 ## Requirements
 * Linux or macOS; Windows is not tested yet
 * Python >= 3.7
 
-## Contract types
-* Stocks
-* ETFs
-* Crypto currencies (planned)
-
-## Supported DBMS
-* PostgreSQL
-* SQLite
-* MySQL / MariaDB
-* MS SQL Server
-* Oracle
-* [and even more](https://docs.sqlalchemy.org/en/14/dialects/)
-
-## APIs
-* [Intercative Brokers](http://interactivebrokers.com) TWS API
-* [Tradingview](https://tradingview.com)-Screener .csv files
-* [EOD Historical Data](https://eodhistoricaldata.com) (planned)
-* [CCXT](https://github.com/ccxt/ccxt) (planned)
-
 ## Status
 * Early beta stage. Expect code- and data-breaking modifications
 * Aimed at software developers. Knowlede about how to handle a database is necessary to use this software
-
-## Full documentation
-* [barbucket.readthedocs.io](https://barbucket.readthedocs.io/)
