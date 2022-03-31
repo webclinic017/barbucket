@@ -38,6 +38,7 @@ class ContractDetailsIbProcessor():
         _logger.info(f"Found {len(contracts)} contracts without IB-details.")
         self._tws_connector.connect()
         for contract in contracts:
+            self._orm_session.expunge_all()  # for speedup
             if signal_handler.is_exit_requested():
                 break
             self._handle_contract(contract=contract)
@@ -52,7 +53,7 @@ class ContractDetailsIbProcessor():
             details = self._tws_connector.download_contract_details(
                 contract=contract)
         except (RequestError, InvalidDataReceivedError) as e:
-            _logger.debug(e.message)  # todo
+            _logger.info(e.message)
         else:
             self._details_db_manager.add_to_db(details=details)
             self._orm_session.commit()
