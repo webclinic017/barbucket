@@ -38,6 +38,7 @@ class Exchange(Enum):
     VSE = auto()
     XETRA = auto()
     XETRA_2 = auto()
+    NO_DATA = auto()
 
 
 class ContractType(Enum):
@@ -76,6 +77,7 @@ class StockType(Enum):
     TRACKING_STOCK = auto()
     UNIT = auto()
     US_DOMESTIC = auto()
+    NO_DATA = auto()
 
 
 class TickerSymbol():
@@ -115,7 +117,8 @@ class ApiNotationTranslator():
             Exchange.SWB: {Api.IB: 'SWB'},
             Exchange.VSE: {Api.IB: 'VSE'},
             Exchange.XETRA: {Api.IB: 'IBIS', Api.TV: 'XETR'},
-            Exchange.XETRA_2: {Api.IB: 'IBIS2'}}
+            Exchange.XETRA_2: {Api.IB: 'IBIS2'},
+            Exchange.NO_DATA: {Api.IB: ''}}
 
         self._stock_types = {
             StockType.ADR: {Api.IB: 'ADR'},
@@ -143,7 +146,8 @@ class ApiNotationTranslator():
             StockType.SAVINGS_SHARE: {Api.IB: 'SAVINGS SHARE'},
             StockType.TRACKING_STOCK: {Api.IB: 'TRACKING STK'},
             StockType.UNIT: {Api.IB: 'UNIT'},
-            StockType.US_DOMESTIC: {Api.IB: 'US DOMESTIC'}}
+            StockType.US_DOMESTIC: {Api.IB: 'US DOMESTIC'},
+            StockType.NO_DATA: {Api.IB: ''}}
 
     def get_api_notation_for_exchange(self, exchange: Exchange, api: Api) -> str:
         """ """
