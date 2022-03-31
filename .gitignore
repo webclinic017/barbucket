@@ -1,20 +1,8 @@
 # ide
-.ipynb_checkpoints/
 .vscode/
 
 # pycache
 __pycache__/
-
-# log files
-*.log
-
-# data
-data/*
-*.db
-*.csv
-
-# temp files
-*.html
 
 # os
 .DS_Store
@@ -29,3 +17,6 @@ docs/_build/
 barbucket.egg-info/
 build/
 dist/
+
+# pytest
+.pytest_cache/
