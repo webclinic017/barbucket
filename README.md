@@ -8,8 +8,9 @@
 ![commits](https://badgen.net/github/commits/croidzen/barbucket)
 ![last_commit](https://badgen.net/github/last-commit/croidzen/barbucket)
 ![pypi_version](https://badgen.net/pypi/v/barbucket)
-
-A local database for financial contracts and pricing data
+![documentation](https://readthedocs.org/projects/barbucket/badge/)
+      
+_A local database for financial contracts and pricing data_
 
 ## Features
 * Syncing contracts of IB's exchange listings to a local database

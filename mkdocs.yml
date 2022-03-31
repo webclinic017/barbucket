@@ -1,0 +1,36 @@
+site_name: Barbucket
+site_url: https://github.com/croidzen/barbucket
+repo_name: croidzen/barbucket
+repo_url: https://github.com/croidzen/barbucket
+
+nav:
+  - Overview: 'index.md'
+  - Quickstart: 'quickstart.md'
+  - Installation: 'installation.md'
+  - Database: 'database.md'
+  - Syncronize exchange listings: 'sync_exchange_listings.md'
+  - contract details:
+    - IB contract details: 'ib_contract_details.md'
+    - TV screener: 'tv_screener.md'
+  - Universes: 'universes.md'
+  - Download quotes: 'download_quotes.md'
+
+# mkdocs-material configuration
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: light blue
+      toggle:
+        icon: material/weather-sunny 
+        name: Switch to dark mode
+    - scheme: slate 
+      primary: light blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - navigation.tracking
+
+  icon:
+    repo: fontawesome/brands/github

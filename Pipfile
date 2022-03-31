@@ -6,13 +6,16 @@ verify_ssl = true
 [dev-packages]
 autopep8 = "*"
 build = "*"
+mkdocs = "*"
+mkdocs-material  = "*"
 mypy = "*"
 pylint = "*"
 pytest = "*"
+pytest-cov = "*"
 rope = "*"
 setuptools = "*"
-sphinx = "*"
-sphinx-rtd-theme = "*"
+# sphinx = "*"
+# sphinx-rtd-theme = "*"
 twine = "*"
 types-requests = "*"
 

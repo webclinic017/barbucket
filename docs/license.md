@@ -1,9 +1,5 @@
-License
-=======
-
-Copyright (c) 2021 Martin Creutzenberg
-
-This software is provided under MIT License.
+# License
+Copyright (c) 2021 Martin Creutzenberg. This software is provided under MIT License.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
