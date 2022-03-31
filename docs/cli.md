@@ -20,6 +20,7 @@ Commands:
 | `-v` | shows debug messages on console |
 
 ## Further infos in the console
+
 - For operations, that do not finish instantly, a progress bar is shown.
 - Log-messages of level `Info` and above are also shown in the terminal.
 - To show all log-messages in the terminal, provide the option `-v` to the `barbucket` command.

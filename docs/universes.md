@@ -14,14 +14,6 @@ $ barbucket universes create --name my_universe --contract_ids 1,2,3
 | ------ | ----------- |
 | `-n`, `--name` | Name of the universe to create |
 | `-c`, `--contract_ids` | The ``contracts_ids`` are automatically assigned to the contracts by the software on their creation and need to be obtained manually from the database. |
-
-## Getting all members of a universe
-```console
-$ barbucket universes members --name my_universe
-```
-| Option | Description |
-| ------ | ----------- |
-| `-n`, `--name` | Name of the universe to get the members for |
  
 ## Deleting a universe
 ```console

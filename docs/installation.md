@@ -1,5 +1,6 @@
 # Installation
 ## Requirements
+
 * Linux or macOS; Windows is not fully tested yet
 * Python >= 3.7
 

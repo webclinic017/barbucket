@@ -39,7 +39,7 @@ _A database for financial contracts and pricing data_
 * [CCXT](https://github.com/ccxt/ccxt) (planned)
 
 ## Tech stack
-For an overview of how this project is realized, please see the [contribution](https://github.com/croidzen/barbucket/blob/master/CONTRIBUTION.md) document.
+For an overview of how this project is realized, please see the [contributing](https://github.com/croidzen/barbucket/blob/master/CONTRIBUTING.md) document.
 
 ## Full documentation
 [https://barbucket.readthedocs.io](https://barbucket.readthedocs.io/)
