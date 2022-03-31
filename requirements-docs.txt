@@ -1,0 +1,2 @@
+-i https://pypi.org/simple
+mkdocs-material==8.2.8
