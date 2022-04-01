@@ -52,13 +52,15 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python_version }}
-        # cache: 'pip'
+        cache: 'pipenv'
 
     - name: Install dependencies
       run: |  # multiline command
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov
-    
+        pipenv install
+        pipenv install pytest pytest-cov
+        # python -m pip install --upgrade pip
+        # pip install pytest pytest-cov
+
     - name: Test with pytest
       run: pytest
       continue-on-error: true
