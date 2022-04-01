@@ -2,17 +2,15 @@
 # - Code check: Check formatting with autopep8 and lint with pylint
 # - Running unittests with pytest on matrix for different os and python versions
 
-name: Staging
+name: Code check
 
 on:
-  push:
-    branches: [ staging ]
   pull_request:
-    branches: [ staging ]
-    events: [opened, synchronize, reopened] # default events
+    branches: [ staging, master ]
+    events: [opened, synchronize, reopened]  # default events
     
 jobs:
-  code_check:
+  format_and_lint:
     runs-on: ubuntu-18.04
   
     steps:
@@ -39,7 +37,7 @@ jobs:
       # '--exit-zero' to always exit without error
 
   test:  # separate job to apply os and python version matrix
-    needs: code_check
+    needs: format_and_lint
     runs-on: ${{ matrix.os }}
 
     strategy:
