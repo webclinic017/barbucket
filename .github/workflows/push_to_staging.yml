@@ -48,21 +48,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install pipenv
-      run: pipx install pipenv
+    # - name: Install pipenv
+    #   run: pipx install pipenv
 
     - name: Set up Python ${{ matrix.python_version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python_version }}
-        cache: 'pipenv'
+        cache: 'pip'
 
     - name: Install dependencies
       run: |  # multiline command
-        pipenv install
-        pipenv install pytest pytest-cov
-        # python -m pip install --upgrade pip
-        # pip install pytest pytest-cov
+        # pipenv install
+        # pipenv install pytest pytest-cov
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
 
     - name: Test with pytest
       run: pytest
