@@ -1,12 +1,16 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# Workflow structure
+# - Code check: Check formatting with autopep8 and lint with pylint
+# - Running unittests with pytest on matrix for different os and python versions
 
-name: Push to staging
+name: Staging
 
 on:
   push:
     branches: [ staging ]
-
+  pull_request:
+    branches: [ staging ]
+    events: [opened, synchronize, reopened] # default events
+    
 jobs:
   code_check:
     runs-on: ubuntu-18.04
@@ -27,8 +31,7 @@ jobs:
         pip install autopep8 pylint
 
     - name: Check format with autopep8
-      run: autopep8 --diff --recursive .
-      # '--exit-code' to exit with errorcode
+      run: autopep8 --diff --recursive .  # '--exit-code' to exit with errorcode
 
     - name: Lint with pylint
       run: pylint $(git ls-files '*.py') --exit-zero
@@ -48,9 +51,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # - name: Install pipenv
-    #   run: pipx install pipenv
-
     - name: Set up Python ${{ matrix.python_version }}
       uses: actions/setup-python@v3
       with:
@@ -59,16 +59,13 @@ jobs:
 
     - name: Install dependencies
       run: |  # multiline command
-        # pipenv install
-        # pipenv install pytest pytest-cov
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov
 
     - name: Test with pytest
       run: pytest
-      continue-on-error: true
-      # other possibility to override bad exit codes
+      continue-on-error: true  # other possibility to override bad exit codes
 
     - name: Test coverage with pytest-cov
       run: pytest --cov=mypackage
