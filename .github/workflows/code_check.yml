@@ -1,0 +1,69 @@
+# Workflow structure
+# - Code check: Check formatting with autopep8 and lint with pylint
+# - Running unittests with pytest on matrix for different os and python versions
+
+name: Code check
+
+on:
+  pull_request:
+    branches: [ staging, master ]
+    events: [opened, synchronize, reopened]  # default events
+    
+jobs:
+  format_and_lint:
+    runs-on: ubuntu-18.04
+  
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        # cache: 'pip'  # caches reqirements file
+
+    - name: Install dependencies
+      run: |  # multiline command
+        python -m pip install --upgrade pip
+        pip install autopep8 pylint
+
+    - name: Check format with autopep8
+      run: autopep8 --diff --recursive .  # '--exit-code' to exit with errorcode
+
+    - name: Lint with pylint
+      run: pylint $(git ls-files '*.py') --exit-zero
+      # lint all .py files known to git
+      # '--exit-zero' to always exit without error
+
+  test:  # separate job to apply os and python version matrix
+    needs: format_and_lint
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]  # macos-11, windows-2022
+        python_version: ["3.10"]  # "3.8", "3.9"
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python_version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python_version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |  # multiline command
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+
+    - name: Test with pytest
+      run: pytest
+      continue-on-error: true  # other possibility to override bad exit codes
+
+    - name: Test coverage with pytest-cov
+      run: pytest --cov=mypackage
