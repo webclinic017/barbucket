@@ -2,14 +2,11 @@
 # - Building project: Install 'build' and run it
 # - Upload to PyPI using PyPA action
 
-name: Deploying
+name: Deploy to PyPI
 
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
-    events: [ synchronize ]
     
 jobs:
   deploy:
