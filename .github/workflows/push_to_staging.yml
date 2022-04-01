@@ -27,11 +27,11 @@ jobs:
         pip install autopep8 pylint
 
     - name: Check format with autopep8
-      run: autopep8 --exit-code --diff --recursive .
+      run: autopep8 --diff --recursive .
       # '--exit-code' to exit with errorcode
 
     - name: Lint with pylint
-      run: pylint $(git ls-files '*.py')
+      run: pylint $(git ls-files '*.py') --exit-zero
       # lint all .py files known to git
       # '--exit-zero' to always exit without error
 
