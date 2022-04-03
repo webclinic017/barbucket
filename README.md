@@ -1,16 +1,26 @@
 # Barbucket 🪣
+## _A database for financial contracts and pricing data_
+<br>
 
 ![python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-![license](https://img.shields.io/github/license/croidzen/barbucket.svg)
-![issues_open](https://img.shields.io/github/issues/croidzen/barbucket.svg)
-![issues_closed](https://img.shields.io/github/issues-closed/croidzen/barbucket.svg)
+![sqlite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
+![postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+<br>
+
 ![commits](https://badgen.net/github/commits/croidzen/barbucket)
 ![last_commit](https://badgen.net/github/last-commit/croidzen/barbucket)
-![pypi_version](https://badgen.net/pypi/v/barbucket)
+![prs](https://img.shields.io/github/issues-pr-closed/croidzen/barbucket.svg)
+![issues_open](https://img.shields.io/github/issues/croidzen/barbucket.svg)
+![issues_closed](https://img.shields.io/github/issues-closed/croidzen/barbucket.svg)
+![license](https://img.shields.io/github/license/croidzen/barbucket.svg)
+![maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+<br>
+
 ![documentation](https://readthedocs.org/projects/barbucket/badge/)
-      
-_A database for financial contracts and pricing data_
+![pypi_version](https://badgen.net/pypi/v/barbucket)<br>
+![code_check workflow](https://github.com/croidzen/barbucket/actions/workflows/code_check.yml/badge.svg)
+![deploy workflow](https://github.com/croidzen/barbucket/actions/workflows/deploy.yml/badge.svg)
+<br>
 
 ## Features
 * Syncing contracts of IB's exchange listings to a local database
