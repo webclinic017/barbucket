@@ -1,25 +1,23 @@
-# ide stuff
-.idea/
-.ipynb_checkpoints/
-.vscode/settings.json
-.vs/
+# ide
+.vscode/
 
 # pycache
 __pycache__/
 
-# log files
-*.log
-
-# data
-data/*
-*.db
-*.csv
-
-# temp files
-*.html
-
-# ignore os stuff
+# os
 .DS_Store
 
-# Sphinx documentation
+# documentation
 docs/_build/
+
+# mypy
+.mypy_cache/
+
+# packaging
+barbucket.egg-info/
+build/
+dist/
+
+# pytest
+.pytest_cache/
+.coverage

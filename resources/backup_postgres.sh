@@ -1,0 +1,1 @@
+pg_dump -h localhost -p 5432 -U barbucket -f ~/.barbucket/pg_dump_2022-03-24.dump
